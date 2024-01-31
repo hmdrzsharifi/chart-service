@@ -14,6 +14,38 @@ export function parseData(parse) {
 	};
 }
 
+
+
+export function parseEODData(d) {
+	// return function(d) {
+		// d.date = new Date(+d.t);
+		// console.log(d);
+		d.date = new Date(+d.t);
+		d.open = +d.o;
+		d.high = +d.h;
+		d.low = +d.l;
+		d.close = +d.c;
+		d.volume = +d.v;
+
+		return d;
+	// };
+}
+
+export function convertEODData(d) {
+	// return function(d) {
+	// d.date = new Date(+d.t);
+	// console.log(d);
+	d.date = new Date(+d.t);
+	d.open = +d.o;
+	d.high = +d.h;
+	d.low = +d.l;
+	d.close = +d.c;
+	d.volume = +d.v;
+
+	return d;
+	// };
+}
+
 const parseDate = timeParse("%Y-%m-%d");
 
 export function getData() {
@@ -39,7 +71,7 @@ export function getWebsocketData() {
 		tsvParse(message, parseData(parseDate))
 	}*/
 
-	/*const ws = new WebSocket('ws://172.31.13.34:8080/websocket')
+	const ws = new WebSocket('ws://localhost:8001')
 
 	ws.onerror = (event) => {
 		console.log('error ' + event.message)
@@ -54,5 +86,5 @@ export function getWebsocketData() {
 	ws.onmessage = (message) => {
 		console.log(`message received ${message.data}`)
 		// tsvParse(message, parseWSData(parseDate))
-	}*/
+	}
 }

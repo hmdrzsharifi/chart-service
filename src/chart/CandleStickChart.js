@@ -20,11 +20,11 @@ class CandleStickChart extends React.Component {
 
 
         const xExtents = [
-            xAccessor(last(data)),
+           /* xAccessor(last(data)),
             // xAccessor(data[data.length - 3])
-            xAccessor(data[0])
-            /*new Date("2010-01-01T20:30:00.000Z"),
-            new Date("2010-02-12T20:30:00.000Z")*/
+            xAccessor(data[0])*/
+            new Date("2024-01-01T20:30:00.000Z"),
+            new Date("2024-01-30T20:30:00.000Z")
         ];
 
         return (
@@ -38,8 +38,8 @@ class CandleStickChart extends React.Component {
                          xAccessor={xAccessor}
                          xScale={scaleTime()}
                          xExtents={xExtents}
-                // xScale={xScale}
-
+                         // yAccessor={yAccessor}
+                        yScale={scaleTime()}
                          mouseMoveEvent={true}
                          panEvent={true}
                          zoomEvent={true}

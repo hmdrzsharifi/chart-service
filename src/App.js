@@ -1,37 +1,43 @@
 import './App.css';
 import CandleStickChart from './chart/CandleStickChart';
-import {getData} from "./util/utils"
+import {getData, getWebsocketData, parseData, parseEODData} from "./util/utils"
 import React, {useEffect, useState} from 'react';
 import {TypeChooser} from "react-stockcharts/lib/helper";
+import {timeFormat, timeParse} from "d3-time-format";
 
+
+const WS_URL = 'ws://192.168.95.128:8002';
+// const parseDate = timeParse("%Y-%m-%d");
+const parseDate = timeParse("%s");
+const dateFormatter = timeFormat("%Y-%m-%d %H:%M:%S");
 
 function App() {
-
+    let objectsArray = [];
     const [data, setData] = useState([{
-        "date": new Date("2010-01-01T20:30:00.000Z"),
-        "open": 25.436282332605284,
-        "high": 25.835021381744056,
-        "low": 25.411360259406774,
-        "close": 25.710416,
-        "volume": 38409100,
+        "date": new Date(1705841797000),
+        "open": 41707.43466188,
+        "high": 41707.61456186,
+        "low": 41705.42745523,
+        "close": 41707.6104254,
+        "volume": 17.31974415999999,
         "split": "",
         "dividend": "",
         "absoluteChange": "",
         "percentChange": ""
     }, {
-        "date": new Date("2010-01-02T20:30:00.000Z"),
-        "open": 25.627344939513726,
-        "high": 25.83502196495549,
-        "low": 25.452895407434543,
-        "close": 25.718722,
-        "volume": 49749600,
+        "date": new Date(1705928197000),
+        "open": 41707.6069605,
+        "high": 41710.92123529,
+        "low": 41707.60412071,
+        "close": 41710.91156571,
+        "volume":13.326220460000009,
         "split": "",
         "dividend": "",
         "absoluteChange": "",
         "percentChange": ""
-    },
+    }/*,
         {
-            "date": new Date("2010-01-03T20:30:00.000Z"),
+            "date": new Date("2024-01-20T20:30:00.000Z"),
             "open": 25.65226505944465,
             "high": 25.81840750861228,
             "low": 25.353210976925574,
@@ -41,11 +47,92 @@ function App() {
             "dividend": "",
             "absoluteChange": "",
             "percentChange": ""
-        }]);
+        }*/]);
 
-    let objectsArray = [];
+
 
     useEffect(() => {
+        const socket = new WebSocket(WS_URL);
+        socket.onopen = () => {
+            console.log('WebSocket connection opened');
+            // hm.send("Hello");
+        };
+
+        socket.onmessage = (event) => {
+            console.log('Received message: ' , event.data);
+            let originalData = JSON.parse(event.data);
+
+            // Convert timestamp to date string
+            let date = new Date(originalData.t);
+            // Create the target format
+            let convertedData = {
+                "date": date,
+                "open": parseFloat(originalData.o),
+                "high": parseFloat(originalData.h),
+                "low": parseFloat(originalData.l),
+                "close": parseFloat(originalData.c),
+                "volume": parseFloat(originalData.v),
+                "split": "",
+                "dividend": "",
+                "absoluteChange": "",
+                "percentChange": ""
+            };
+
+            objectsArray.push(convertedData);
+            // let date = new Date(parsedData.t);
+            // let candle = parseEODData(parsedData);
+
+            // console.log('Received message: ' , JSON.parse(event.data, parseEODData(parseDate)))
+            // console.log('Received message: ' , parseEODData(parsedData))
+            console.log('Candle: ' ,convertedData)
+
+            /*objectsArray = objectsArray.concat([{
+                "date": new Date("2010-01-01T20:30:00.000Z"),
+                "open": 25.436282332605284,
+                "high": 25.835021381744056,
+                "low": 25.411360259406774,
+                "close": 25.710416,
+                "volume": 38409100,
+                "split": "",
+                "dividend": "",
+                "absoluteChange": "",
+                "percentChange": ""
+            }, {
+                "date": new Date("2010-01-02T20:30:00.000Z"),
+                "open": 25.627344939513726,
+                "high": 25.83502196495549,
+                "low": 25.452895407434543,
+                "close": 25.718722,
+                "volume": 49749600,
+                "split": "",
+                "dividend": "",
+                "absoluteChange": "",
+                "percentChange": ""
+            }]);*/
+            // objectsArray = objectsArray.concat(convertedData)
+            // console.log(objectsArray)
+            setData([...data, ...objectsArray])
+        }
+
+        socket.onerror = (error) => {
+            console.log('message error');
+        }
+
+        socket.onerror = () => {
+            console.log('connection closed');
+        }
+    }, []);
+
+    useEffect(() => {
+        console.log('data: ', data)
+    }, [data]);
+
+
+
+
+
+/*    useEffect(() => {
+        // getWebsocketData()
         getData().then(data => {
             // setData(data))
         })
@@ -120,42 +207,9 @@ function App() {
                     "percentChange": ""
                 }])
             setData(objectsArray);
-        }, 500);
-    }, []);
+        }, 10000);
+    }, []);*/
 
-
-    /* useEffect(() => {
-         // Create a new WebSocket instance
-         // const newSocket = new WebSocket('wss://socketsbay.com/wss/v2/1/demo/');
-         const newSocket = new WebSocket('ws://172.31.13.33:3001');
-
-         console.log(newSocket)
-         // Set up event listeners
-         newSocket.onopen = () => {
-             console.log('WebSocket connection opened');
-         };
-
-         newSocket.onerror = (e) => {
-             console.log('WebSocket connection error ', e);
-         };
-
-         newSocket.onmessage = (event) => {
-             console.log('Received message:', event.data);
-
-             setData(parseData(event.data));
-         };
-
-         newSocket.onclose = () => {
-             console.log('WebSocket connection closed');
-         };
-
-         // Save the socket instance to state
-         setSocket(newSocket);
-         return () => {
-             newSocket.close();
-         };
-     }, []);
- */
 
     return (
         <div>
