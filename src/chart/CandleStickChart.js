@@ -14,21 +14,19 @@ import {last, timeIntervalBarWidth} from "react-stockcharts/lib/utils";
 class CandleStickChart extends React.Component {
 
     render() {
-        const {type, width, data, ratio} = this.props;
-        console.log(data);
+        const {type, width, height, data, ratio} = this.props;
         const xAccessor = d => d.date;
 
-
         const xExtents = [
-           /* xAccessor(last(data)),
+            xAccessor(last(data)),
+            xAccessor(data[0])
             // xAccessor(data[data.length - 3])
-            xAccessor(data[0])*/
-            new Date("2024-01-01T20:30:00.000Z"),
-            new Date("2024-01-30T20:30:00.000Z")
+            /*   new Date("2024-01-01T20:30:00.000Z"),
+               new Date("2024-01-04T20:30:00.000Z")*/
         ];
 
         return (
-            <ChartCanvas height={400}
+            <ChartCanvas height={height}
                          ratio={ratio}
                          width={width}
                          margin={{left: 50, right: 50, top: 10, bottom: 30}}
@@ -38,17 +36,15 @@ class CandleStickChart extends React.Component {
                          xAccessor={xAccessor}
                          xScale={scaleTime()}
                          xExtents={xExtents}
-                         // yAccessor={yAccessor}
-                        yScale={scaleTime()}
+                         yScale={scaleTime()}
                          mouseMoveEvent={true}
                          panEvent={true}
                          zoomEvent={true}
-                         clamp={false}
-            >
+                         clamp={false}>
 
                 <Chart id={1} yExtents={d => [d.high, d.low]} className="dark">
                     <XAxis axisAt="bottom" orient="bottom" ticks={6} tickStroke="#FFFFFF"/>
-                    <YAxis axisAt="left" orient="left" ticks={5} tickStroke="#FFFFFF"/>
+                    <YAxis axisAt="right" orient="right" ticks={5} tickStroke="#FFFFFF"/>
                     <CandlestickSeries width={timeIntervalBarWidth(utcDay)}
                                        fill={d => d.close > d.open ? "#547863" : "#a30f0f"}
                                        stroke={d => d.close > d.open ? "#6BA583" : "#DB0000"}

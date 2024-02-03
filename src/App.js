@@ -1,20 +1,18 @@
 import './App.css';
-import CandleStickChart from './chart/CandleStickChart';
-import {getData, getWebsocketData, parseData, parseEODData} from "./util/utils"
 import React, {useEffect, useState} from 'react';
+import CandleStickChart from './chart/CandleStickChart';
 import {TypeChooser} from "react-stockcharts/lib/helper";
-import {timeFormat, timeParse} from "d3-time-format";
-
+import {getData, getWebsocketData} from "./util/utils"
+import Toolbar from "./layout/toolbar";
+import Footer from "./layout/footer";
+import Sidebar from "./layout/sidebar";
 
 const WS_URL = 'ws://192.168.95.128:8002';
-// const parseDate = timeParse("%Y-%m-%d");
-const parseDate = timeParse("%s");
-const dateFormatter = timeFormat("%Y-%m-%d %H:%M:%S");
 
 function App() {
     let objectsArray = [];
     const [data, setData] = useState([{
-        "date": new Date(1705841797000),
+        "date": new Date("2024-01-18T20:30:00.000Z"),
         "open": 41707.43466188,
         "high": 41707.61456186,
         "low": 41705.42745523,
@@ -25,7 +23,7 @@ function App() {
         "absoluteChange": "",
         "percentChange": ""
     }, {
-        "date": new Date(1705928197000),
+        "date": new Date("2024-01-19T20:30:00.000Z"),
         "open": 41707.6069605,
         "high": 41710.92123529,
         "low": 41707.60412071,
@@ -35,7 +33,7 @@ function App() {
         "dividend": "",
         "absoluteChange": "",
         "percentChange": ""
-    }/*,
+    },
         {
             "date": new Date("2024-01-20T20:30:00.000Z"),
             "open": 25.65226505944465,
@@ -47,8 +45,7 @@ function App() {
             "dividend": "",
             "absoluteChange": "",
             "percentChange": ""
-        }*/]);
-
+        }]);
 
 
     useEffect(() => {
@@ -127,11 +124,7 @@ function App() {
         console.log('data: ', data)
     }, [data]);
 
-
-
-
-
-/*    useEffect(() => {
+    useEffect(() => {
         // getWebsocketData()
         getData().then(data => {
             // setData(data))
@@ -207,15 +200,21 @@ function App() {
                     "percentChange": ""
                 }])
             setData(objectsArray);
-        }, 10000);
-    }, []);*/
-
+        }, 5000);
+    }, []);
 
     return (
-        <div>
-            {data ? <TypeChooser>
-                {type => <CandleStickChart type={type} data={data}/>}
-            </TypeChooser> : <div>Loading...</div>}
+        <div className="app-container">
+            <Toolbar/>
+            <div className="chart-container">
+                <Sidebar/>
+                <div className="chart" style={{width: '100%'}}>
+                    {data ? <TypeChooser>
+                        {type => <CandleStickChart type={type} height={600} data={data}/>}
+                    </TypeChooser> : <div>Loading...</div>}
+                </div>
+            </div>
+            <Footer/>
         </div>
     );
 };
