@@ -2,7 +2,7 @@ import React from 'react';
 
 const Toolbar = () => {
     return (
-        <div class="toolbar">
+        <div className="toolbar">
         </div>
     )
 }
