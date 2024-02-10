@@ -1,29 +1,24 @@
 {
-  "name": "chart-service-js",
+  "name": "chart-service",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
-    "@mui/material": "^5.15.7",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "d3-dsv": "^1.0.8",
-    "d3-format": "^1.2.1",
-    "d3-scale": "^1.0.7",
-    "d3-time-format": "^2.1.1",
-    "prop-types": "^15.6.0",
+    "@types/d3-format": "^3.0.4",
+    "@types/d3-time-format": "^3.0.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.71",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "d3-dsv": "^3.0.1",
     "react": "^18.2.0",
-    "react-bootstrap": "^0.31.5",
     "react-dom": "^18.2.0",
+    "react-financial-charts": "^2.0.1",
     "react-scripts": "5.0.1",
-    "react-stockcharts": "^0.7.8",
-    "shortid": "^2.2.8",
+    "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
-  },
-  "devDependencies": {
-    "react-scripts": "^1.0.17"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -48,5 +43,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/d3-dsv": "^3.0.7"
   }
 }
