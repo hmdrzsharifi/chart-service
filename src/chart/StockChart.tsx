@@ -34,6 +34,7 @@ interface StockChartProps {
     readonly dateTimeFormat?: string;
     readonly width: number;
     readonly ratio: number;
+    readonly theme?: any;
 }
 
 const mouseEdgeAppearance = {
@@ -61,7 +62,7 @@ class StockChart extends React.Component<StockChartProps> {
     }
 
     public render() {
-        const { data: initialData, dateTimeFormat = "%d %b", height, ratio, width } = this.props;
+        const { data: initialData, dateTimeFormat = "%d %b", height, ratio, width, theme } = this.props;
 
         const ema12 = ema()
             .id(1)
@@ -103,6 +104,12 @@ class StockChart extends React.Component<StockChartProps> {
 
         const timeDisplayFormat = timeFormat(dateTimeFormat);
 
+        const xAndYColors = {
+            tickLabelFill: theme.palette.mode === 'dark' ? '#fff' : '#000',
+            tickStrokeStyle: theme.palette.mode === 'dark' ? '#fff' : '#000',
+            strokeStyle: theme.palette.mode === 'dark' ? '#fff' : '#000'
+        }
+
         return (
             <ChartCanvas
                 height={height}
@@ -118,11 +125,13 @@ class StockChart extends React.Component<StockChartProps> {
                 zoomAnchor={lastVisibleItemBasedZoomAnchor}
             >
                 <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={this.barChartExtents}>
+                    <XAxis {...xAndYColors} />
+                    <YAxis {...xAndYColors} />
                     <BarSeries fillStyle={this.volumeColor} yAccessor={this.volumeSeries} />
                 </Chart>
                 <Chart id={3} height={chartHeight} yExtents={this.candleChartExtents}>
-                    <XAxis showGridLines showTicks={false} showTickLabel={false} />
-                    <YAxis showGridLines tickFormat={this.pricesDisplayFormat} />
+                    <XAxis showGridLines showTicks={false} showTickLabel={false} {...xAndYColors} />
+                    <YAxis showGridLines tickFormat={this.pricesDisplayFormat} {...xAndYColors} />
                     <CandlestickSeries />
                  {/*   <CandlestickSeries
 
@@ -180,8 +189,8 @@ class StockChart extends React.Component<StockChartProps> {
                     origin={elderRayOrigin}
                     padding={{ top: 8, bottom: 8 }}
                 >
-                    <XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" />
-                    <YAxis ticks={4} tickFormat={this.pricesDisplayFormat} />
+                    <XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>
+                    <YAxis ticks={4} tickFormat={this.pricesDisplayFormat} {...xAndYColors}/>
 
                     <MouseCoordinateX displayFormat={timeDisplayFormat} />
                     <MouseCoordinateY rectWidth={margin.right} displayFormat={this.pricesDisplayFormat} />

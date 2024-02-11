@@ -3,6 +3,7 @@ html, body {
   width: 100%;
   padding: 0;
   margin: 0;
+  transition: background-color 0.5s;
 }
 
 #root {
@@ -16,12 +17,12 @@ html, body {
 
 .toolbar {
   height: 40px;
-  background-color: #6d64ec;
+  transition: background-color 0.5s;
 }
 
 .sidebar {
   width: 40px;
-  background: #ff0000;
+  transition: background-color 0.5s;
 }
 
 .chart-container {
@@ -31,7 +32,7 @@ html, body {
 
 .footer {
   height: 30px;
-  background-color: #be5353;
+  transition: background-color 0.5s;
 }
 
 
@@ -73,4 +74,29 @@ html, body {
   to {
     transform: rotate(360deg);
   }
+}
+
+.toolbar-select .MuiSelect-select {
+  padding: 2px 5px;
+}
+
+.toolbar-select fieldset {
+  border: 0;
+}
+
+.toolbar-select svg {
+  display: none;
+}
+
+.change-theme-switch svg {
+  background: black;
+  border-radius: 20px;
+}
+
+.change-theme-switch-checked svg {
+  background: #fff;
+}
+
+.change-theme-switch .MuiButtonBase-root {
+  padding: 7px;
 }

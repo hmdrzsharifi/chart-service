@@ -1,8 +1,8 @@
 import React from 'react';
 
-const Footer = () => {
+const Footer = (props: any) => {
     return (
-        <div className="footer">
+        <div className="footer" style={props.style}>
         </div>
     )
 }

@@ -1,12 +1,14 @@
 import React from 'react';
 import './App.css';
-import StockChart from "./chart/StockChart";
+import StockChart, {MinutesStockChart, SecondsStockChart} from "./chart/StockChart";
 
 // import {fetchCandleData, getWebsocketData} from "./util/utils"
 import Toolbar from "./layout/toolbar";
 import Footer from "./layout/footer";
 import Sidebar from "./layout/sidebar";
 import {WEBSOCKET_ADDRESS} from "./config/constants";
+import { createTheme, CssBaseline, PaletteMode, ThemeProvider } from '@mui/material';
+import useStore from "./util/store";
 
 
 function App() {
@@ -127,17 +129,59 @@ function App() {
     }
   };
   */
+
+    const { themeMode, durationData } = useStore();
+
+    const theme = createTheme({
+        palette: {
+            mode: themeMode,
+        },
+    });
+
+    const duration = () => {
+        switch (durationData) {
+            case "MINUTES":
+                return <MinutesStockChart theme={theme} />
+
+            case "SECONDS":
+                return <SecondsStockChart theme={theme} />
+
+            default:
+                return <StockChart theme={theme} />
+        }
+    }
+
+    const backGroundColor = {
+        background: theme.palette.mode === 'dark' ? '#0080e7' : '#90caf9',
+        borderColor: theme.palette.mode === 'dark' ? '#90caf9' : '#0080e7',
+    }
+
+
   return (
+      <>
+      <ThemeProvider theme={theme}>
+          <CssBaseline />
       <div className="app-container">
-        <Toolbar/>
+        <Toolbar style={{
+                borderBottom: 'solid 3px',
+                ...backGroundColor
+            }} />
         <div className="chart-container">
-          <Sidebar/>
+          <Sidebar style={{
+              borderRight: 'solid 1px',
+              ...backGroundColor
+          }} />
           <div className="chart" style={{width: '100%'}}>
-            <StockChart />
+              {duration()}
           </div>
         </div>
-        <Footer/>
+        <Footer style={{
+            borderTop: 'solid 3px',
+            ...backGroundColor
+        }} />
       </div>
+      </ThemeProvider>
+    </>
   );
 }
 
