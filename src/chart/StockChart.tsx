@@ -1,32 +1,31 @@
-import { format } from "d3-format";
-import { timeFormat } from "d3-time-format";
+import {format} from "d3-format";
+import {timeFormat} from "d3-time-format";
 import * as React from "react";
 import {
-    elderRay,
-    ema,
-    discontinuousTimeScaleProviderBuilder,
-    Chart,
-    ChartCanvas,
-    CurrentCoordinate,
     BarSeries,
     CandlestickSeries,
+    Chart,
+    ChartCanvas,
+    CrossHairCursor,
+    CurrentCoordinate,
+    discontinuousTimeScaleProviderBuilder,
+    EdgeIndicator,
+    elderRay,
     ElderRaySeries,
+    ema,
+    lastVisibleItemBasedZoomAnchor,
     LineSeries,
+    MouseCoordinateX,
+    MouseCoordinateY,
     MovingAverageTooltip,
     OHLCTooltip,
     SingleValueTooltip,
-    lastVisibleItemBasedZoomAnchor,
     XAxis,
     YAxis,
-    CrossHairCursor,
-    EdgeIndicator,
-    MouseCoordinateX,
-    MouseCoordinateY,
     ZoomButtons,
-    withDeviceRatio,
-    withSize,
 } from "react-financial-charts";
-import { IOHLCData, withOHLCData } from "../data";
+import { IOHLCData } from "../data";
+
 
 interface StockChartProps {
     readonly data: IOHLCData[];
@@ -48,13 +47,56 @@ const mouseEdgeAppearance = {
 
 const LENGTH_TO_SHOW = 150;
 
-class StockChart extends React.Component<StockChartProps> {
+export class StockChart extends React.Component<StockChartProps> {
     private readonly margin = { left: 0, right: 48, top: 0, bottom: 24 };
     private readonly pricesDisplayFormat = format(".2f");
     private readonly xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
         (d: IOHLCData) => d.date,
     );
 
+  /*  constructor(props:StockChartProps) {
+        super(props);
+        this.state = {
+            data: [],
+            xScale: null,
+            xAccessor: null,
+            displayXAccessor: null,
+            xExtents: null
+        };
+    }
+
+    componentDidMount() {
+        this.loadData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (
+            prevProps.symbol !== this.props.symbol ||
+            prevProps.timeFrame !== this.props.timeFrame ||
+            prevProps.initialData !== this.props.initialData
+        ) {
+            this.loadData();
+        }
+    }
+
+    loadData() {
+        const { initialData, maxWindowSize, ema12, ema26, smaVolume50 } = this.props;
+        const { xExtents } = this.state;
+        const { linearData, xScale, xAccessor, displayXAccessor } = getChartProps(initialData, maxWindowSize, ema12, ema26, smaVolume50);
+
+        this.setState({ data: [...linearData] });
+
+        if (xExtents == null) {
+            this.setState({
+                xScale,
+                xAccessor,
+                displayXAccessor,
+                xExtents: [xAccessor(linearData[Math.max(0, linearData.length - LENGTH_TO_SHOW)]), xAccessor(linearData[linearData.length - 1])]
+            });
+            console.log("habibi");
+        }
+    }
+*/
     handleReset() {
        /* this.setState({
             suffix: this.state.suffix + 1
@@ -81,6 +123,76 @@ class StockChart extends React.Component<StockChartProps> {
             .accessor((d: any) => d.ema26);
 
 
+        const handleDataLoadAfter = async () => {
+           console.log("My Data After")
+            /*if (this.state.loadingMoreData) {
+                // Exit early if we are already loading data
+                return;
+            }
+
+            this.setState({ loadingMoreData: true });
+
+            try {
+                // Find the earliest date in the current dataset
+                const earliestDate = this.state.data[0].date;
+
+                // Calculate the new start date to fetch from (7 days before the earliest date)
+                const startDate = new Date(earliestDate);
+                startDate.setDate(startDate.getDate() - 7);
+
+                // Format dates to 'YYYY-MM-DD HH:MM:SS' format
+                const fromDateString = startDate.toISOString().slice(0, 19).replace('T', ' ');
+                const toDateString = earliestDate.toISOString().slice(0, 19).replace('T', ' ');
+
+                // Fetch more data
+                const moreData = await fetchCandleData(this.state.symbol,this.state.timeFrame,fromDateString, toDateString);
+
+                // Combine new data with existing data
+                const combinedData = moreData.concat(this.state.data);
+
+                // Update the state with the combined data
+                const { ema26, ema12, macdCalculator, smaVolume50 } = this.state;
+
+                // Recalculate the scale with the new combined data
+                const calculatedData = ema26(ema12(macdCalculator(smaVolume50(combinedData))));
+                const indexCalculator = discontinuousTimeScaleProviderBuilder().indexCalculator();
+
+                // Recalculate the index with the newly combined data
+                const { index } = indexCalculator(calculatedData);
+                const xScaleProvider = discontinuousTimeScaleProviderBuilder().withIndex(index);
+                const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
+
+                // Update the state with the new data and the recalculated scale
+                this.setState({
+                    data: linearData, // This is the combined data with the recalculated indices
+                    xScale,
+                    xAccessor,
+                    displayXAccessor,
+                    loadingMoreData: false,
+                }, () => {
+                    // After the state has been updated, adjust the xScale domain to create a buffer
+                    const { xScale, xAccessor, data } = this.state;
+                    this.props.onUpdateData(this.state.data);
+                    const totalPoints = data.length;
+                    const bufferPoints = 5; // Number of points to leave as a buffer to the right
+                    const startPoint = xAccessor(data[Math.max(0, totalPoints - bufferPoints)]);
+                    const endPoint = xAccessor(data[totalPoints - 1]);
+
+                    // Set the visible scale domain to show data up to the buffer
+                    xScale.domain([startPoint, endPoint]);
+
+                    // Force update to re-render the chart with the new domain
+                    this.forceUpdate();
+                });
+            } catch (error) {
+                console.error('Error fetching more candle data:', error);
+                this.setState({ loadingMoreData: false });
+            }*/
+        };
+
+        const handleDataLoadBefore = async () => {
+            console.log("My Data Before")
+        };
 
         const elder = elderRay();
 
@@ -123,6 +235,8 @@ class StockChart extends React.Component<StockChartProps> {
                 xAccessor={xAccessor}
                 xExtents={xExtents}
                 zoomAnchor={lastVisibleItemBasedZoomAnchor}
+                onLoadAfter={handleDataLoadAfter}
+                onLoadBefore={handleDataLoadBefore}
             >
                 <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={this.barChartExtents}>
                     <XAxis {...xAndYColors} />
@@ -240,8 +354,9 @@ class StockChart extends React.Component<StockChartProps> {
     };
 }
 
-export default withOHLCData()(withSize({ style: { minHeight: 500 } })(withDeviceRatio()(StockChart)));
+// export default withOHLCData()(withSize({ style: { minHeight: 500 } })(withDeviceRatio()(StockChart)));
 
+/*
 export const MinutesStockChart = withOHLCData("MINUTES")(
     withSize({ style: { minHeight: 600 } })(withDeviceRatio()(StockChart)),
 );
@@ -249,3 +364,4 @@ export const MinutesStockChart = withOHLCData("MINUTES")(
 export const SecondsStockChart = withOHLCData("SECONDS")(
     withSize({ style: { minHeight: 600 } })(withDeviceRatio()(StockChart)),
 );
+*/
