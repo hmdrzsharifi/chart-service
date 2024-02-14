@@ -155,8 +155,6 @@ export const StockChart = (props: StockChartProps) => {
 
     const calculatedData = elder(ema26(ema12(initialData)));
 
-    // const { margin, xScaleProvider } = this;
-
     const {data, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData);
 
     const max = xAccessor(data[data.length - 1]);
@@ -190,7 +188,7 @@ export const StockChart = (props: StockChartProps) => {
             seriesName="Data"
             xScale={xScale}
             xAccessor={xAccessor}
-            xExtents={xExtents}
+            // xExtents={xExtents}
             zoomAnchor={lastVisibleItemBasedZoomAnchor}
             onLoadAfter={handleDataLoadAfter}
             onLoadBefore={handleDataLoadBefore}

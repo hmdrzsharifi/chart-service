@@ -7,7 +7,7 @@ import Toolbar from "./layout/toolbar";
 import Footer from "./layout/footer";
 import Sidebar from "./layout/sidebar";
 import {WEBSOCKET_ADDRESS} from "./config/constants";
-import { createTheme, CssBaseline, PaletteMode, ThemeProvider } from '@mui/material';
+import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import useStore from "./util/store";
 import {fetchCandleData} from "./util/utils";
 
@@ -17,11 +17,11 @@ function App() {
  const [data, setData] = useState<any>([]);
 
   useEffect(() => {
-    // connectWebSocket();
+    connectWebSocket();
     fetchInitialData();
   }, []); // Only on mount and unmount
 
-      const connectWebSocket = () => {
+      const connectWebSocket = async () => {
         /*  ws.current = new WebSocket(WS_URL);
           ws.current.onopen = () => {
               console.log("WebSocket connected");
@@ -159,6 +159,10 @@ function App() {
         borderColor: theme.palette.mode === 'dark' ? '#90caf9' : '#0080e7',
     }
 
+
+    if (data == null) {
+        return <div>Loading...</div>;
+    }
 
   return (
       <>
