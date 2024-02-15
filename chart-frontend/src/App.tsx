@@ -16,10 +16,13 @@ function App() {
 
  const [data, setData] = useState<any>([]);
 
-  useEffect(() => {
-    connectWebSocket();
-    fetchInitialData();
-  }, []); // Only on mount and unmount
+    const { themeMode, symbol } = useStore();
+    const [socket, setSocket] = useState(new WebSocket(WEBSOCKET_ADDRESS))
+
+    useEffect(() => {
+        connectWebSocket();
+        fetchInitialData();
+    }, [symbol]); // Only on mount and unmount
 
       const connectWebSocket = async () => {
         /*  ws.current = new WebSocket(WS_URL);
@@ -37,7 +40,7 @@ function App() {
               console.log('WebSocket Disconnected');
           };*/
 
-        const socket = new WebSocket(WEBSOCKET_ADDRESS);
+        // const socket = new WebSocket(WEBSOCKET_ADDRESS);
         socket.onopen = () => {
           console.log('WebSocket connection opened');
           // socket.send("subscribe:" + symbol);
@@ -123,7 +126,7 @@ function App() {
 
         try {
           // const candleData = await fetchCandleData(symbol, timeFrame, fromDateString, toDateString);
-          const candleData = await fetchCandleData("BTC-USD.CC", "d", "2023-08-20", "2024-02-03");
+          const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
           console.log(candleData)
 
           setData(candleData)
@@ -132,27 +135,12 @@ function App() {
         }
       };
 
-    const { themeMode, durationData } = useStore();
 
     const theme = createTheme({
         palette: {
             mode: themeMode,
         },
     });
-
-
-    const duration = () => {
-        switch (durationData) {
-          /*  case "MINUTES":
-                return <MinutesStockChart theme={theme} />
-
-            case "SECONDS":
-                return <SecondsStockChart theme={theme} />*/
-
-            default:
-                return <StockChart data={data} theme={theme}  height={window.innerHeight-100} ratio={3} width={window.innerWidth-45}/>
-        }
-    }
 
     const backGroundColor = {
         background: theme.palette.mode === 'dark' ? '#0080e7' : '#90caf9',
@@ -179,7 +167,7 @@ function App() {
               ...backGroundColor
           }} />
           <div className="chart" style={{width: '100%'}}>
-              {duration()}
+              <StockChart data={data} theme={theme}  height={window.innerHeight-100} ratio={3} width={window.innerWidth-45}/>
           </div>
         </div>
         <Footer style={{

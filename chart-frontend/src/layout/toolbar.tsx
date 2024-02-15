@@ -9,7 +9,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 
 const Toolbar = (props: any) => {
 
-    const { durationData, setDurationData, themeMode, setThemeMode } = useStore();
+    const { setSymbol, themeMode, setThemeMode } = useStore();
 
     return (
         <div className="toolbar" style={props.style}>
@@ -22,14 +22,13 @@ const Toolbar = (props: any) => {
 
             <Select
                 labelId="demo-select-small-label"
-                defaultValue='DAILY'
+                defaultValue='btc'
                 classes={{root: 'toolbar-select'}}
                 // @ts-ignore
-                onChange={(event) => setDurationData(event?.target?.value)}
+                onChange={(event) => setSymbol(event?.target?.value)}
             >
-                <MenuItem value='DAILY'>daily</MenuItem>
-                <MenuItem value='MINUTES'>minutes</MenuItem>
-                <MenuItem value='SECONDS'>seconds</MenuItem>
+                <MenuItem value='btc'>Bitcoin</MenuItem>
+                <MenuItem value='ttr'>Tether</MenuItem>
             </Select>
         </div>
     )
