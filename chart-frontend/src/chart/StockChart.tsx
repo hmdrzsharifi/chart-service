@@ -25,7 +25,7 @@ import {
     ZoomButtons,
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 
 interface StockChartProps {
@@ -56,6 +56,7 @@ export const StockChart = (props: StockChartProps) => {
     );
 
     const [fixedPosition, setFixedPosition] = useState(false)
+    const [xExtents, setXExtents] = useState([0, 0])
 
     function handleReset() {
         setFixedPosition(false);
@@ -81,11 +82,12 @@ export const StockChart = (props: StockChartProps) => {
         .accessor((d: any) => d.ema26);
 
 
-    const handleDataLoadAfter = async () => {
+    const handleDataLoadAfter = async (e:any) => {
         setFixedPosition(true);
     };
 
-    const handleDataLoadBefore = async () => {
+    const handleDataLoadBefore = async (e:any) => {
+        setXExtents([e, e + LENGTH_TO_SHOW])
         setFixedPosition(true);
     };
 
@@ -97,11 +99,12 @@ export const StockChart = (props: StockChartProps) => {
 
     const max = xAccessor(data[data.length - 1]);
     const min = xAccessor(data[Math.max(0, data.length - LENGTH_TO_SHOW)]);
-    let xExtents
 
-    if(!fixedPosition) {
-        xExtents = [min, max + 10];
-    }
+    useEffect(() => {
+        if(!fixedPosition) {
+            setXExtents([min, max + 10])
+        }
+    },[props, fixedPosition])
 
     const gridHeight = height - margin.top - margin.bottom;
 
@@ -134,6 +137,10 @@ export const StockChart = (props: StockChartProps) => {
             zoomAnchor={lastVisibleItemBasedZoomAnchor}
             onLoadAfter={handleDataLoadAfter}
             onLoadBefore={handleDataLoadBefore}
+            postCalculator={(item) => {
+                console.log(item)
+                return item
+            }}
         >
             <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={barChartExtents}>
                 <XAxis {...xAndYColors} />
