@@ -25,6 +25,7 @@ import {
     ZoomButtons,
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
+import {useEffect, useState} from "react";
 
 
 interface StockChartProps {
@@ -54,10 +55,11 @@ export const StockChart = (props: StockChartProps) => {
         (d: IOHLCData) => d.date,
     );
 
+    const [fixedPosition, setFixedPosition] = useState(false)
+    const [xExtents, setXExtents] = useState([0, 0])
+
     function handleReset() {
-        /* this.setState({
-             suffix: this.state.suffix + 1
-         });*/
+        setFixedPosition(false);
     }
 
 
@@ -80,7 +82,8 @@ export const StockChart = (props: StockChartProps) => {
         .accessor((d: any) => d.ema26);
 
 
-    const handleDataLoadAfter = async () => {
+    const handleDataLoadAfter = async (e:any) => {
+        setFixedPosition(true);
         console.log("My Data After")
         /*if (this.state.loadingMoreData) {
             // Exit early if we are already loading data
@@ -147,7 +150,9 @@ export const StockChart = (props: StockChartProps) => {
         }*/
     };
 
-    const handleDataLoadBefore = async () => {
+    const handleDataLoadBefore = async (e:any) => {
+        setXExtents([e, e + LENGTH_TO_SHOW])
+        setFixedPosition(true);
         console.log("My Data Before")
     };
 
@@ -157,9 +162,13 @@ export const StockChart = (props: StockChartProps) => {
 
     const {data, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData);
 
-    const max = xAccessor(data[data.length - 1]);
-    const min = xAccessor(data[Math.max(0, data.length - LENGTH_TO_SHOW)]);
-    const xExtents = [min, max + 10];
+    useEffect(() => {
+        if(!fixedPosition) {
+            const max = xAccessor(data[data.length - 1]);
+            const min = xAccessor(data[Math.max(0, data.length - LENGTH_TO_SHOW)]);
+            setXExtents([min, max + 10])
+        }
+    },[props, fixedPosition])
 
     const gridHeight = height - margin.top - margin.bottom;
 
@@ -188,10 +197,14 @@ export const StockChart = (props: StockChartProps) => {
             seriesName="Data"
             xScale={xScale}
             xAccessor={xAccessor}
-            // xExtents={xExtents}
+            xExtents={xExtents}
             zoomAnchor={lastVisibleItemBasedZoomAnchor}
             onLoadAfter={handleDataLoadAfter}
             onLoadBefore={handleDataLoadBefore}
+            postCalculator={(item) => {
+                console.log(item)
+                return item
+            }}
         >
             <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={barChartExtents}>
                 <XAxis {...xAndYColors} />
