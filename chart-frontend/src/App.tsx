@@ -126,6 +126,7 @@ function App() {
 
         try {
           // const candleData = await fetchCandleData(symbol, timeFrame, fromDateString, toDateString);
+          // const candleData = await fetchCandleData(symbol, "d", new Date(new Date().setDate(new Date().getDate() - 150)).toLocaleDateString("sv-SE"), new Date().toLocaleDateString("sv-SE"));
           const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
           console.log(candleData)
 
