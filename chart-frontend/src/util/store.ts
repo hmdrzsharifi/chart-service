@@ -5,8 +5,8 @@ type Store = {
     themeMode: 'dark' | 'light';
     setThemeMode: (mode: 'dark' | 'light') => void
     setDurationData: (duration: 'DAILY' | 'MINUTES' | 'SECONDS') => void
-    symbol: 'BTC-USD' | 'ttr'
-    setSymbol: (symbol: 'BTC-USD' | 'ttr') => void
+    symbol: 'BTC-USD.CC' | 'ttr'
+    setSymbol: (symbol: 'BTC-USD.CC' | 'ttr') => void
 };
 
 const useStore = create<Store>((set) => ({
@@ -14,8 +14,8 @@ const useStore = create<Store>((set) => ({
     setThemeMode: (mode: 'dark' | 'light') => set((state) => ({ themeMode: mode })),
     durationData: 'DAILY',
     setDurationData: (duration: 'DAILY' | 'MINUTES' | 'SECONDS') => set((state) => ({ durationData: duration })),
-    symbol: 'BTC-USD',
-    setSymbol: (symbol: 'BTC-USD' | 'ttr') => set((state) => ({ symbol: symbol })),
+    symbol: 'BTC-USD.CC',
+    setSymbol: (symbol: 'BTC-USD.CC' | 'ttr') => set((state) => ({ symbol: symbol })),
 }));
 
 export default useStore;

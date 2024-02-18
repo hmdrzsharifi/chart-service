@@ -34,12 +34,12 @@ const Toolbar = (props: any) => {
 
             <Select
                 labelId="demo-select-small-label"
-                defaultValue='BTC-USD'
+                defaultValue='BTC-USD.CC'
                 classes={{root: 'toolbar-select'}}
                 // @ts-ignore
                 onChange={(event) => setSymbol(event?.target?.value)}
             >
-                <MenuItem value='BTC-USD'>Bitcoin</MenuItem>
+                <MenuItem value='BTC-USD.CC'>Bitcoin</MenuItem>
                 <MenuItem value='ttr'>Tether</MenuItem>
             </Select>
         </div>
