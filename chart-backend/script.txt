@@ -19,3 +19,64 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.stock_prices_1m
     OWNER to postgres;
+
+#######################################################################
+
+CREATE TABLE IF NOT EXISTS raw_trade_data (
+   time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+   symbol text NOT NULL,
+   price double PRECISION NOT NULL,
+   quantity double PRECISION NOT NULL
+);
+
+SELECT create_hypertable('raw_trade_data', 'time');	-- turn it into a hypertable
+
+
+
+CREATE MATERIALIZED VIEW one_day_candle
+WITH (timescaledb.continuous) AS
+    SELECT
+        time_bucket('1 day', time) AS bucket,
+        symbol,
+        FIRST(price, time) AS "open",
+        MAX(price) AS high,
+        MIN(price) AS low,
+        LAST(price, time) AS "close",
+        LAST(day_volume, time) AS day_volume
+    FROM stocks_real_time
+    GROUP BY bucket, symbol;
+
+SELECT add_continuous_aggregate_policy('one_day_candle',
+    start_offset => INTERVAL '3 days',
+    end_offset => INTERVAL '1 day',
+    schedule_interval => INTERVAL '1 day');
+
+SELECT * FROM one_day_candle
+WHERE symbol = 'BTC/USD' AND bucket >= NOW() - INTERVAL '14 days'
+ORDER BY bucket;
+
+#########################
+
+CREATE MATERIALIZED VIEW ohlc_data_minute
+WITH (timescaledb.continuous) AS
+SELECT symbol,
+   time_bucket(INTERVAL '1 minute', time) AS date,
+   FIRST(price, time) as open,
+   MAX(price) as high,
+   MIN(price) as low,
+   LAST(price, time) as close,
+   SUM(quantity) as volume
+FROM raw_trade_data
+GROUP BY symbol, date;
+
+SELECT add_continuous_aggregate_policy('ohlc_data_minute',
+     start_offset => INTERVAL '1 day',
+     end_offset => INTERVAL '1 minute',
+     schedule_interval => INTERVAL '1 minute');
+
+
+SELECT * FROM ohlc_data_minute WHERE symbol='ETHBTC' ORDER BY date desc LIMIT 10;
+
+
+SELECT add_retention_policy('raw_trade_data', INTERVAL '10 days');
+

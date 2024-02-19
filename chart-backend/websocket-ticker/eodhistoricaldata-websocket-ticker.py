@@ -1,7 +1,9 @@
-import time
+import datetime
+import json
+
 import pandas as pd
-from eodhd import WebSocketClient
 import psycopg2
+from eodhd import WebSocketClient
 
 pd.set_option('display.float_format', '{:.8f}'.format)
 
@@ -16,7 +18,13 @@ client = WebSocketClient(
 )
 client.start()
 
-CONNECTION = "postgres://postgres:postgres@adi.dev.modernisc.com:5432/chart"
+# CONNECTION = "postgres://postgres:postgres@adi.dev.modernisc.com:5432/chart"
+# connection = psycopg2.connect(user="postgres",
+#                               password=config("db_pass"),
+#                               host="127.0.0.1",
+#                               port="5432",
+#                               database="postgres")
+CONNECTION = "postgres://tsdbadmin:vkct4kbs8pj8sjn7@xasz2jj42c.ln2wg5nutn.tsdb.cloud.timescale.com:35871/tsdb?sslmode=require"
 conn = psycopg2.connect(CONNECTION)
 cursor = conn.cursor()
 
@@ -24,12 +32,15 @@ try:
     msg = None
     while client.running:
         if msg is not None and client.message != msg:
-            candle_1m = json.loads(client.message)
+            msg = json.loads(client.message)
 
             cursor = conn.cursor()
             try:
-                cursor.execute("INSERT INTO stock_prices_1m (symbol, date, open, high, low, close, volume) VALUES (%s, %s, %s, %s, %s, %s, %s);",
-                               (candle_1m[0], candle_1m[1], candle_1m[2], candle_1m[3], candle_1m[4], candle_1m[5], candle_1m[6]))
+                query = "INSERT INTO raw_trade_data (TIME, SYMBOL, PRICE, QUANTITY)"+ \
+                     " VALUES (%s,%s,%s,%s)"
+                timestamp = datetime.datetime.fromtimestamp(int(msg["t"] / 1000))
+                record_to_insert = (timestamp, msg["s"], msg["p"], msg["q"])
+                cursor.execute(query, record_to_insert)
             except (Exception, psycopg2.Error) as error:
                 print(error.pgerror)
             conn.commit()
@@ -38,3 +49,8 @@ try:
 except KeyboardInterrupt:
     print("\nStopping due to user request.")
     client.stop()
+
+if __name__ == '__main__':
+    SECRET = "62c547eb00d445.30059582"
+    # api = APIClient("62c547eb00d445.30059582")
+    # app.run(host='0.0.0.0', port=5000, debug=True)
