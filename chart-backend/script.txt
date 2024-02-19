@@ -1,0 +1,21 @@
+-- Table: public.stock_prices_1m
+
+-- DROP TABLE IF EXISTS public.stock_prices_1m;
+
+CREATE TABLE IF NOT EXISTS public.stock_prices_1m
+(
+    id integer NOT NULL DEFAULT nextval('stock_prices_1m_id_seq'::regclass),
+    symbol text COLLATE pg_catalog."default",
+    date timestamp without time zone,
+    open numeric,
+    high numeric,
+    low numeric,
+    close numeric,
+    volume numeric,
+    CONSTRAINT stock_prices_1m_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.stock_prices_1m
+    OWNER to postgres;
