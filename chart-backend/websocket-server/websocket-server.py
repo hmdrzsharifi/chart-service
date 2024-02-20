@@ -21,9 +21,9 @@ def handle_disconnect():
 
 
 @socketio.on('message')
-def handle_message(data):
-    print('received message: ' + data)
-    handle_candle_message(data)
+def handle_message(message):
+    print('received message: ' + message)
+    handle_candle_message(message)
 
 
 def handle_candle_message(message):
@@ -34,15 +34,15 @@ def handle_candle_message(message):
         data = cursor.fetchall()
         socketio.send({'server_message': data})
         socketio.emit({'message': data})
+        emit('response', 'response from server: ' + message)
     except (Exception, psycopg2.Error) as error:
         print(error.pgerror)
     conn.close()
 
 
-
 if __name__ == '__main__':
     CONNECTION = "postgres://postgres:postgres@adi.dev.modernisc.com:5432/chart"
-conn = psycopg2.connect(CONNECTION)
-cursor = conn.cursor()
+    conn = psycopg2.connect(CONNECTION)
+    cursor = conn.cursor()
 
-socketio.run(app, host='0.0.0.0', port=8004, debug=False)
+    socketio.run(app, host='0.0.0.0', port=8000, debug=False)
