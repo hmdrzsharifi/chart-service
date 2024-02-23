@@ -10,22 +10,55 @@ import {WEBSOCKET_ADDRESS} from "./config/constants";
 import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import useStore from "./util/store";
 import {fetchCandleData} from "./util/utils";
+import io from 'socket.io-client';
 
 
 function App() {
 
  const [data, setData] = useState<any>([]);
 
-    const { themeMode, symbol } = useStore();
-    const [socket, setSocket] = useState(new WebSocket(WEBSOCKET_ADDRESS))
+    const { themeMode, symbol, durationData } = useStore();
+    // const [socket, setSocket] = useState(new WebSocket(WEBSOCKET_ADDRESS))
+    const [socket, setSocket] = useState();
 
     useEffect(() => {
-        connectWebSocket();
-        fetchInitialData();
-    }, [symbol]); // Only on mount and unmount
+        // Connect to the server
+        const newSocket = io(WEBSOCKET_ADDRESS);
 
-      const connectWebSocket = async () => {
-        /*  ws.current = new WebSocket(WS_URL);
+        // Set up event handlers
+        newSocket.on('connect', () => {
+            console.log('Connected to server');
+            const msg= {
+                symbol: "BTC-USD",
+                timeFrame: "1m"
+            }
+            newSocket.emit('message', msg);
+        });
+
+        newSocket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+
+        newSocket.on('message', (data:any) => {
+            console.log('Received message:', data);
+            handleNewTick(data)
+
+        });
+
+        // Remember to disconnect the socket when the component unmounts
+        return () => {
+            newSocket.disconnect();
+        };
+    }, []);
+
+
+    useEffect(() => {
+        // connectWebSocket();
+        fetchInitialData();
+    }, [symbol, durationData]); // Only on mount and unmount
+
+      /*const connectWebSocket = async () => {
+        /!*  ws.current = new WebSocket(WS_URL);
           ws.current.onopen = () => {
               console.log("WebSocket connected");
               ws.current.send("subscribe:" + symbol);
@@ -38,7 +71,7 @@ function App() {
           };
           ws.current.onclose = () => {
               console.log('WebSocket Disconnected');
-          };*/
+          };*!/
 
         // const socket = new WebSocket(WEBSOCKET_ADDRESS);
         socket.onopen = () => {
@@ -55,7 +88,7 @@ function App() {
           console.log('WebSocket Disconnected');
         };
       };
-
+*/
       const handleNewTick = (message:any) => {
         /*const cleanedMessage = message.replace(/\[|\]/g, '');
         const lastHyphenIndex = cleanedMessage.lastIndexOf("-");
@@ -76,8 +109,9 @@ function App() {
           if (currentTime >= nextCandleStartTime) {
             // Time to start a new candle
             console.log("appending new candle");
-            let originalData = JSON.parse(message);
-
+            console.log("appending new candle", message);
+            // let originalData = JSON.parse(message);
+            let originalData = JSON.parse(message.server_message);
             let date = new Date(originalData.t);
             let newCandle = {
               "date": date,
@@ -126,7 +160,7 @@ function App() {
 
         try {
           // const candleData = await fetchCandleData(symbol, timeFrame, fromDateString, toDateString);
-          const candleData = await fetchCandleData(symbol, "d", new Date(new Date().setDate(new Date().getDate() - 151)).toLocaleDateString("sv-SE"), new Date().toLocaleDateString("sv-SE"));
+          const candleData = await fetchCandleData(symbol, durationData, new Date(new Date().setDate(new Date().getDate() - 151)).toLocaleDateString("sv-SE"), new Date().toLocaleDateString("sv-SE"));
           // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
           console.log(candleData)
 
