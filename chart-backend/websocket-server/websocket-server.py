@@ -1,9 +1,10 @@
-from flask import Flask
-from flask_socketio import SocketIO, emit, send
+import json
 import psycopg2
+from flask import Flask
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 
 def send_candle_1m_to_client(candle_data):
@@ -21,27 +22,57 @@ def handle_disconnect():
 
 
 @socketio.on('message')
-def handle_message(message):
-    print('received message: ' + message)
-    handle_candle_message(message)
+def handle_message(json):
+    symbol = json['symbol']
+    timeframe = json['timeFrame']
+    handle_candle_message(symbol, timeframe)
 
 
-def handle_candle_message(message):
+def handle_candle_message(symbol, timeframe):
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT * FROM chart WHERE symbol = ? AND date = ?",
-                       (message[0], message[1]))
-        data = cursor.fetchall()
-        socketio.send({'server_message': data})
-        socketio.emit({'message': data})
-        emit('response', 'response from server: ' + message)
+        if timeframe == "1m":
+            table_name = "one_minute_candle"
+        if timeframe == "1d":
+            table_name = "one_day_candle"
+
+        query = (f"SELECT symbol, EXTRACT(EPOCH FROM bucket) AS unix_timestamp, open, high, low, close, volume "
+                 f"FROM {table_name} "
+                 f"WHERE symbol = %s "
+                 f"ORDER BY bucket"
+                 f" DESC LIMIT 1")
+        cursor.execute(query, (symbol,))
+
+        last_candle = cursor.fetchone()
+        print("candle data ", last_candle)
+
+        print(last_candle[1])
+        print(last_candle[0])
+        print(last_candle[2])
+        print(last_candle[3])
+        print(last_candle[4])
+        print(last_candle[5])
+        print(last_candle[6])
+
+        result = {
+            "t": last_candle[1],
+            "m": last_candle[0],
+            "o": last_candle[2],
+            "h": last_candle[3],
+            "l": last_candle[4],
+            "c": last_candle[5],
+            "v": last_candle[6]
+        }
+
+        socketio.send({'server_message':  json.dumps(result)})
+        # socketio.emit({'message': last_candle})
     except (Exception, psycopg2.Error) as error:
         print(error.pgerror)
-    conn.close()
+    # conn.close()
 
 
 if __name__ == '__main__':
-    CONNECTION = "postgres://postgres:postgres@adi.dev.modernisc.com:5432/chart"
+    CONNECTION = "postgres://postgres:postgres@localhost:5432/chart"
     conn = psycopg2.connect(CONNECTION)
     cursor = conn.cursor()
 

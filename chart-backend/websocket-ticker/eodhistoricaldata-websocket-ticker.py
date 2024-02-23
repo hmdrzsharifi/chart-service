@@ -24,7 +24,7 @@ client.start()
 #                               host="127.0.0.1",
 #                               port="5432",
 #                               database="postgres")
-CONNECTION = "postgres://tsdbadmin:vkct4kbs8pj8sjn7@xasz2jj42c.ln2wg5nutn.tsdb.cloud.timescale.com:35871/tsdb?sslmode=require"
+CONNECTION = "postgres://postgres:postgres@localhost:5432/chart"
 conn = psycopg2.connect(CONNECTION)
 cursor = conn.cursor()
 
