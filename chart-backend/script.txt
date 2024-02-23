@@ -57,17 +57,17 @@ ORDER BY bucket;
 
 #########################
 
-CREATE MATERIALIZED VIEW ohlc_data_minute
+CREATE MATERIALIZED VIEW one_minute_candle
 WITH (timescaledb.continuous) AS
 SELECT symbol,
-   time_bucket(INTERVAL '1 minute', time) AS date,
+   time_bucket(INTERVAL '1 minute', time) AS bucket,
    FIRST(price, time) as open,
    MAX(price) as high,
    MIN(price) as low,
    LAST(price, time) as close,
    SUM(quantity) as volume
 FROM raw_trade_data
-GROUP BY symbol, date;
+GROUP BY symbol, bucket;
 
 SELECT add_continuous_aggregate_policy('ohlc_data_minute',
      start_offset => INTERVAL '1 day',
@@ -75,7 +75,8 @@ SELECT add_continuous_aggregate_policy('ohlc_data_minute',
      schedule_interval => INTERVAL '1 minute');
 
 
-SELECT * FROM ohlc_data_minute WHERE symbol='ETHBTC' ORDER BY date desc LIMIT 10;
+SELECT * FROM one_minute_candle
+WHERE symbol='BTC-USD' ORDER BY bucket desc LIMIT 10;
 
 
 SELECT add_retention_policy('raw_trade_data', INTERVAL '10 days');

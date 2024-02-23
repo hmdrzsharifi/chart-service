@@ -1,0 +1,7 @@
+Enter PgAdmin on localhost:80. Then add a server with:
+
+name: container-postgresdb
+host: host.docker.internal
+database: postgres
+user: postgres
+password: admin
