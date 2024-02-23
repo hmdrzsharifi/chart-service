@@ -22,13 +22,13 @@ const Toolbar = (props: any) => {
 
             <Select
                 labelId="demo-select-small-label"
-                defaultValue='DAILY'
+                defaultValue='d'
                 classes={{root: 'toolbar-select'}}
                 // @ts-ignore
                 onChange={(event) => setDurationData(event?.target?.value)}
             >
-                <MenuItem value='DAILY'>daily</MenuItem>
-                <MenuItem value='MINUTES'>minutes</MenuItem>
+                <MenuItem value='d'>daily</MenuItem>
+                <MenuItem value='1m'>minutes</MenuItem>
                 <MenuItem value='SECONDS'>seconds</MenuItem>
             </Select>
 
