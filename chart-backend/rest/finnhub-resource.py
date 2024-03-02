@@ -1,30 +1,35 @@
 import finnhub
 import pandas as pd
+from flask import Flask, request
+from flask_cors import CORS
 
-finnhub_client = finnhub.Client(api_key="cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg")
+pd.set_option('display.float_format', '{:.8f}'.format)
 
-# Stock candles
-res = finnhub_client.stock_candles('AAPL', 'D', 1590988249, 1591852249)
-# Convert to JSON
-print('res:  ' , res)
+app = Flask(__name__)
+CORS(app, resources={r'*': {'origins': '*'}})
 
-df = pd.DataFrame(res)
+@app.route('/fetchCandleData', methods=['POST'])
+def fetch_candle_data():
+    request_data = request.json
+    symbol = request_data.get('Ticker')
+    tf = request_data.get('TimeFrame')
+    from_time = request_data.get('from')
+    to_time = request_data.get('to')
 
-json_data = df.to_json(orient='records')
+    finnhub_client = finnhub.Client(api_key="cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg")
 
-print("json_data : " , json_data)
+    # Stock candles
+    res = finnhub_client.stock_candles('AAPL', 'D', 1590988249, 1591852249)
 
-with open('../data3.json' , 'w') as f :
-    f.write(json_data)
-#
-# # Convert each row to JSON
-# json_results = []
-# for row in res:
-#     json_results.append(json.dumps(row))
-#
-# # Print JSON results
-# for json_result in json_results:
-#     print(json_result)
-#
-# #Convert to Pandas Dataframe
-# print(pd.DataFrame(res))
+    df = pd.DataFrame(res)
+
+    # Convert to JSON
+    json_data = df.to_json(orient='records')
+
+    return json_data
+
+
+if __name__ == '__main__':
+    SECRET = "cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg"
+    # api = APIClient("62c547eb00d445.30059582")
+    app.run(host='0.0.0.0', port=5000, debug=True)
