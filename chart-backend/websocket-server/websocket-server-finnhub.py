@@ -1,16 +1,58 @@
 import json
-from flask import Flask
-from flask_socketio import SocketIO, emit
+import threading
+
 import websocket
+from flask import Flask
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+ws_connection = dict()
+ws_connection_lock = threading.Lock()
 
-def send_candle_1m_to_client(candle_data):
-    socketio.emit('candle_1m', candle_data)
+
+def on_message(ws, message):
+    print('Received message from WebSocket:', message)
+    socketio.send({'server_message': json.dumps(message)})
+    # send_candle_1m_to_client(message)
 
 
+def on_error(ws, error):
+    print("Error:", error)
+
+
+def on_close(ws):
+    print("### WebSocket closed ###")
+
+
+def on_open(ws):
+    print("### WebSocket opened ###")
+
+    # Save the WebSocket connection globally
+    global ws_connection
+    with ws_connection_lock:
+        ws_connection = ws
+
+    # Example: Subscribe to some data
+    ws.send('{"type":"subscribe","symbol":"AAPL"}')
+    ws.send('{"type":"subscribe","symbol":"AMZN"}')
+    ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
+
+
+# WebSocket thread
+def websocket_thread():
+    websocket.enableTrace(True)
+    ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg",
+                                on_message=on_message,
+                                on_error=on_error,
+                                on_close=on_close)
+    ws.on_open = on_open
+    # ws_connection  = ws
+    ws.run_forever()
+
+
+# Flask-SocketIO events
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
@@ -22,85 +64,26 @@ def handle_disconnect():
 
 
 @socketio.on('message')
-def handle_message(json):
-    symbol = json['symbol']
-    ws.send('{"type":"subscribe","symbol":{"AAPL"}}')
-    # timeframe = json['timeFrame']
-    # handle_candle_message(symbol, timeframe)
+def handle_message(message):
+    print("hiii")
+    # if ws_connection:
+    global ws_connection
 
-
-# def handle_candle_message(symbol, timeframe):
-
-    # ws.send('{"type":"subscribe","symbol":"AAPL"}')
-
-    # cursor = conn.cursor()
-    # try:
-    #     if timeframe == "1m":
-    #         table_name = "one_minute_candle"
-    #     if timeframe == "1d":
-    #         table_name = "one_day_candle"
-    #
-    #     query = (f"SELECT symbol, EXTRACT(EPOCH FROM bucket) AS unix_timestamp, open, high, low, close, volume "
-    #              f"FROM {table_name} "
-    #              f"WHERE symbol = %s "
-    #              f"ORDER BY bucket"
-    #              f" DESC LIMIT 1")
-    #     cursor.execute(query, (symbol,))
-    #
-    #     last_candle = cursor.fetchone()
-    #     print("candle data ", last_candle)
-    #
-    #     print(last_candle[1])
-    #     print(last_candle[0])
-    #     print(last_candle[2])
-    #     print(last_candle[3])
-    #     print(last_candle[4])
-    #     print(last_candle[5])
-    #     print(last_candle[6])
-    #
-    #     result = {
-    #         "t": last_candle[1],
-    #         "m": last_candle[0],
-    #         "o": last_candle[2],
-    #         "h": last_candle[3],
-    #         "l": last_candle[4],
-    #         "c": last_candle[5],
-    #         "v": last_candle[6]
-    #     }
-    #
-    #     socketio.send({'server_message':  json.dumps(result)})
-    #     # socketio.emit({'message': last_candle})
-    # except (Exception, psycopg2.Error) as error:
-    #     print(error.pgerror)
-
-
-def on_message(ws, message):
-    print(message)
-    socketio.send({'server_message': message})
-
-
-def on_error(ws, error):
-    print(error)
-
-
-def on_close(ws):
-    print("### closed ###")
-
-
-# def on_open(ws):
-#     ws.send('{"type":"subscribe","symbol":"AAPL"}')
-#     ws.send('{"type":"subscribe","symbol":"AMZN"}')
-#     ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
-#     ws.send('{"type":"subscribe","symbol":"IC MARKETS:1"}')
+    print(ws_connection)
+    # Send message to WebSocket if it's connected
+    with ws_connection_lock:
+        if ws_connection:
+            try:
+                ws_connection.send(message)
+            except AttributeError as e:
+                print("AttributeError:", e)
+                print("WebSocket connection is not ready yet.")
 
 
 if __name__ == '__main__':
-    websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg",
-                              on_message = on_message,
-                              on_error = on_error,
-                              on_close = on_close)
-    # ws.on_open = on_open
-    ws.run_forever()
+    # Start WebSocket thread
+    websocket_thread = threading.Thread(target=websocket_thread)
+    websocket_thread.start()
 
-    socketio.run(app, host='0.0.0.0', port=8000, debug=False)
+    # Start Flask-SocketIO app
+    socketio.run(app, host='0.0.0.0', port=8000, debug=True)
