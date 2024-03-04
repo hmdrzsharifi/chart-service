@@ -16,10 +16,10 @@ def fetch_candle_data():
     from_time = request_data.get('from')
     to_time = request_data.get('to')
 
-    finnhub_client = finnhub.Client(api_key="cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg")
+    finnhub_client = finnhub.Client(api_key=SECRET)
 
     # Stock candles
-    res = finnhub_client.stock_candles('AAPL', 'D', 1590988249, 1591852249)
+    res = finnhub_client.stock_candles(symbol, tf, from_time, to_time)
 
     df = pd.DataFrame(res)
 
