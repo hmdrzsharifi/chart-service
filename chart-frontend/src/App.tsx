@@ -29,8 +29,8 @@ function App() {
         newSocket.on('connect', () => {
             console.log('Connected to server');
             const msg= {
-                symbol: "BTC-USD",
-                timeFrame: "1m"
+                symbol: symbol,
+                timeFrame: '5s'
             }
             newSocket.emit('message', msg);
         });
@@ -41,7 +41,8 @@ function App() {
 
         newSocket.on('message', (data:any) => {
             console.log('Received message:', data);
-            handleNewTick(data)
+            // handleNewTick(data)
+            handleRealTimeTick(data)
 
         });
 
@@ -49,13 +50,77 @@ function App() {
         return () => {
             newSocket.disconnect();
         };
-    }, []);
+    }, [symbol]);
 
+
+    const handleRealTimeTick = (message:any) => {
+        let originalData = JSON.parse(message.server_message);
+        let date = new Date(originalData.t);
+        let newCandle = {
+            "date": date,
+            "open": parseFloat(originalData.o),
+            "high": parseFloat(originalData.h),
+            "low": parseFloat(originalData.l),
+            "close": parseFloat(originalData.c),
+            "volume": parseFloat(originalData.v),
+            "split": "",
+            "dividend": "",
+            "absoluteChange": "",
+            "percentChange": ""
+        };
+
+        setData((data: any[]) => [...data.slice(0, data.length-1), newCandle])
+    }
+
+    function generateFakeData() {
+        setInterval(() => {
+            setData((data: any[]) => [...data.slice(0, data.length-1),
+                {
+                    "date": new Date("1970-01-20T15:15:50.400Z"),
+                    "open": Math.random() * 170,
+                    "high": Math.random() * 170,
+                    "low": Math.random() * 170,
+                    "close": Math.random() * 170,
+                    "volume": 57266675,
+                    // "open": 173.8,
+                    // "high": 177.99,
+                    // "low": 173.18,
+                    // "close": 177.49,
+                    // "volume": 57266675,
+
+            }])
+        }, 1000);
+    }
 
     useEffect(() => {
         // connectWebSocket();
         fetchInitialData();
+
+        // generateFakeData();
     }, [symbol, durationData]); // Only on mount and unmount
+
+    /*useEffect(() => {
+        // if (ticker === 'BINANCE:BTCUSDT' || ticker === 'BINANCE:ETHUSDT') {
+        const socket = new WebSocket('wss://ws.finnhub.io?token=cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg');
+
+        socket.onopen = () => {
+            console.log('WebSocket connection opened');
+            socket.send(JSON.stringify({'type': 'subscribe', 'symbol': 'AAPL'}));
+            // socket.send("subscribe:" + symbol);
+        };
+        socket.onmessage = (event) => {
+            console.log('WebSocket Message: ', event.data);
+            // handleNewTick(event.data);
+        };
+        socket.onerror = (error) => {
+            console.error('WebSocket Error:', error);
+        };
+        socket.onerror = () => {
+            console.log('WebSocket Disconnected');
+        };
+
+    }, []);*/
+
 
       /*const connectWebSocket = async () => {
         /!*  ws.current = new WebSocket(WS_URL);
@@ -160,7 +225,8 @@ function App() {
 
         try {
           // const candleData = await fetchCandleData(symbol, timeFrame, fromDateString, toDateString);
-          const candleData = await fetchCandleData(symbol, durationData, new Date(new Date().setDate(new Date().getDate() - 151)).toLocaleDateString("sv-SE"), new Date().toLocaleDateString("sv-SE"));
+          // const candleData = await fetchCandleData(symbol, durationData, new Date(new Date().setDate(new Date().getDate() - 151)).toLocaleDateString("sv-SE"), new Date().toLocaleDateString("sv-SE"));
+          const candleData = await fetchCandleData(symbol, 'D', Math.floor(new Date().getTime() / 1000) - (150 * 24 * 3600), Math.floor(new Date().getTime() / 1000));
           // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
           console.log(candleData)
 

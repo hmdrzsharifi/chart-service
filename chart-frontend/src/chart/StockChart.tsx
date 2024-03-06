@@ -12,7 +12,6 @@ import {
     EdgeIndicator,
     elderRay,
     ElderRaySeries,
-    ema,
     lastVisibleItemBasedZoomAnchor,
     LineSeries,
     MouseCoordinateX,
@@ -25,7 +24,13 @@ import {
     ZoomButtons,
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
+
+import {ema12, ema26} from "../indicator/indicators";
+
+import {TrendLine, DrawingObjectSelector, FibonacciRetracement} from "react-financial-charts";
+import {saveInteractiveNodes, getInteractiveNodes} from "../interaction/interactiveutils";
+import useStore from "../util/store";
 
 
 interface StockChartProps {
@@ -58,31 +63,45 @@ export const StockChart = (props: StockChartProps) => {
     const [fixedPosition, setFixedPosition] = useState(false)
     const [xExtents, setXExtents] = useState([0, 0])
 
+    const {enableTrendLine, setEnableTrendLine} = useStore();
+    const {enableFib, setEnableFib} = useStore();
+    const [retracements, setRetracements] = useState<any[]>([]);
+    const [trends, setTrends] = useState([{
+        start: [37, 193.5119667590028],
+        end: [107, 180.54797783933518],
+        appearance: {stroke: "green"},
+        type: "XLINE",
+        selected: undefined
+    }])
+
+    // const [trends, setTrends] = useState<any[]>([]);
+
     function handleReset() {
         setFixedPosition(false);
     }
 
+    const canvasRef = useRef(null);
 
     const {data: initialData, dateTimeFormat = "%d %b", height, ratio, width, theme} = props;
 
-    const ema12 = ema()
-        .id(1)
-        .options({windowSize: 12})
-        .merge((d: any, c: any) => {
-            d.ema12 = c;
-        })
-        .accessor((d: any) => d.ema12);
+    /* const ema12 = ema()
+         .id(1)
+         .options({windowSize: 12})
+         .merge((d: any, c: any) => {
+             d.ema12 = c;
+         })
+         .accessor((d: any) => d.ema12);
 
-    const ema26 = ema()
-        .id(2)
-        .options({windowSize: 26})
-        .merge((d: any, c: any) => {
-            d.ema26 = c;
-        })
-        .accessor((d: any) => d.ema26);
+     const ema26 = ema()
+         .id(2)
+         .options({windowSize: 26})
+         .merge((d: any, c: any) => {
+             d.ema26 = c;
+         })
+         .accessor((d: any) => d.ema26);
+ */
 
-
-    const handleDataLoadAfter = async (e:any) => {
+    const handleDataLoadAfter = async (e: any) => {
         setFixedPosition(true);
         console.log("My Data After")
         /*if (this.state.loadingMoreData) {
@@ -150,25 +169,103 @@ export const StockChart = (props: StockChartProps) => {
         }*/
     };
 
-    const handleDataLoadBefore = async (e:any) => {
+    const handleDataLoadBefore = async (e: any) => {
         setXExtents([e, e + LENGTH_TO_SHOW])
         setFixedPosition(true);
         console.log("My Data Before")
     };
 
-    const elder = elderRay();
+    const onDrawCompleteChart = (event: any, trends: any) => {
+        // this gets called on
+        // 1. draw complete of trendline
+        // @ts-ignore
+        console.log({trends});
+        setEnableTrendLine(false);
+        setTrends(trends)
+    }
 
+    const onFibComplete = (event: any, retracements: any) => {
+        console.log({retracements});
+        setEnableFib(false)
+        setRetracements(retracements)
+    }
+
+    const handleSelection = (interactives:any) => {
+       /* const state = toObject(interactives, each => {
+            return [
+                `retracements_${each.chartId}`,
+                each.objects,
+            ];
+        });
+        this.setState(state);*/
+
+        console.log({interactives})
+        // console.log({test})
+    }
+
+    useEffect(() => {
+        document.addEventListener("keyup", onKeyPress);
+    }, []);
+
+    const onKeyPress = (e: any) => {
+        const keyCode = e.which;
+        console.log(keyCode);
+
+        switch (keyCode) {
+            case 46: { // DEL
+                console.log({trends});
+                const trends_1 = trends
+                    .filter(each => !each.selected);
+                console.log({trends_1});
+                // const trends_3 = this.state.trends_3
+                //     .filter(each => !each.selected);
+
+                // this.canvasNode.cancelDrag();
+                console.log({canvasRef})
+                // canvasRef.current.cancelDrag();
+                setTrends(trends_1)
+                // setTrends(trend => trend.slice(0, trend.length-1))
+
+
+                const retracements_1 = retracements
+                    .filter(each => !each.selected);
+                // this.canvasNode.cancelDrag();
+                setRetracements(retracements_1)
+
+
+                break;
+            }
+            // case 27: { // ESC
+            //     this.node_1.terminate();
+            //     this.node_3.terminate();
+            //     this.canvasNode.cancelDrag();
+            //     this.setState({
+            //         enableTrendLine: false
+            //     });
+            //     break;
+            // }
+            // case 68:   // D - Draw trendline
+            // case 69: { // E - Enable trendline
+            //     this.setState({
+            //         enableTrendLine: true
+            //     });
+            //     break;
+            // }
+        }
+    }
+
+    const elder = elderRay();
     const calculatedData = elder(ema26(ema12(initialData)));
 
     const {data, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData);
 
     useEffect(() => {
-        if(!fixedPosition) {
+        if (!fixedPosition) {
             const max = xAccessor(data[data.length - 1]);
             const min = xAccessor(data[Math.max(0, data.length - LENGTH_TO_SHOW)]);
             setXExtents([min, max + 10])
         }
-    },[props, fixedPosition])
+    }, [props, fixedPosition])
 
     const gridHeight = height - margin.top - margin.bottom;
 
@@ -188,6 +285,7 @@ export const StockChart = (props: StockChartProps) => {
 
     return (
         <ChartCanvas
+            ref={canvasRef}
             height={height}
             ratio={ratio}
             width={width}
@@ -201,10 +299,10 @@ export const StockChart = (props: StockChartProps) => {
             zoomAnchor={lastVisibleItemBasedZoomAnchor}
             onLoadAfter={handleDataLoadAfter}
             onLoadBefore={handleDataLoadBefore}
-            postCalculator={(item) => {
-                console.log(item)
-                return item
-            }}
+            /* postCalculator={(item) => {
+                 console.log(item)
+                 return item
+             }}*/
         >
             <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={barChartExtents}>
                 <XAxis {...xAndYColors} />
@@ -221,10 +319,10 @@ export const StockChart = (props: StockChartProps) => {
                         stroke={d => d.close > d.open ? "#6BA583" : "#DB0000"}
                         wickStroke={d => d.close > d.open ? "#6BA583" : "#DB0000"}
                     />*/}
-                <LineSeries yAccessor={ema26.accessor()} strokeStyle={ema26.stroke()}/>
+                {/*<LineSeries yAccessor={ema26.accessor()} strokeStyle={ema26.stroke()}/>
                 <CurrentCoordinate yAccessor={ema26.accessor()} fillStyle={ema26.stroke()}/>
                 <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
-                <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
+                <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>*/}
                 <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat}/>
                 <EdgeIndicator
                     itemType="last"
@@ -263,6 +361,27 @@ export const StockChart = (props: StockChartProps) => {
 
                 <ZoomButtons onReset={handleReset}/>
                 <OHLCTooltip origin={[8, 16]}/>
+
+                <TrendLine
+                    ref={saveInteractiveNodes("Trendline", 3)}
+                    enabled={enableTrendLine}
+                    type="RAY"
+                    snap={false}
+                    snapTo={d => [d.high, d.low]}
+                    onStart={() => console.log("START", trends)}
+                    onComplete={onDrawCompleteChart}
+                    // onComplete={() => console.log("End", trends)}
+                    trends={trends}
+
+                />
+
+                <FibonacciRetracement
+                    ref={saveInteractiveNodes("FibonacciRetracement", 3)}
+                    enabled={enableFib}
+                    retracements={retracements}
+                    onComplete={onFibComplete}
+                />
+
             </Chart>
             <Chart
                 id={4}
@@ -292,7 +411,31 @@ export const StockChart = (props: StockChartProps) => {
                     origin={[8, 16]}
                 />
             </Chart>
+            {/* <LineSeries
+                yAccessor={custom_indicator_state.accessor()}
+                stroke={custom_indicator.stroke()}
+                highlightOnHover
+            />*/}
             <CrossHairCursor/>
+
+            <DrawingObjectSelector
+                enabled={!enableTrendLine}
+                getInteractiveNodes={getInteractiveNodes}
+                drawingObjectMap={{
+                    Trendline: "trends"
+                }}
+                onSelect={handleSelection}
+            />
+
+            <DrawingObjectSelector
+                enabled={!enableFib}
+                getInteractiveNodes={getInteractiveNodes}
+                drawingObjectMap={{
+                    FibonacciRetracement: "retracements"
+                }}
+                onSelect={handleSelection}
+            />
+
         </ChartCanvas>
     );
 }
