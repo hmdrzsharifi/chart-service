@@ -23,9 +23,9 @@ export async function fetchCandleData(symbol:any, tf:any, from:any, to:any) {
 
         const json = await response.json();
 
-        const jsonData = JSON.parse(json);
-        jsonData.forEach((entry:any) => {
-            resultData.push(mapObject(entry));
+        // const jsonData = JSON.parse(json);
+        json.forEach((entry:any) => {
+            resultData.push(mapObjectFinnhub(entry));
         });
 
         return resultData;
@@ -45,6 +45,21 @@ function mapObject(originalObject:any) {
         low: originalObject.low,
         close: originalObject.close,
         volume: originalObject.volume,
+        split: "",
+        dividend: "",
+        absoluteChange: "",
+        percentChange:""
+    };
+}
+
+function mapObjectFinnhub(originalObject:any) {
+    return {
+        date: new Date(originalObject.t),
+        open: originalObject.o,
+        high: originalObject.h,
+        low: originalObject.l,
+        close: originalObject.c,
+        volume: originalObject.v,
         split: "",
         dividend: "",
         absoluteChange: "",

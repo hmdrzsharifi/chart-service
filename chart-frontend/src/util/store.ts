@@ -5,8 +5,12 @@ type Store = {
     themeMode: 'dark' | 'light';
     setThemeMode: (mode: 'dark' | 'light') => void
     setDurationData: (duration: 'd' | '1m' | 'SECONDS') => void
-    symbol: 'BTC-USD.CC' | 'ttr'
-    setSymbol: (symbol: 'BTC-USD.CC' | 'ttr') => void
+    symbol: string
+    setSymbol: (symbol: string) => void
+    enableTrendLine: boolean
+    setEnableTrendLine: (enableTrendLine: boolean) => void
+    enableFib: boolean
+    setEnableFib: (enableFib: boolean) => void
 };
 
 const useStore = create<Store>((set) => ({
@@ -15,7 +19,11 @@ const useStore = create<Store>((set) => ({
     durationData: 'd',
     setDurationData: (duration: 'd' | '1m' | 'SECONDS') => set((state) => ({ durationData: duration })),
     symbol: 'BTC-USD.CC',
-    setSymbol: (symbol: 'BTC-USD.CC' | 'ttr') => set((state) => ({ symbol: symbol })),
+    setSymbol: (symbol: string) => set((state) => ({ symbol: symbol })),
+    enableTrendLine: false,
+    setEnableTrendLine: (enableTrendLine: boolean) => set((state) => ({ enableTrendLine: enableTrendLine })),
+    enableFib: false,
+    setEnableFib: (enableFib: boolean) => set((state) => ({ enableFib: enableFib }))
 }));
 
 export default useStore;
