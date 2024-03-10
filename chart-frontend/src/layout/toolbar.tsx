@@ -10,8 +10,6 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 const Toolbar = (props: any) => {
 
     const { setSymbol, durationData, setDurationData, themeMode, setThemeMode } = useStore();
-    const { enableTrendLine, setEnableTrendLine } = useStore();
-    const { enableFib, setEnableFib } = useStore();
 
     return (
         <div className="toolbar" style={props.style}>
@@ -46,17 +44,6 @@ const Toolbar = (props: any) => {
                 <MenuItem value='AAPL'>Apple</MenuItem>
             </Select>
 
-            <Button
-                onClick={() => setEnableTrendLine(!enableTrendLine)}
-            >
-                TrendLine
-            </Button>
-
-            <Button
-                onClick={() => setEnableFib(!enableFib)}
-            >
-                Fibonacci
-            </Button>
         </div>
     )
 }

@@ -22,15 +22,19 @@ import {
     XAxis,
     YAxis,
     ZoomButtons,
+    ema
 } from "react-financial-charts";
+import { strokeDashTypes } from "@react-financial-charts/core";
 import {IOHLCData} from "../data";
 import {useEffect, useRef, useState} from "react";
 
-import {ema12, ema26} from "../indicator/indicators";
+// import {ema12, ema26} from "../indicator/indicators";
 
 import {TrendLine, DrawingObjectSelector, FibonacciRetracement} from "react-financial-charts";
-import {saveInteractiveNodes, getInteractiveNodes} from "../interaction/interactiveutils";
+// import {saveInteractiveNodes, getInteractiveNodes} from "../interaction/interactiveutils";
 import useStore from "../util/store";
+import {changeIndicatorsColor, useEventListener} from "../util/utils";
+import {TrendLineType} from "../type/TrendLineType";
 
 
 interface StockChartProps {
@@ -63,16 +67,11 @@ export const StockChart = (props: StockChartProps) => {
     const [fixedPosition, setFixedPosition] = useState(false)
     const [xExtents, setXExtents] = useState([0, 0])
 
+    const { themeMode } = useStore();
     const {enableTrendLine, setEnableTrendLine} = useStore();
     const {enableFib, setEnableFib} = useStore();
     const [retracements, setRetracements] = useState<any[]>([]);
-    const [trends, setTrends] = useState([{
-        start: [37, 193.5119667590028],
-        end: [107, 180.54797783933518],
-        appearance: {stroke: "green"},
-        type: "XLINE",
-        selected: undefined
-    }])
+    const [trends, setTrends] = useState<TrendLineType[]>([])
 
     // const [trends, setTrends] = useState<any[]>([]);
 
@@ -82,9 +81,30 @@ export const StockChart = (props: StockChartProps) => {
 
     const canvasRef = useRef(null);
 
+
+    const handler = ({ key } : any) => {
+        if(key === 'Delete') {
+            const newTrends = trends.filter(each => !each.selected)
+
+            setTrends(newTrends)
+
+            const newRetracements = retracements.filter(each => !each.selected)
+
+            setRetracements(newRetracements)
+        } else if (key === 'Escape') {
+            // @ts-ignore
+            canvasRef?.current?.cancelDrag()
+            setEnableTrendLine(false)
+            setEnableFib(false)
+        }
+    };
+
+    useEventListener("keydown", handler);
+
+
     const {data: initialData, dateTimeFormat = "%d %b", height, ratio, width, theme} = props;
 
-    /* const ema12 = ema()
+    const ema12 = ema()
          .id(1)
          .options({windowSize: 12})
          .merge((d: any, c: any) => {
@@ -98,8 +118,7 @@ export const StockChart = (props: StockChartProps) => {
          .merge((d: any, c: any) => {
              d.ema26 = c;
          })
-         .accessor((d: any) => d.ema26);
- */
+        .accessor((d: any) => d.ema26);
 
     const handleDataLoadAfter = async (e: any) => {
         setFixedPosition(true);
@@ -179,7 +198,6 @@ export const StockChart = (props: StockChartProps) => {
         // this gets called on
         // 1. draw complete of trendline
         // @ts-ignore
-        console.log({trends});
         setEnableTrendLine(false);
         setTrends(trends)
     }
@@ -203,57 +221,6 @@ export const StockChart = (props: StockChartProps) => {
         // console.log({test})
     }
 
-    useEffect(() => {
-        document.addEventListener("keyup", onKeyPress);
-    }, []);
-
-    const onKeyPress = (e: any) => {
-        const keyCode = e.which;
-        console.log(keyCode);
-
-        switch (keyCode) {
-            case 46: { // DEL
-                console.log({trends});
-                const trends_1 = trends
-                    .filter(each => !each.selected);
-                console.log({trends_1});
-                // const trends_3 = this.state.trends_3
-                //     .filter(each => !each.selected);
-
-                // this.canvasNode.cancelDrag();
-                console.log({canvasRef})
-                // canvasRef.current.cancelDrag();
-                setTrends(trends_1)
-                // setTrends(trend => trend.slice(0, trend.length-1))
-
-
-                const retracements_1 = retracements
-                    .filter(each => !each.selected);
-                // this.canvasNode.cancelDrag();
-                setRetracements(retracements_1)
-
-
-                break;
-            }
-            // case 27: { // ESC
-            //     this.node_1.terminate();
-            //     this.node_3.terminate();
-            //     this.canvasNode.cancelDrag();
-            //     this.setState({
-            //         enableTrendLine: false
-            //     });
-            //     break;
-            // }
-            // case 68:   // D - Draw trendline
-            // case 69: { // E - Enable trendline
-            //     this.setState({
-            //         enableTrendLine: true
-            //     });
-            //     break;
-            // }
-        }
-    }
-
     const elder = elderRay();
     const calculatedData = elder(ema26(ema12(initialData)));
 
@@ -266,6 +233,13 @@ export const StockChart = (props: StockChartProps) => {
             setXExtents([min, max + 10])
         }
     }, [props, fixedPosition])
+
+    useEffect(() => {
+
+        // change Indicators according to themeMode
+        changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements)
+
+    }, [themeMode])
 
     const gridHeight = height - margin.top - margin.bottom;
 
@@ -363,23 +337,43 @@ export const StockChart = (props: StockChartProps) => {
                 <OHLCTooltip origin={[8, 16]}/>
 
                 <TrendLine
-                    ref={saveInteractiveNodes("Trendline", 3)}
+                    // ref={saveInteractiveNodes("Trendline", 3)}
                     enabled={enableTrendLine}
                     type="RAY"
                     snap={false}
                     snapTo={d => [d.high, d.low]}
                     onStart={() => console.log("START", trends)}
                     onComplete={onDrawCompleteChart}
+                    appearance={{
+                        strokeStyle: themeMode === 'dark' ? '#fff' : '#000',
+                        strokeWidth: 1,
+                        strokeDasharray: "Solid",
+                        edgeStrokeWidth: 1,
+                        edgeFill: themeMode === 'dark' ? '#fff' : '#000',
+                        edgeStroke: themeMode === 'dark' ? '#000' : '#fff',
+                    }}
                     // onComplete={() => console.log("End", trends)}
                     trends={trends}
 
                 />
 
                 <FibonacciRetracement
-                    ref={saveInteractiveNodes("FibonacciRetracement", 3)}
+                    // ref={saveInteractiveNodes("FibonacciRetracement", 3)}
                     enabled={enableFib}
                     retracements={retracements}
                     onComplete={onFibComplete}
+                    appearance={{
+                        strokeStyle: themeMode === 'dark' ? '#fff' : '#000',
+                        strokeWidth: 1,
+                        fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
+                        fontSize: 11,
+                        fontFill: themeMode === 'dark' ? '#fff' : '#000',
+                        edgeStroke: themeMode === 'dark' ? '#fff' : '#000',
+                        edgeFill: themeMode === 'dark' ? '#000' : '#fff',
+                        nsEdgeFill: themeMode === 'dark' ? '#fff' : '#000',
+                        edgeStrokeWidth: 1,
+                        r: 5,
+                    }}
                 />
 
             </Chart>
@@ -417,10 +411,10 @@ export const StockChart = (props: StockChartProps) => {
                 highlightOnHover
             />*/}
             <CrossHairCursor/>
-
+            {/*
             <DrawingObjectSelector
                 enabled={!enableTrendLine}
-                getInteractiveNodes={getInteractiveNodes}
+                getInteractiveNodes={() => []}
                 drawingObjectMap={{
                     Trendline: "trends"
                 }}
@@ -429,13 +423,13 @@ export const StockChart = (props: StockChartProps) => {
 
             <DrawingObjectSelector
                 enabled={!enableFib}
-                getInteractiveNodes={getInteractiveNodes}
+                getInteractiveNodes={() => []}
                 drawingObjectMap={{
                     FibonacciRetracement: "retracements"
                 }}
                 onSelect={handleSelection}
             />
-
+            />*/}
         </ChartCanvas>
     );
 }
