@@ -24,8 +24,8 @@ def on_message(ws, message):
                     " VALUES (%s,%s,%s,%s)"
             for item in msg["data"]:
                 timestamp = datetime.datetime.fromtimestamp(int(item["t"] / 1000))
-            # record_to_insert = (timestamp, item["s"], item["p"], item["q"])
-                record_to_insert = (timestamp, item["s"], item["p"], 1.2)
+                # record_to_insert = (timestamp, item["s"], item["p"], item["q"])
+                record_to_insert = (timestamp, item["s"], item["p"], item["v"])
                 cursor.execute(query, record_to_insert)
         except (Exception, psycopg2.Error) as error:
             print(error.pgerror)
@@ -34,6 +34,7 @@ def on_message(ws, message):
         msg = message
     except KeyboardInterrupt:
         print("\nStopping due to user request.")
+
 
 def on_error(ws, error):
     print(error)
