@@ -32,7 +32,9 @@ function App() {
                 symbol: symbol,
                 timeFrame: '5s'
             }
-            newSocket.emit('message', msg);
+            setInterval(() => {
+                newSocket.emit('message', msg);
+            }, 5000);
         });
 
         newSocket.on('disconnect', () => {

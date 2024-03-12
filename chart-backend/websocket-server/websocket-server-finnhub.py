@@ -33,15 +33,23 @@ def handle_candle_message(symbol, timeframe):
     try:
         if timeframe == "1m":
             table_name = "one_minute_candle"
-        if timeframe == "1d":
-            table_name = "one_day_candle"
+        if timeframe == "D":
+            table_name = "one_minute_candle"
+            query = query_5s
 
-        query = (f"SELECT symbol, EXTRACT(EPOCH FROM bucket) AS unix_timestamp, open, high, low, close, volume "
-                 f"FROM {table_name} "
+        query_1m = (f"SELECT symbol, EXTRACT(EPOCH FROM bucket) AS unix_timestamp, open, high, low, close, volume "
+                 f"FROM one_minute_candle "
                  f"WHERE symbol = %s "
                  f"ORDER BY bucket"
                  f" DESC LIMIT 1")
-        cursor.execute(query, (symbol,))
+
+        query_5s = (f"SELECT symbol, EXTRACT(EPOCH FROM bucket) AS unix_timestamp, open, high, low, close, volume "
+                         f"FROM five_seconds_candle "
+                         f"WHERE symbol = %s "
+                         f"ORDER BY bucket"
+                         f" DESC LIMIT 1")
+
+        cursor.execute(query_5s, (symbol,))
 
         last_candle = cursor.fetchone()
         print("candle data ", last_candle)
@@ -72,7 +80,8 @@ def handle_candle_message(symbol, timeframe):
 
 
 if __name__ == '__main__':
-    CONNECTION = "postgres://postgres:postgres@adi.dev.modernisc.com:5432/chart"
+#     CONNECTION = "postgres://postgres:postgres@adi.dev.modernisc.com:5432/chart"
+    CONNECTION = "postgres://postgres:postgres@localhost:5432/chart"
     conn = psycopg2.connect(CONNECTION)
     cursor = conn.cursor()
 

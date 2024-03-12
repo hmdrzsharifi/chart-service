@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS raw_trade_data (
 
 SELECT create_hypertable('raw_trade_data', 'time');	-- turn it into a hypertable
 
+#######################################################################
+
 CREATE MATERIALIZED VIEW one_minute_candle
 WITH (timescaledb.continuous) AS
 SELECT symbol,
@@ -31,6 +33,31 @@ WHERE symbol='AAPL' ORDER BY bucket desc LIMIT 10;
 
 
 SELECT add_retention_policy('raw_trade_data', INTERVAL '2 days');
+
+
+#######################################################################
+
+
+CREATE MATERIALIZED VIEW five_seconds_candle
+WITH (timescaledb.continuous) AS
+SELECT symbol,
+   time_bucket(INTERVAL '5 seconds', time) AS bucket,
+   FIRST(price, time) as open,
+   MAX(price) as high,
+   MIN(price) as low,
+   LAST(price, time) as close,
+   SUM(quantity) as volume
+FROM raw_trade_data
+GROUP BY symbol, bucket;
+
+SELECT add_continuous_aggregate_policy('five_seconds_candle',
+     start_offset => INTERVAL '1 day',
+     end_offset => INTERVAL '5 seconds',
+     schedule_interval => INTERVAL '5 seconds');
+
+SELECT * FROM five_seconds_candle
+WHERE symbol='AAPL' ORDER BY bucket desc LIMIT 1;
+
 ####################################################################
 
 
@@ -108,3 +135,5 @@ WHERE symbol='BTC-USD' ORDER BY bucket desc LIMIT 10;
 
 SELECT add_retention_policy('raw_trade_data', INTERVAL '10 days');
 
+##################################################
+pip install finnhub-python
