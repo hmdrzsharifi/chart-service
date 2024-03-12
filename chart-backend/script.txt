@@ -1,6 +1,40 @@
--- Table: public.stock_prices_1m
+#######################################################################
 
--- DROP TABLE IF EXISTS public.stock_prices_1m;
+CREATE TABLE IF NOT EXISTS raw_trade_data (
+   time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+   symbol text NOT NULL,
+   price double PRECISION NOT NULL,
+   quantity double PRECISION NOT NULL
+);
+
+SELECT create_hypertable('raw_trade_data', 'time');	-- turn it into a hypertable
+
+CREATE MATERIALIZED VIEW one_minute_candle
+WITH (timescaledb.continuous) AS
+SELECT symbol,
+   time_bucket(INTERVAL '1 minute', time) AS bucket,
+   FIRST(price, time) as open,
+   MAX(price) as high,
+   MIN(price) as low,
+   LAST(price, time) as close,
+   SUM(quantity) as volume
+FROM raw_trade_data
+GROUP BY symbol, bucket;
+
+SELECT add_continuous_aggregate_policy('one_minute_candle',
+     start_offset => INTERVAL '1 day',
+     end_offset => INTERVAL '1 minute',
+     schedule_interval => INTERVAL '1 minute');
+
+SELECT * FROM one_minute_candle
+WHERE symbol='AAPL' ORDER BY bucket desc LIMIT 10;
+
+
+SELECT add_retention_policy('raw_trade_data', INTERVAL '2 days');
+####################################################################
+
+
+
 
 CREATE TABLE IF NOT EXISTS public.stock_prices_1m
 (
@@ -20,16 +54,9 @@ TABLESPACE pg_default;
 ALTER TABLE IF EXISTS public.stock_prices_1m
     OWNER to postgres;
 
-#######################################################################
 
-CREATE TABLE IF NOT EXISTS raw_trade_data (
-   time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-   symbol text NOT NULL,
-   price double PRECISION NOT NULL,
-   quantity double PRECISION NOT NULL
-);
 
-SELECT create_hypertable('raw_trade_data', 'time');	-- turn it into a hypertable
+
 
 
 

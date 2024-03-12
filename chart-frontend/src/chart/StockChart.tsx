@@ -26,15 +26,17 @@ import {
 import {IOHLCData} from "../data";
 import {useEffect, useRef, useState} from "react";
 
-import {ema12, ema26} from "../indicator/indicators";
+import {ema12, ema26, macdCalculator, smaVolume50} from "../indicator/indicators";
 
 import {TrendLine, DrawingObjectSelector, FibonacciRetracement} from "react-financial-charts";
 import {saveInteractiveNodes, getInteractiveNodes} from "../interaction/interactiveutils";
 import useStore from "../util/store";
+import {fetchCandleData} from "../util/utils";
 
 
 interface StockChartProps {
     readonly data: IOHLCData[];
+    readonly setData: any;
     readonly height: number;
     readonly dateTimeFormat?: string;
     readonly width: number;
@@ -63,6 +65,10 @@ export const StockChart = (props: StockChartProps) => {
     const [fixedPosition, setFixedPosition] = useState(false)
     const [xExtents, setXExtents] = useState([0, 0])
 
+    const {loadingMoreData, setLoadingMoreData} = useStore();
+    const {timeFrame, setTimeFrame} = useStore();
+    const {symbol, setSymbol} = useStore();
+
     const {enableTrendLine, setEnableTrendLine} = useStore();
     const {enableFib, setEnableFib} = useStore();
     const [retracements, setRetracements] = useState<any[]>([]);
@@ -82,7 +88,11 @@ export const StockChart = (props: StockChartProps) => {
 
     const canvasRef = useRef(null);
 
-    const {data: initialData, dateTimeFormat = "%d %b", height, ratio, width, theme} = props;
+    const {data: initialData, dateTimeFormat = "%d %b", height, ratio, width, theme, setData} = props;
+
+    function getMaxUndefined(calculators:any) {
+        return calculators.map((each:any) => each.undefinedLength()).reduce((a:any, b:any) => Math.max(a, b));
+    }
 
     /* const ema12 = ema()
          .id(1)
@@ -101,7 +111,7 @@ export const StockChart = (props: StockChartProps) => {
          .accessor((d: any) => d.ema26);
  */
 
-    const handleDataLoadAfter = async (e: any) => {
+    const handleDataLoadAfter = async (start: any, end: any) => {
         setFixedPosition(true);
         console.log("My Data After")
         /*if (this.state.loadingMoreData) {
@@ -169,10 +179,121 @@ export const StockChart = (props: StockChartProps) => {
         }*/
     };
 
-    const handleDataLoadBefore = async (e: any) => {
-        setXExtents([e, e + LENGTH_TO_SHOW])
-        setFixedPosition(true);
+    const handleDataLoadBefore = async (start: any, end: any) => {
+        // setXExtents([e, e + LENGTH_TO_SHOW])
+        // setFixedPosition(true);
         console.log("My Data Before")
+        console.log({start})
+        console.log({end})
+
+        if (Math.ceil(start) === end) return;
+
+        const rowsToDownload = end - Math.ceil(start);
+
+        const maxWindowSize = getMaxUndefined([ema26,
+            ema12,
+            macdCalculator,
+            smaVolume50
+
+        ]);
+
+        /* SERVER - START */
+        const dataToCalculate = data
+            .slice(-rowsToDownload - maxWindowSize - data.length, - data.length);
+
+        console.log({dataToCalculate})
+        const calculatedData = ema26(ema12(macdCalculator(smaVolume50(dataToCalculate))));
+        const indexCalculator = discontinuousTimeScaleProviderBuilder()
+            .initialIndex(Math.ceil(start))
+            .indexCalculator();
+        const { index } = indexCalculator(
+            calculatedData
+                .slice(-rowsToDownload)
+                .concat(data));
+        /* SERVER - END */
+
+        const xScaleProvider = discontinuousTimeScaleProviderBuilder()
+            .initialIndex(Math.ceil(start))
+            .withIndex(index);
+
+        const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(data));
+
+
+
+        console.log({rowsToDownload})
+        // console.log({loadingMoreData})
+        //
+        // if (loadingMoreData) {
+        //     // Exit early if we are already loading data
+        //     return;
+        // }
+        //
+        // setLoadingMoreData(true);
+
+        try {
+            // Find the earliest date in the current dataset
+            const earliestDate = new Date(data[0].date);
+
+            console.log("TIME ***************", earliestDate.getTime())
+
+            // Calculate the new start date to fetch from (7 days before the earliest date)
+            const endDate = new Date(earliestDate);
+            // const startDate = endDate.getDate() - 150;
+
+            // Format dates to 'YYYY-MM-DD HH:MM:SS' format
+            // const fromDateString = startDate.toISOString().slice(0, 19).replace('T', ' ');
+            // const toDateString = earliestDate.toISOString().slice(0, 19).replace('T', ' ');
+
+            // Fetch more data
+            const moreData = await fetchCandleData(symbol, 'D', Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600), Math.floor(endDate.getTime() / 1000));
+
+            console.log({moreData})
+            // Combine new data with existing data
+            const combinedData = moreData.concat(data);
+
+            console.log({combinedData})
+
+            setData(combinedData)
+            // setLoadingMoreData(false);
+
+            // Update the state with the combined data
+            // const { ema26, ema12, macdCalculator, smaVolume50 } = this.state;
+
+            // Recalculate the scale with the new combined data
+            // const calculatedData = ema26(ema12(macdCalculator(smaVolume50(combinedData))));
+            // const indexCalculator = discontinuousTimeScaleProviderBuilder().indexCalculator();
+
+            // Recalculate the index with the newly combined data
+            // const {index} = indexCalculator(calculatedData);
+            // const xScaleProvider = discontinuousTimeScaleProviderBuilder().withIndex(index);
+            // const {data: linearData, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData);
+
+            // Update the state with the new data and the recalculated scale
+            /*this.setState({
+                data: linearData, // This is the combined data with the recalculated indices
+                xScale,
+                xAccessor,
+                displayXAccessor,
+                loadingMoreData: false,
+            }, () => {
+                // After the state has been updated, adjust the xScale domain to create a buffer
+                const {xScale, xAccessor, data} = this.state;
+                this.props.onUpdateData(this.state.data);
+                const totalPoints = data.length;
+                const bufferPoints = 5; // Number of points to leave as a buffer to the right
+                const startPoint = xAccessor(data[Math.max(0, totalPoints - bufferPoints)]);
+                const endPoint = xAccessor(data[totalPoints - 1]);
+
+                // Set the visible scale domain to show data up to the buffer
+                xScale.domain([startPoint, endPoint]);
+
+                // Force update to re-render the chart with the new domain
+                this.forceUpdate();
+            });*/
+        } catch (error) {
+            console.error('Error fetching more candle data:', error);
+            // setLoadingMoreData(false)
+        }
     };
 
     const onDrawCompleteChart = (event: any, trends: any) => {
@@ -190,14 +311,14 @@ export const StockChart = (props: StockChartProps) => {
         setRetracements(retracements)
     }
 
-    const handleSelection = (interactives:any) => {
-       /* const state = toObject(interactives, each => {
-            return [
-                `retracements_${each.chartId}`,
-                each.objects,
-            ];
-        });
-        this.setState(state);*/
+    const handleSelection = (interactives: any) => {
+        /* const state = toObject(interactives, each => {
+             return [
+                 `retracements_${each.chartId}`,
+                 each.objects,
+             ];
+         });
+         this.setState(state);*/
 
         console.log({interactives})
         // console.log({test})

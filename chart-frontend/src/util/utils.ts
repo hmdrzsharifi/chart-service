@@ -54,7 +54,7 @@ function mapObject(originalObject:any) {
 
 function mapObjectFinnhub(originalObject:any) {
     return {
-        date: new Date(originalObject.t),
+        date: new Date(originalObject.t * 1000),
         open: originalObject.o,
         high: originalObject.h,
         low: originalObject.l,

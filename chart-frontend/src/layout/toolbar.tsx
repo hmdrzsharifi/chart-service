@@ -9,7 +9,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 
 const Toolbar = (props: any) => {
 
-    const { setSymbol, durationData, setDurationData, themeMode, setThemeMode } = useStore();
+    const { setSymbol, timeFrame, setTimeFrame, themeMode, setThemeMode } = useStore();
     const { enableTrendLine, setEnableTrendLine } = useStore();
     const { enableFib, setEnableFib } = useStore();
 
@@ -27,7 +27,7 @@ const Toolbar = (props: any) => {
                 defaultValue='d'
                 classes={{root: 'toolbar-select'}}
                 // @ts-ignore
-                onChange={(event) => setDurationData(event?.target?.value)}
+                onChange={(event) => setTimeFrame(event?.target?.value)}
             >
                 <MenuItem value='d'>daily</MenuItem>
                 <MenuItem value='1m'>minutes</MenuItem>
