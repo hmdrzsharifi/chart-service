@@ -18,3 +18,17 @@ python finnhub-resource.py
 ##### https://medium.com/proof-of-fintech/implementing-custom-line-indicators-with-react-stockcharts-alpha-ac30eb7aa7a7
 ##### https://github.com/rrag/react-stockcharts/blob/master/docs/md/COMING-SOON.md
 
+## Data Provider Info
+##### Finnhub 
+https://github.com/Finnhub-Stock-API 
+
+Supported resolution includes 1, 5, 15, 30, 60, D, W, M 
+
+1: one Minute
+5: 5 minutes
+15: every 15 minutes
+30: every 30 minutes
+60: every hour
+D: every day
+M: every month
+
