@@ -1,5 +1,11 @@
 # Chart Service
 
+## Back-End
+cd \chart-backend\rest
+
+pip install finnhub-python
+
+python finnhub-resource.py
 
 ## Base Projects
 ##### https://github.com/rrag/react-stockcharts
