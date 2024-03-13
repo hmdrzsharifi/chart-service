@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 
 type Store = {
-    timeFrame: 'd' | '1m' | 'SECONDS'
+    timeFrame: 'D' | '1' | '5'
     themeMode: 'dark' | 'light';
     setThemeMode: (mode: 'dark' | 'light') => void
-    setTimeFrame: (duration: 'd' | '1m' | 'SECONDS') => void
+    setTimeFrame: (duration: 'D' | '1' | '5') => void
     symbol: string
     setSymbol: (symbol: string) => void
     enableTrendLine: boolean
@@ -20,9 +20,9 @@ type Store = {
 const useStore = create<Store>((set) => ({
     themeMode: 'light',
     setThemeMode: (mode: 'dark' | 'light') => set((state) => ({ themeMode: mode })),
-    timeFrame: 'd',
-    setTimeFrame: (duration: 'd' | '1m' | 'SECONDS') => set((state) => ({ timeFrame: duration })),
-    symbol: 'BTC-USD.CC',
+    timeFrame: 'D',
+    setTimeFrame: (duration: 'D' | '1' | '5') => set((state) => ({ timeFrame: duration })),
+    symbol: 'AAPL',
     setSymbol: (symbol: string) => set((state) => ({ symbol: symbol })),
     enableTrendLine: false,
     setEnableTrendLine: (enableTrendLine: boolean) => set((state) => ({ enableTrendLine: enableTrendLine })),

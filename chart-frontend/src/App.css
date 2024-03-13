@@ -111,3 +111,5 @@ html, body {
   fill: rgba(144, 202, 249, 0.35);
   stroke: #2976b5;
 }
+
+button:focus { outline: none !important;}

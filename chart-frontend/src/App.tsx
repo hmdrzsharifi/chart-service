@@ -15,7 +15,7 @@ import io from 'socket.io-client';
 
 function App() {
 
- const [data, setData] = useState<any>([]);
+    const [data, setData] = useState<any>([]);
 
     const {themeMode, symbol, timeFrame} = useStore();
     // const [socket, setSocket] = useState(new WebSocket(WEBSOCKET_ADDRESS))
@@ -28,6 +28,7 @@ function App() {
         // Set up event handlers
         newSocket.on('connect', () => {
             console.log('Connected to server');
+            // todo for various timeframes
             const msg = {
                 symbol: symbol,
                 timeFrame: '5s'
@@ -41,10 +42,12 @@ function App() {
             console.log('Disconnected from server');
         });
 
-        newSocket.on('message', (data: any) => {
-            console.log('Received message:', data);
+        newSocket.on('message', (message: any) => {
+            console.log('Received message:', message);
             // handleNewTick(data)
-            handleRealTimeTick(data)
+            //lastCandle = data[data.length];
+
+            handleRealTimeTick(message)
 
         });
 
@@ -52,7 +55,7 @@ function App() {
         return () => {
             newSocket.disconnect();
         };
-    }, [symbol]);
+    }, [symbol, timeFrame]);
 
 
     const handleRealTimeTick = (message: any) => {
@@ -71,7 +74,11 @@ function App() {
             "percentChange": ""
         };
 
-        setData((data: any[]) => [...data.slice(0, data.length - 1), newCandle])
+        if (data[data.length-1].date.getMinutes() == newCandle.date.getMinutes()) {
+            setData((data: any[]) => [...data.slice(0, data.length - 1), newCandle])
+        } else {
+            setData((data: any[]) => [...data, newCandle])
+        }
     }
 
     function generateFakeData() {
@@ -101,27 +108,27 @@ function App() {
         // generateFakeData();
     }, [symbol, timeFrame]); // Only on mount and unmount
 
-/*    useEffect(() => {
-        // if (ticker === 'BINANCE:BTCUSDT' || ticker === 'BINANCE:ETHUSDT') {
-        const socket = new WebSocket('wss://ws.finnhub.io?token=cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg');
+    /*    useEffect(() => {
+            // if (ticker === 'BINANCE:BTCUSDT' || ticker === 'BINANCE:ETHUSDT') {
+            const socket = new WebSocket('wss://ws.finnhub.io?token=cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg');
 
-        socket.onopen = () => {
-            console.log('WebSocket connection opened');
-            socket.send(JSON.stringify({'type': 'subscribe', 'symbol': 'AAPL'}));
-            // socket.send("subscribe:" + symbol);
-        };
-        socket.onmessage = (event) => {
-            console.log('WebSocket Message: ', event.data);
-            // handleNewTick(event.data);
-        };
-        socket.onerror = (error) => {
-            console.error('WebSocket Error:', error);
-        };
-        socket.onerror = () => {
-            console.log('WebSocket Disconnected');
-        };
+            socket.onopen = () => {
+                console.log('WebSocket connection opened');
+                socket.send(JSON.stringify({'type': 'subscribe', 'symbol': 'AAPL'}));
+                // socket.send("subscribe:" + symbol);
+            };
+            socket.onmessage = (event) => {
+                console.log('WebSocket Message: ', event.data);
+                // handleNewTick(event.data);
+            };
+            socket.onerror = (error) => {
+                console.error('WebSocket Error:', error);
+            };
+            socket.onerror = () => {
+                console.log('WebSocket Disconnected');
+            };
 
-    }, []);*/
+        }, []);*/
 
 
     /*const connectWebSocket = async () => {
@@ -228,7 +235,7 @@ function App() {
         try {
             // const candleData = await fetchCandleData(symbol, timeFrame, fromDateString, toDateString);
             // const candleData = await fetchCandleData(symbol, durationData, new Date(new Date().setDate(new Date().getDate() - 151)).toLocaleDateString("sv-SE"), new Date().toLocaleDateString("sv-SE"));
-            const candleData = await fetchCandleData(symbol, 'D', Math.floor(new Date().getTime() / 1000) - (150 * 24 * 3600), Math.floor(new Date().getTime() / 1000));
+            const candleData = await fetchCandleData(symbol, timeFrame, Math.floor(new Date().getTime() / 1000) - (150 * 24 * 3600), Math.floor(new Date().getTime() / 1000));
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
             console.log(candleData)
 
@@ -270,7 +277,8 @@ function App() {
                             ...backGroundColor
                         }}/>
                         <div className="chart" style={{width: '100%'}}>
-                            <StockChart data={data} setData={setData} theme={theme} height={window.innerHeight - 100} ratio={3}
+                            <StockChart data={data} setData={setData} theme={theme} height={window.innerHeight - 100}
+                                        ratio={3}
                                         width={window.innerWidth - 45}/>
                         </div>
                     </div>
