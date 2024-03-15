@@ -21,7 +21,7 @@ function App() {
     // const [socket, setSocket] = useState(new WebSocket(WEBSOCKET_ADDRESS))
     const [socket, setSocket] = useState();
 
-    useEffect(() => {
+/*    useEffect(() => {
         // Connect to the server
         const newSocket = io(WEBSOCKET_ADDRESS);
 
@@ -55,8 +55,20 @@ function App() {
         return () => {
             newSocket.disconnect();
         };
-    }, [symbol, timeFrame]);
+    }, [symbol, timeFrame]);*/
 
+    function datesWithinOneMinute(date1:any, date2:any) {
+        // Convert dates to timestamps (in milliseconds)
+        var timestamp1 = date1.getTime();
+        var timestamp2 = date2.getTime();
+
+        // Calculate the absolute difference between the timestamps
+        var difference = Math.abs(timestamp1 - timestamp2);
+
+        // Check if the difference is less than the number of milliseconds in a minute
+        var oneMinuteInMilliseconds = 60 * 1000;
+        return difference < oneMinuteInMilliseconds;
+    }
 
     const handleRealTimeTick = (message: any) => {
         let originalData = JSON.parse(message.server_message);
@@ -74,11 +86,27 @@ function App() {
             "percentChange": ""
         };
 
-        if (data[data.length-1].date.getMinutes() == newCandle.date.getMinutes()) {
-            setData((data: any[]) => [...data.slice(0, data.length - 1), newCandle])
+        console.log(newCandle.date);
+        // console.log(data[data.length-1].date);
+        // console.log(new Date(data.slice(-1)[0].date));
+        // console.log(new Date(data[data.length-1].date));
+
+        if (data && data.length > 0 && data[data.length - 1].date) {
+            // Access the date property
+            console.log(new Date(data[data.length-1].date));
+            if (datesWithinOneMinute(new Date(data[data.length-1].date), newCandle.date)) {
+                // if (new Date(data[data.length-1].date).getMinutes() == newCandle.date.getMinutes()) {
+                console.log("update candle")
+                setData((data: any[]) => [...data.slice(0, data.length - 1), newCandle])
+            } else {
+                console.log("new candle")
+                setData((data: any[]) => [...data, newCandle])
+            }
         } else {
-            setData((data: any[]) => [...data, newCandle])
+            console.error("Data array is empty or does not contain valid elements.");
         }
+
+
     }
 
     function generateFakeData() {
@@ -102,7 +130,7 @@ function App() {
     }
 
     useEffect(() => {
-        // connectWebSocket();
+        connectWebSocket();
         fetchInitialData();
 
         // generateFakeData();
@@ -131,6 +159,43 @@ function App() {
         }, []);*/
 
 
+
+    const connectWebSocket = async () => {
+        const newSocket = io(WEBSOCKET_ADDRESS);
+
+        // Set up event handlers
+        newSocket.on('connect', () => {
+            console.log('Connected to server');
+            // todo for various timeframes
+            const msg = {
+                symbol: symbol,
+                timeFrame: '5s'
+            }
+
+            setInterval(() => {
+                console.log({msg})
+                newSocket.emit('message', msg);
+            }, 5000);
+        });
+
+        newSocket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+
+        newSocket.on('message', (message: any) => {
+            console.log('Received message:', message);
+            // handleNewTick(data)
+            //lastCandle = data[data.length];
+
+            handleRealTimeTick(message)
+
+        });
+
+        // Remember to disconnect the socket when the component unmounts
+        return () => {
+            newSocket.disconnect();
+        };
+    }
     /*const connectWebSocket = async () => {
       /!*  ws.current = new WebSocket(WS_URL);
         ws.current.onopen = () => {
