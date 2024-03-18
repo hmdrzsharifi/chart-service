@@ -7,7 +7,8 @@ import websocket
 
 pd.set_option('display.float_format', '{:.8f}'.format)
 
-CONNECTION = "postgres://postgres:postgres@localhost:5432/chart"
+#CONNECTION = "postgres://postgres:postgres@localhost:5432/chart"
+CONNECTION = "postgres://postgres:postgres@adi.dev.modernisc.com:5432/chart"
 conn = psycopg2.connect(CONNECTION)
 cursor = conn.cursor()
 
@@ -45,9 +46,9 @@ def on_close(ws):
 
 
 def on_open(ws):
-    ws.send('{"type":"subscribe","symbol":"AAPL"}')
+    # ws.send('{"type":"subscribe","symbol":"AAPL"}')
 #     ws.send('{"type":"subscribe","symbol":"AMZN"}')
-#     ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
+    ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
 #     ws.send('{"type":"subscribe","symbol":"IC MARKETS:1"}')
 
 
@@ -58,4 +59,4 @@ if __name__ == "__main__":
                                 on_error=on_error,
                                 on_close=on_close)
     ws.on_open = on_open
-    ws.run_forever()
+    ws.run_forever(ping_interval = 10, ping_timeout = 9)

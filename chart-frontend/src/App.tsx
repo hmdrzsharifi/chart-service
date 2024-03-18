@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './App.css';
 import {StockChart} from "./chart/StockChart";
 
@@ -11,11 +11,13 @@ import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import useStore from "./util/store";
 import {fetchCandleData} from "./util/utils";
 import io from 'socket.io-client';
+import userEvent from "@testing-library/user-event";
 
 
 function App() {
 
     const [data, setData] = useState<any>([]);
+    // const [counter, setCounter] = useState(0);
 
     const {themeMode, symbol, timeFrame} = useStore();
     // const [socket, setSocket] = useState(new WebSocket(WEBSOCKET_ADDRESS))
@@ -33,9 +35,12 @@ function App() {
                 symbol: symbol,
                 timeFrame: '5s'
             }
-            setInterval(() => {
-                newSocket.emit('message', msg);
-            }, 5000);
+
+            newSocket.emit('message', msg);
+
+            /*  setInterval(() => {
+                  newSocket.emit('message', msg);
+              }, 5000);*/
         });
 
         newSocket.on('disconnect', () => {
@@ -60,7 +65,7 @@ function App() {
 
     const handleRealTimeTick = (message: any) => {
         let originalData = JSON.parse(message.server_message);
-        let date = new Date(originalData.t);
+        let date = new Date(originalData.t * 1000);
         let newCandle = {
             "date": date,
             "open": parseFloat(originalData.o),
@@ -74,12 +79,56 @@ function App() {
             "percentChange": ""
         };
 
-        if (data[data.length-1].date.getMinutes() == newCandle.date.getMinutes()) {
+        // console.log("lastCand", data[data.length-1])
+        console.log("lastCand_date", data[data.length-1]?.date)
+        console.log("websocket_candle", newCandle.date)
+        console.log({data})
+
+        if (data[data.length-1]?.date.getMinutes() == newCandle?.date.getMinutes()) {
+            console.log("update")
+            // console.log({counter})
+            // setCounter(counter  => ({ ...counter , a: counter.a + 1 }));
             setData((data: any[]) => [...data.slice(0, data.length - 1), newCandle])
         } else {
+            console.log("new")
+            // console.log({counter})
+            // setCounter(counter  => ({ ...counter , a: counter.a + 1 }));
             setData((data: any[]) => [...data, newCandle])
         }
     }
+
+/*
+    function useInterval(callback: any, delay:any) {
+        const savedCallback = useRef();
+
+        // Remember the latest callback.
+        useEffect(() => {
+            savedCallback.current = callback;
+        }, [callback]);
+
+        // Set up the interval.
+        useEffect(() => {
+            function tick() {
+                // @ts-ignore
+                savedCallback.current();
+            }
+            if (delay !== null) {
+                let id = setInterval(tick, delay);
+                return () => clearInterval(id);
+            }
+        }, [delay]);
+    }
+
+    useInterval(() => {
+       console.log({counter})
+        // setCounter(counter+1)
+    }, 1000);
+*/
+
+/*    useEffect(() =>{
+        console.log("{data}", data[data.length-1])
+        }
+    , [data])*/
 
     function generateFakeData() {
         setInterval(() => {

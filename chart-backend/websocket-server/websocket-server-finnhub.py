@@ -2,6 +2,7 @@ import json
 import psycopg2
 from flask import Flask
 from flask_socketio import SocketIO
+import threading
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -73,15 +74,19 @@ def handle_candle_message(symbol, timeframe):
         }
 
         socketio.send({'server_message':  json.dumps(result)})
-        # socketio.emit({'message': last_candle})
+
+        # threading.Timer(5, handle_candle_message).start()
+        threading.Timer(5, handle_candle_message, args=(symbol, timeframe)).start()
+
+    # socketio.emit({'message': last_candle})
     except (Exception, psycopg2.Error) as error:
         print(error.pgerror)
     # conn.close()
 
 
 if __name__ == '__main__':
-#     CONNECTION = "postgres://postgres:postgres@adi.dev.modernisc.com:5432/chart"
-    CONNECTION = "postgres://postgres:postgres@localhost:5432/chart"
+    CONNECTION = "postgres://postgres:postgres@adi.dev.modernisc.com:5432/chart"
+    # CONNECTION = "postgres://postgres:postgres@localhost:5432/chart"
     conn = psycopg2.connect(CONNECTION)
     cursor = conn.cursor()
 
