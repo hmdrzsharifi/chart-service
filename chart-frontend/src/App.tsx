@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './App.css';
 import {StockChart} from "./chart/StockChart";
 
@@ -11,11 +11,13 @@ import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import useStore from "./util/store";
 import {fetchCandleData} from "./util/utils";
 import io from 'socket.io-client';
+import userEvent from "@testing-library/user-event";
 
 
 function App() {
 
- const [data, setData] = useState<any>([]);
+    const [data, setData] = useState<any>([]);
+    // const [counter, setCounter] = useState(0);
 
     const {themeMode, symbol, timeFrame} = useStore();
     // const [socket, setSocket] = useState(new WebSocket(WEBSOCKET_ADDRESS))
@@ -28,21 +30,29 @@ function App() {
         // Set up event handlers
         newSocket.on('connect', () => {
             console.log('Connected to server');
+            // todo for various timeframes
             const msg = {
                 symbol: symbol,
                 timeFrame: '5s'
             }
+
             newSocket.emit('message', msg);
+
+            /*  setInterval(() => {
+                  newSocket.emit('message', msg);
+              }, 5000);*/
         });
 
         newSocket.on('disconnect', () => {
             console.log('Disconnected from server');
         });
 
-        newSocket.on('message', (data: any) => {
-            console.log('Received message:', data);
+        newSocket.on('message', (message: any) => {
+            console.log('Received message:', message);
             // handleNewTick(data)
-            handleRealTimeTick(data)
+            //lastCandle = data[data.length];
+
+            handleRealTimeTick(message)
 
         });
 
@@ -50,12 +60,12 @@ function App() {
         return () => {
             newSocket.disconnect();
         };
-    }, [symbol]);
+    }, [symbol, timeFrame]);
 
 
     const handleRealTimeTick = (message: any) => {
         let originalData = JSON.parse(message.server_message);
-        let date = new Date(originalData.t);
+        let date = new Date(originalData.t * 1000);
         let newCandle = {
             "date": date,
             "open": parseFloat(originalData.o),
@@ -69,8 +79,56 @@ function App() {
             "percentChange": ""
         };
 
-        setData((data: any[]) => [...data.slice(0, data.length - 1), newCandle])
+        // console.log("lastCand", data[data.length-1])
+        console.log("lastCand_date", data[data.length-1]?.date)
+        console.log("websocket_candle", newCandle.date)
+        console.log({data})
+
+        if (data[data.length-1]?.date.getMinutes() == newCandle?.date.getMinutes()) {
+            console.log("update")
+            // console.log({counter})
+            // setCounter(counter  => ({ ...counter , a: counter.a + 1 }));
+            setData((data: any[]) => [...data.slice(0, data.length - 1), newCandle])
+        } else {
+            console.log("new")
+            // console.log({counter})
+            // setCounter(counter  => ({ ...counter , a: counter.a + 1 }));
+            setData((data: any[]) => [...data, newCandle])
+        }
     }
+
+/*
+    function useInterval(callback: any, delay:any) {
+        const savedCallback = useRef();
+
+        // Remember the latest callback.
+        useEffect(() => {
+            savedCallback.current = callback;
+        }, [callback]);
+
+        // Set up the interval.
+        useEffect(() => {
+            function tick() {
+                // @ts-ignore
+                savedCallback.current();
+            }
+            if (delay !== null) {
+                let id = setInterval(tick, delay);
+                return () => clearInterval(id);
+            }
+        }, [delay]);
+    }
+
+    useInterval(() => {
+       console.log({counter})
+        // setCounter(counter+1)
+    }, 1000);
+*/
+
+/*    useEffect(() =>{
+        console.log("{data}", data[data.length-1])
+        }
+    , [data])*/
 
     function generateFakeData() {
         setInterval(() => {
@@ -99,27 +157,27 @@ function App() {
         // generateFakeData();
     }, [symbol, timeFrame]); // Only on mount and unmount
 
-/*    useEffect(() => {
-        // if (ticker === 'BINANCE:BTCUSDT' || ticker === 'BINANCE:ETHUSDT') {
-        const socket = new WebSocket('wss://ws.finnhub.io?token=cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg');
+    /*    useEffect(() => {
+            // if (ticker === 'BINANCE:BTCUSDT' || ticker === 'BINANCE:ETHUSDT') {
+            const socket = new WebSocket('wss://ws.finnhub.io?token=cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg');
 
-        socket.onopen = () => {
-            console.log('WebSocket connection opened');
-            socket.send(JSON.stringify({'type': 'subscribe', 'symbol': 'AAPL'}));
-            // socket.send("subscribe:" + symbol);
-        };
-        socket.onmessage = (event) => {
-            console.log('WebSocket Message: ', event.data);
-            // handleNewTick(event.data);
-        };
-        socket.onerror = (error) => {
-            console.error('WebSocket Error:', error);
-        };
-        socket.onerror = () => {
-            console.log('WebSocket Disconnected');
-        };
+            socket.onopen = () => {
+                console.log('WebSocket connection opened');
+                socket.send(JSON.stringify({'type': 'subscribe', 'symbol': 'AAPL'}));
+                // socket.send("subscribe:" + symbol);
+            };
+            socket.onmessage = (event) => {
+                console.log('WebSocket Message: ', event.data);
+                // handleNewTick(event.data);
+            };
+            socket.onerror = (error) => {
+                console.error('WebSocket Error:', error);
+            };
+            socket.onerror = () => {
+                console.log('WebSocket Disconnected');
+            };
 
-    }, []);*/
+        }, []);*/
 
 
     /*const connectWebSocket = async () => {
@@ -226,7 +284,7 @@ function App() {
         try {
             // const candleData = await fetchCandleData(symbol, timeFrame, fromDateString, toDateString);
             // const candleData = await fetchCandleData(symbol, durationData, new Date(new Date().setDate(new Date().getDate() - 151)).toLocaleDateString("sv-SE"), new Date().toLocaleDateString("sv-SE"));
-            const candleData = await fetchCandleData(symbol, 'D', Math.floor(new Date().getTime() / 1000) - (150 * 24 * 3600), Math.floor(new Date().getTime() / 1000));
+            const candleData = await fetchCandleData(symbol, timeFrame, Math.floor(new Date().getTime() / 1000) - (150 * 24 * 3600), Math.floor(new Date().getTime() / 1000));
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
             console.log(candleData)
 
@@ -268,7 +326,8 @@ function App() {
                             ...backGroundColor
                         }}/>
                         <div className="chart" style={{width: '100%'}}>
-                            <StockChart data={data} setData={setData} theme={theme} height={window.innerHeight - 100} ratio={3}
+                            <StockChart data={data} setData={setData} theme={theme} height={window.innerHeight - 100}
+                                        ratio={3}
                                         width={window.innerWidth - 45}/>
                         </div>
                     </div>

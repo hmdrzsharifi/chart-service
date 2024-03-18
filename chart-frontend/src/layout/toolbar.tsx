@@ -24,39 +24,28 @@ const Toolbar = (props: any) => {
 
             <Select
                 labelId="demo-select-small-label"
-                defaultValue='d'
+                defaultValue='D'
                 classes={{root: 'toolbar-select'}}
                 // @ts-ignore
                 onChange={(event) => setTimeFrame(event?.target?.value)}
             >
-                <MenuItem value='d'>daily</MenuItem>
-                <MenuItem value='1m'>minutes</MenuItem>
-                <MenuItem value='SECONDS'>seconds</MenuItem>
+                <MenuItem value='D'>Daily</MenuItem>
+                <MenuItem value='1'>1 Minute</MenuItem>
+                <MenuItem value='5'>5 Minutes</MenuItem>
             </Select>
 
             <Select
                 labelId="demo-select-small-label"
-                defaultValue='BTC-USD.CC'
+                defaultValue='AAPL'
                 classes={{root: 'toolbar-select'}}
                 // @ts-ignore
                 onChange={(event) => setSymbol(event?.target?.value)}
             >
-                <MenuItem value='BTC-USD.CC'>Bitcoin</MenuItem>
-                <MenuItem value='ttr'>Tether</MenuItem>
                 <MenuItem value='AAPL'>Apple</MenuItem>
+                <MenuItem value='BINANCE:BTCUSDT'>Bitcoin</MenuItem>
+                <MenuItem value='AMZN'>Amazon</MenuItem>
             </Select>
 
-            <Button
-                onClick={() => setEnableTrendLine(!enableTrendLine)}
-            >
-                TrendLine
-            </Button>
-
-            <Button
-                onClick={() => setEnableFib(!enableFib)}
-            >
-                Fibonacci
-            </Button>
         </div>
     )
 }

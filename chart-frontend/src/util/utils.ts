@@ -1,4 +1,6 @@
 import {DATA_ADDRESS} from "../config/constants";
+import {useEffect, useRef} from "react";
+import {TrendLineType} from "../type/TrendLineType";
 
 export async function fetchCandleData(symbol:any, tf:any, from:any, to:any) {
     const url = DATA_ADDRESS;
@@ -65,4 +67,52 @@ function mapObjectFinnhub(originalObject:any) {
         absoluteChange: "",
         percentChange:""
     };
+}
+
+export const useEventListener = (eventName:any, handler:any, element = window) => {
+    const savedHandler = useRef();
+    useEffect(() => {
+        savedHandler.current = handler;
+    }, [handler]);
+    useEffect(() => {
+        // @ts-ignore
+        const eventListener = (event:any) => savedHandler?.current(event);
+        element.addEventListener(eventName, eventListener);
+        return () => {
+            element.removeEventListener(eventName, eventListener);
+        };
+    }, [eventName, element]);
+};
+
+export const changeIndicatorsColor =
+    (
+        themeMode: 'dark' | 'light',
+        trends: TrendLineType[],
+        setTrends: any,
+        retracements: any,
+        setRetracements: any
+    ) => {
+    const tempTrends = trends.map(item => {
+        return {...item,
+            appearance: {
+                strokeStyle: themeMode === 'dark' ? '#fff' : '#000',
+                edgeFill: themeMode === 'dark' ? '#fff' : '#000',
+                edgeStroke: themeMode === 'dark' ? '#000' : '#fff',
+            }
+        }
+    })
+    setTrends(tempTrends)
+
+    const tempRetracements = retracements.map((item: any) => {
+        return {...item,
+            appearance: {
+                strokeStyle: themeMode === 'dark' ? '#fff' : '#000',
+                fontFill: themeMode === 'dark' ? '#fff' : '#000',
+                edgeStroke: themeMode === 'dark' ? '#fff' : '#000',
+                edgeFill: themeMode === 'dark' ? '#000' : '#fff',
+                nsEdgeFill: themeMode === 'dark' ? '#fff' : '#000',
+            }
+        }
+    })
+    setRetracements(tempRetracements)
 }

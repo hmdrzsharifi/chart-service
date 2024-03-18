@@ -5,3 +5,14 @@ host: host.docker.internal
 database: postgres
 user: postgres
 password: admin
+
+
+
+
+finnhub
+pip3 install websocket-client
+
+
+
+set-python3.bat
+pip install websocket-client
