@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './App.css';
 import {StockChart} from "./chart/StockChart";
 
@@ -21,36 +21,36 @@ function App() {
     // const [socket, setSocket] = useState(new WebSocket(WEBSOCKET_ADDRESS))
     const [socket, setSocket] = useState();
 
-    useEffect(() => {
-        // Connect to the server
-        const newSocket = io(WEBSOCKET_ADDRESS);
-
-        // Set up event handlers
-        newSocket.on('connect', () => {
-            console.log('Connected to server');
-            const msg= {
-                symbol: symbol,
-                timeFrame: '5s'
-            }
-            newSocket.emit('message', msg);
-        });
-
-        newSocket.on('disconnect', () => {
-            console.log('Disconnected from server');
-        });
-
-        newSocket.on('message', (data:any) => {
-            console.log('Received message:', data);
-            // handleNewTick(data)
-            handleRealTimeTick(data)
-
-        });
-
-        // Remember to disconnect the socket when the component unmounts
-        return () => {
-            newSocket.disconnect();
-        };
-    }, [symbol]);
+    // useEffect(() => {
+    //     // Connect to the server
+    //     const newSocket = io(WEBSOCKET_ADDRESS);
+    //
+    //     // Set up event handlers
+    //     newSocket.on('connect', () => {
+    //         console.log('Connected to server');
+    //         const msg= {
+    //             symbol: symbol,
+    //             timeFrame: '5s'
+    //         }
+    //         newSocket.emit('message', msg);
+    //     });
+    //
+    //     newSocket.on('disconnect', () => {
+    //         console.log('Disconnected from server');
+    //     });
+    //
+    //     newSocket.on('message', (data:any) => {
+    //         console.log('Received message:', data);
+    //         // handleNewTick(data)
+    //         handleRealTimeTick(data)
+    //
+    //     });
+    //
+    //     // Remember to disconnect the socket when the component unmounts
+    //     return () => {
+    //         newSocket.disconnect();
+    //     };
+    // }, [symbol]);
 
 
     const handleRealTimeTick = (message:any) => {
@@ -72,31 +72,46 @@ function App() {
         setData((data: any[]) => [...data.slice(0, data.length-1), newCandle])
     }
 
+    // for get state value inside hooks, should ref on that state
+    const stateRef: React.MutableRefObject<any> = useRef();
+    stateRef.current = data;
+
+    const getNewList = (data: any[]) => {
+        // get last item minute
+        const lastCandleMinute = stateRef?.current?.slice(-1)[0]?.date.getMinutes()
+
+        // generate current minute for fake data
+        let minute = new Date().getMinutes().toString();
+        if (minute.length === 1) minute = '0' + minute // if less than 10 ( 2 => 02)
+
+        // generate current second for fake data (ex: 12 or 05)
+        let second = new Date().getSeconds().toString();
+        if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)
+
+        // generate fake data
+        const newItem = {
+            "date": new Date(`1970-01-20T15:${minute}:${second}`),
+            "open": Math.random() + (Math.random() * 5) + 170,
+            "high": Math.random() + (Math.random() * 5) + 170,
+            "low": Math.random() + (Math.random() * 5) + 170,
+            "close": Math.random() + (Math.random() * 5) + 170,
+            "volume": 57266675,
+        }
+
+        // if new item minute and last item minute are same, update last item. otherwise add new item to array
+        return (lastCandleMinute === +minute) ? [...data.slice(0, data.length-1), newItem] : [...data, newItem]
+    }
+
     function generateFakeData() {
         setInterval(() => {
-            setData((data: any[]) => [...data.slice(0, data.length-1),
-                {
-                    "date": new Date("1970-01-20T15:15:50.400Z"),
-                    "open": Math.random() * 170,
-                    "high": Math.random() * 170,
-                    "low": Math.random() * 170,
-                    "close": Math.random() * 170,
-                    "volume": 57266675,
-                    // "open": 173.8,
-                    // "high": 177.99,
-                    // "low": 173.18,
-                    // "close": 177.49,
-                    // "volume": 57266675,
-
-            }])
-        }, 1000);
+            setData((data: any[]) => getNewList(data))
+        }, 3000);
     }
 
     useEffect(() => {
         // connectWebSocket();
         fetchInitialData();
-
-        // generateFakeData();
+        generateFakeData();
     }, [symbol, durationData]); // Only on mount and unmount
 
     /*useEffect(() => {
@@ -212,6 +227,15 @@ function App() {
         });
       };
 
+      const tempFetchData = async () => {
+          try {
+              const candleData = await fetchCandleData(symbol, 'D', Math.floor(new Date().getTime() / 1000) - (150 * 24 * 3600), Math.floor(new Date().getTime() / 1000));
+              setData((data: any[]) => [...candleData, ...data])
+          } catch (error) {
+              console.error('Error fetching candle data:', error);
+          }
+      }
+
       const fetchInitialData = async () => {
         /*const toDate = new Date();
         toDate.setHours(23, 59, 59, 999);
@@ -268,7 +292,7 @@ function App() {
               ...backGroundColor
           }} />
           <div className="chart" style={{width: '100%'}}>
-              <StockChart data={data} theme={theme}  height={window.innerHeight-100} ratio={3} width={window.innerWidth-45}/>
+              <StockChart tempFetchData={tempFetchData} data={data} theme={theme}  height={window.innerHeight-100} ratio={3} width={window.innerWidth-45}/>
           </div>
         </div>
         <Footer style={{

@@ -39,6 +39,7 @@ import {TrendLineType} from "../type/TrendLineType";
 
 interface StockChartProps {
     readonly data: IOHLCData[];
+    readonly tempFetchData: () => void;
     readonly height: number;
     readonly dateTimeFormat?: string;
     readonly width: number;
@@ -189,8 +190,9 @@ export const StockChart = (props: StockChartProps) => {
     };
 
     const handleDataLoadBefore = async (e: any) => {
-        setXExtents([e, e + LENGTH_TO_SHOW])
-        setFixedPosition(true);
+        props.tempFetchData();
+        // setXExtents([e, e + LENGTH_TO_SHOW])
+        // setFixedPosition(true);
         console.log("My Data Before")
     };
 
