@@ -30,6 +30,6 @@ def fetch_candle_data():
 
 
 if __name__ == '__main__':
-    SECRET = "cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg"
+    SECRET = "co1c0lhr01qgulhr2shgco1c0lhr01qgulhr2si0"
     # api = APIClient("62c547eb00d445.30059582")
     app.run(host='0.0.0.0', port=5000, debug=True)

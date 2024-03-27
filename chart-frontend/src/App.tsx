@@ -159,7 +159,7 @@ function App() {
 
     /*    useEffect(() => {
             // if (ticker === 'BINANCE:BTCUSDT' || ticker === 'BINANCE:ETHUSDT') {
-            const socket = new WebSocket('wss://ws.finnhub.io?token=cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg');
+            const socket = new WebSocket('wss://ws.finnhub.io?token=co1c0lhr01qgulhr2shgco1c0lhr01qgulhr2si0');
 
             socket.onopen = () => {
                 console.log('WebSocket connection opened');
