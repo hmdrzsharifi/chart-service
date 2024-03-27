@@ -6,7 +6,7 @@ import {StockChart} from "./chart/StockChart";
 import Toolbar from "./layout/toolbar";
 import Footer from "./layout/footer";
 import Sidebar from "./layout/sidebar";
-import {WEBSOCKET_ADDRESS} from "./config/constants";
+import {NO_OF_CANDLES, WEBSOCKET_ADDRESS} from "./config/constants";
 import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import useStore from "./util/store";
 import {fetchCandleData} from "./util/utils";
@@ -38,9 +38,9 @@ function App() {
 
             newSocket.emit('message', msg);
 
-            /*  setInterval(() => {
+              setInterval(() => {
                   newSocket.emit('message', msg);
-              }, 5000);*/
+              }, 5000);
         });
 
         newSocket.on('disconnect', () => {
@@ -80,21 +80,41 @@ function App() {
         };
 
         // console.log("lastCand", data[data.length-1])
-        console.log("lastCand_date", data[data.length-1]?.date)
-        console.log("websocket_candle", newCandle.date)
-        console.log({data})
+        // console.log("lastCand_date", data[data.length-1]?.date)
+        // console.log("websocket_candle", newCandle.date)
+        // console.log({data})
+        // get last item minute
+        const lastCandleMinute = stateRef?.current?.slice(-1)[0]?.date.getMinutes()
 
-        if (data[data.length-1]?.date.getMinutes() == newCandle?.date.getMinutes()) {
+        // generate current minute for fake data
+        let minute = date.getMinutes().toString();
+        if (minute.length === 1) minute = '0' + minute // if less than 10 ( 2 => 02)
+
+        // generate current second for fake data (ex: 12 or 05)
+        let second =date.getSeconds().toString();
+        if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)
+
+        if     (lastCandleMinute === +minute) {
             console.log("update")
+            setData((data: any[]) => [...data.slice(0, data.length - 1), newCandle])
+        }
+        else {
+            console.log("new")
             // console.log({counter})
             // setCounter(counter  => ({ ...counter , a: counter.a + 1 }));
+            setData((data: any[]) => [...data, newCandle])
+        }
+
+
+       /* if (data[data.length-1]?.date.getMinutes() == newCandle?.date.getMinutes()) {
+            console.log("update")
             setData((data: any[]) => [...data.slice(0, data.length - 1), newCandle])
         } else {
             console.log("new")
             // console.log({counter})
             // setCounter(counter  => ({ ...counter , a: counter.a + 1 }));
             setData((data: any[]) => [...data, newCandle])
-        }
+        }*/
     }
 
 /*
@@ -129,6 +149,36 @@ function App() {
         console.log("{data}", data[data.length-1])
         }
     , [data])*/
+
+    // for get state value inside hooks, should ref on that state
+    const stateRef: React.MutableRefObject<any> = useRef();
+    stateRef.current = data;
+
+    const getNewList = (data: any[]) => {
+        // get last item minute
+        const lastCandleMinute = stateRef?.current?.slice(-1)[0]?.date.getMinutes()
+
+        // generate current minute for fake data
+        let minute = new Date().getMinutes().toString();
+        if (minute.length === 1) minute = '0' + minute // if less than 10 ( 2 => 02)
+
+        // generate current second for fake data (ex: 12 or 05)
+        let second = new Date().getSeconds().toString();
+        if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)
+
+        // generate fake data
+        const newItem = {
+            "date": new Date(`1970-01-20T15:${minute}:${second}`),
+            "open": Math.random() + (Math.random() * 5) + 170,
+            "high": Math.random() + (Math.random() * 5) + 170,
+            "low": Math.random() + (Math.random() * 5) + 170,
+            "close": Math.random() + (Math.random() * 5) + 170,
+            "volume": 57266675,
+        }
+
+        // if new item minute and last item minute are same, update last item. otherwise add new item to array
+        return (lastCandleMinute === +minute) ? [...data.slice(0, data.length-1), newItem] : [...data, newItem]
+    }
 
     function generateFakeData() {
         setInterval(() => {
@@ -284,7 +334,23 @@ function App() {
         try {
             // const candleData = await fetchCandleData(symbol, timeFrame, fromDateString, toDateString);
             // const candleData = await fetchCandleData(symbol, durationData, new Date(new Date().setDate(new Date().getDate() - 151)).toLocaleDateString("sv-SE"), new Date().toLocaleDateString("sv-SE"));
-            const candleData = await fetchCandleData(symbol, timeFrame, Math.floor(new Date().getTime() / 1000) - (150 * 24 * 3600), Math.floor(new Date().getTime() / 1000));
+
+            let from;
+
+            switch (timeFrame) {
+                case "1M":
+                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 60);
+                    break;
+                case "D":
+                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600);
+                    break;
+
+                    //todo add other time frame
+
+                default: from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
+            }
+
+            const candleData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
             console.log(candleData)
 

@@ -75,8 +75,7 @@ def handle_candle_message(symbol, timeframe):
 
         socketio.send({'server_message':  json.dumps(result)})
 
-        # threading.Timer(5, handle_candle_message).start()
-        threading.Timer(5, handle_candle_message, args=(symbol, timeframe)).start()
+        # threading.Timer(5, handle_candle_message, args=(symbol, timeframe)).start()
 
     # socketio.emit({'message': last_candle})
     except (Exception, psycopg2.Error) as error:

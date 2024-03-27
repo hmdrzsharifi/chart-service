@@ -29,9 +29,14 @@ const Toolbar = (props: any) => {
                 // @ts-ignore
                 onChange={(event) => setTimeFrame(event?.target?.value)}
             >
-                <MenuItem value='D'>Daily</MenuItem>
-                <MenuItem value='1'>1 Minute</MenuItem>
-                <MenuItem value='5'>5 Minutes</MenuItem>
+                <MenuItem value='D'>1 D</MenuItem>
+                <MenuItem value='1M'>1 Min</MenuItem>
+                <MenuItem value='5M'>5 Min</MenuItem>
+                <MenuItem value='15M'>15 Min</MenuItem>
+                <MenuItem value='30M'>30 Min</MenuItem>
+                <MenuItem value='1H'>1 Hour</MenuItem>
+                <MenuItem value='W'>1 W</MenuItem>
+                <MenuItem value='M'>1M</MenuItem>
             </Select>
 
             <Select

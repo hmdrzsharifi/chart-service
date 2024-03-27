@@ -34,6 +34,7 @@ import {TrendLine, DrawingObjectSelector, FibonacciRetracement} from "react-fina
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
+import {NO_OF_CANDLES} from "../config/constants";
 
 
 interface StockChartProps {
@@ -55,7 +56,7 @@ const mouseEdgeAppearance = {
     fill: "#BCDEFA",
 };
 
-const LENGTH_TO_SHOW = 150;
+
 
 export const StockChart = (props: StockChartProps) => {
     const margin = {left: 0, right: 48, top: 0, bottom: 24};
@@ -405,7 +406,7 @@ export const StockChart = (props: StockChartProps) => {
     useEffect(() => {
         if (!fixedPosition) {
             const max = xAccessor(data[data.length - 1]);
-            const min = xAccessor(data[Math.max(0, data.length - LENGTH_TO_SHOW)]);
+            const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
             setXExtents([min, max + 10])
         }
     }, [props, fixedPosition])
@@ -419,7 +420,7 @@ export const StockChart = (props: StockChartProps) => {
 
     const gridHeight = height - margin.top - margin.bottom;
 
-    const elderRayHeight = LENGTH_TO_SHOW;
+    const elderRayHeight = NO_OF_CANDLES;
     const elderRayOrigin = (_: number, h: number) => [0, h - elderRayHeight];
     const barChartHeight = gridHeight / 4;
     const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight - elderRayHeight];
