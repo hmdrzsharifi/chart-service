@@ -1,13 +1,15 @@
-package com.example.chart.webSocket;
+package com.example.chart.websocket.ticker;
 
-import com.example.chart.model.TradeData;
-import com.example.chart.repository.JdbcTradeRepository;
+import com.example.chart.model.SymbolData;
+import com.example.chart.repository.TradeDataRepositoryImpl;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PreDestroy;
 import java.net.URI;
@@ -21,39 +23,41 @@ import java.util.concurrent.Executors;
 public class WebSocketManager {
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private final JdbcTradeRepository jdbcTradeRepository;
+    private final TradeDataRepositoryImpl jdbcTradeRepository;
     private WebSocketClient client;
 
-    public WebSocketManager(JdbcTradeRepository jdbcTradeRepository) {
+    @Value("${symbols}")
+    private List<String> symbols;
+
+    public WebSocketManager(TradeDataRepositoryImpl jdbcTradeRepository) {
         this.jdbcTradeRepository = jdbcTradeRepository;
     }
 
-    //    @PostConstruct
     public void connect() {
-        client = new WebSocketClient(URI.create("wss://ws.finnhub.io?token=cneoim9r01qq13fns8b0cneoim9r01qq13fns8bg")) {
+        client = new WebSocketClient(URI.create("wss://ws.finnhub.io?token=co600h1r01qmuouoaj70co600h1r01qmuouoaj7g")) {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
                 System.out.println("Connected to server.");
-//				JSONObject APPLEMessage = new JSONObject();
-//				APPLEMessage.put("type", "subscribe");
-//				APPLEMessage.put("symbol", "AAPL");
-//				send(APPLEMessage.toString());
-                JSONObject BTCUSDTMessage = new JSONObject();
-                BTCUSDTMessage.put("type", "subscribe");
-                BTCUSDTMessage.put("symbol", "BINANCE:BTCUSDT");
-                send(BTCUSDTMessage.toString());
 
+                for (String symbol : symbols) {
+                    JSONObject BTCUSDTMessage = new JSONObject();
+                    BTCUSDTMessage.put("type", "subscribe");
+                    BTCUSDTMessage.put("symbol", symbol);
+                    send(BTCUSDTMessage.toString());
+                }
             }
 
             @Override
-            public void onMessage(String jsonData) {
-                System.out.println("Received data: " + jsonData);
-                saveData(jsonData);
+            public void onMessage(String data) {
+                System.out.println("Received data: " + data);
+
+                saveData(data);
             }
 
             @Override
             public void onClose(int i, String s, boolean b) {
                 System.out.println("Connection closed. Trying to reconnect...");
+
                 reconnectWebSocket();
             }
 
@@ -65,12 +69,13 @@ public class WebSocketManager {
         client.connect();
     }
 
-    private void saveData(String jsonData) {
+    @Transactional
+    void saveData(String jsonData) {
         try {
             JSONObject jsonObject = new JSONObject(jsonData);
             JSONArray dataArray = jsonObject.getJSONArray("data");
 
-            List<TradeData> tradeDataList = new ArrayList<>();
+            List<SymbolData> symbolDataList = new ArrayList<>();
             for (int i = 0; i < dataArray.length(); i++) {
                 JSONObject dataObject = dataArray.getJSONObject(i);
                 double price = dataObject.getDouble("p");
@@ -79,16 +84,17 @@ public class WebSocketManager {
                 double volume = dataObject.getDouble("v");
                 Timestamp timestamp = new Timestamp(time);
 
-                TradeData tradeData = new TradeData(price, symbol, timestamp, volume);
-                tradeDataList.add(tradeData);
-            }
-            for (TradeData tradeData : tradeDataList) {
-                System.out.println(tradeData);
-                jdbcTradeRepository.save(tradeData);
+                SymbolData symbolData = new SymbolData(price, symbol, timestamp, volume);
+                symbolDataList.add(symbolData);
             }
 
-        } catch (JSONException e) {
-            e.printStackTrace();
+            for (SymbolData symbolData : symbolDataList) {
+                System.out.println(symbolData);
+                jdbcTradeRepository.save(symbolData);
+            }
+
+        } catch (JSONException exp) {
+            exp.printStackTrace();
         }
     }
 

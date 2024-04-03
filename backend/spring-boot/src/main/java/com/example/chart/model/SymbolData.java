@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TradeData {
+public class SymbolData {
 
     private double price;
     private String symbol;

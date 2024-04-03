@@ -1,8 +1,8 @@
-package com.example.chart.socketIo;
+package com.example.chart.websocket.server;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.example.chart.model.CandleData;
-import com.example.chart.repository.JdbcTradeRepository;
+import com.example.chart.repository.TradeDataRepositoryImpl;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -13,10 +13,9 @@ import java.util.concurrent.CompletableFuture;
 public class SocketIOService {
 
     private final SocketIOServer server;
+    private final TradeDataRepositoryImpl jdbcTradeRepository;
 
-    private final JdbcTradeRepository jdbcTradeRepository;
-
-    public SocketIOService(SocketIOServer server, JdbcTradeRepository jdbcTradeRepository) {
+    public SocketIOService(SocketIOServer server, TradeDataRepositoryImpl jdbcTradeRepository) {
         this.server = server;
         this.jdbcTradeRepository = jdbcTradeRepository;
     }
@@ -29,7 +28,6 @@ public class SocketIOService {
             sendMessage(tradeData);
         });
     }
-
 
     public CompletableFuture<String> sendMessage(Object message) {
         CompletableFuture<String> future = new CompletableFuture<>();

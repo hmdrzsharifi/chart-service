@@ -18,4 +18,5 @@ public class CandleData {
     private double low;
     private double close;
     private double volume;
+
 }

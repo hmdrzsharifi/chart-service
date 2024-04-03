@@ -1,7 +1,7 @@
 package com.example.chart.repository;
 
 import com.example.chart.model.CandleData;
-import com.example.chart.model.TradeData;
+import com.example.chart.model.SymbolData;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -12,19 +12,19 @@ import java.util.List;
 import java.util.Objects;
 
 @Repository
-public class JdbcTradeRepository implements TradeDataRepository {
+public class TradeDataRepositoryImpl implements TradeDataRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public JdbcTradeRepository(JdbcTemplate jdbcTemplate) {
+    public TradeDataRepositoryImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public int save(TradeData tradeData) {
+    public int save(SymbolData symbolData) {
         return jdbcTemplate.update(
                 "INSERT INTO raw_trade_data (TIME, SYMBOL, PRICE, QUANTITY) VALUES (?,?,?,?)",
-                tradeData.getTime(), tradeData.getSymbol(), tradeData.getPrice(), tradeData.getVolume());
+                symbolData.getTime(), symbolData.getSymbol(), symbolData.getPrice(), symbolData.getVolume());
     }
 
     @Override

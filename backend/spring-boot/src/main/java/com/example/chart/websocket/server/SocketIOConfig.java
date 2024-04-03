@@ -1,4 +1,4 @@
-package com.example.chart.socketIo;
+package com.example.chart.websocket.server;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
@@ -26,6 +26,7 @@ public class SocketIOConfig {
         });
 
         server.start();
+
         return server;
     }
 }
