@@ -54,7 +54,7 @@ def on_open(ws):
 
 if __name__ == "__main__":
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=co1c0lhr01qgulhr2shgco1c0lhr01qgulhr2si0",
+    ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=co60qgpr01qmuouob0cgco60qgpr01qmuouob0d0",
                                 on_message=on_message,
                                 on_error=on_error,
                                 on_close=on_close)

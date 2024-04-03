@@ -16,6 +16,8 @@ def fetch_candle_data():
     from_time = request_data.get('from')
     to_time = request_data.get('to')
 
+    if tf == '1M': tf = '1'
+
     finnhub_client = finnhub.Client(api_key=SECRET)
 
     # Stock candles
@@ -30,6 +32,6 @@ def fetch_candle_data():
 
 
 if __name__ == '__main__':
-    SECRET = "co1c0lhr01qgulhr2shgco1c0lhr01qgulhr2si0"
+    SECRET = "co60qgpr01qmuouob0cgco60qgpr01qmuouob0d0"
     # api = APIClient("62c547eb00d445.30059582")
     app.run(host='0.0.0.0', port=5000, debug=True)

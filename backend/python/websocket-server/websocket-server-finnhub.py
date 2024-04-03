@@ -32,36 +32,31 @@ def handle_message(json):
 def handle_candle_message(symbol, timeframe):
     cursor = conn.cursor()
     try:
-        if timeframe == "1m":
-            table_name = "one_minute_candle"
-        if timeframe == "D":
-            table_name = "one_minute_candle"
-            query = query_5s
+        # query_1m = (f"SELECT symbol, EXTRACT(EPOCH FROM bucket) AS unix_timestamp, open, high, low, close, volume "
+        #          f"FROM one_minute_candle "
+        #          f"WHERE symbol = %s "
+        #          f"ORDER BY bucket"
+        #          f" DESC LIMIT 1")
 
-        query_1m = (f"SELECT symbol, EXTRACT(EPOCH FROM bucket) AS unix_timestamp, open, high, low, close, volume "
-                 f"FROM one_minute_candle "
-                 f"WHERE symbol = %s "
-                 f"ORDER BY bucket"
-                 f" DESC LIMIT 1")
-
-        query_5s = (f"SELECT symbol, EXTRACT(EPOCH FROM bucket) AS unix_timestamp, open, high, low, close, volume "
-                         f"FROM five_seconds_candle "
-                         f"WHERE symbol = %s "
-                         f"ORDER BY bucket"
-                         f" DESC LIMIT 1")
+        query_5s = ("SELECT symbol, EXTRACT(EPOCH FROM bucket) AS unix_timestamp, open, high, low, close, volume "
+                    "FROM ("
+                    "   SELECT symbol, bucket, open, high, low, close, volume, ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY bucket DESC) AS rn "
+                    "FROM five_seconds_candle WHERE symbol = %s "
+                    ") AS sub "
+                    "WHERE rn = 1;")
 
         cursor.execute(query_5s, (symbol,))
 
         last_candle = cursor.fetchone()
         print("candle data ", last_candle)
 
-        print(last_candle[1])
-        print(last_candle[0])
-        print(last_candle[2])
-        print(last_candle[3])
-        print(last_candle[4])
-        print(last_candle[5])
-        print(last_candle[6])
+        # print(last_candle[1])
+        # print(last_candle[0])
+        # print(last_candle[2])
+        # print(last_candle[3])
+        # print(last_candle[4])
+        # print(last_candle[5])
+        # print(last_candle[6])
 
         result = {
             "t": last_candle[1],
@@ -75,7 +70,7 @@ def handle_candle_message(symbol, timeframe):
 
         socketio.send({'server_message':  json.dumps(result)})
 
-        # threading.Timer(5, handle_candle_message, args=(symbol, timeframe)).start()
+        threading.Timer(5, handle_candle_message, args=(symbol, timeframe)).start()
 
     # socketio.emit({'message': last_candle})
     except (Exception, psycopg2.Error) as error:
