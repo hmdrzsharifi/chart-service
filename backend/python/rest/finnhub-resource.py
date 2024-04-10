@@ -12,16 +12,16 @@ CORS(app, resources={r'*': {'origins': '*'}})
 def fetch_candle_data():
     request_data = request.json
     symbol = request_data.get('Ticker')
-    tf = request_data.get('TimeFrame')
+    time_frame = request_data.get('TimeFrame')
     from_time = request_data.get('from')
     to_time = request_data.get('to')
 
-    if tf == '1M': tf = '1'
+    if time_frame == '1M': time_frame = '1'
 
     finnhub_client = finnhub.Client(api_key=SECRET)
 
     # Stock candles
-    res = finnhub_client.stock_candles(symbol, tf, from_time, to_time)
+    res = finnhub_client.stock_candles(symbol, time_frame, from_time, to_time)
 
     df = pd.DataFrame(res)
 

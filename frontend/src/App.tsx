@@ -17,45 +17,46 @@ function App() {
     const [data, setData] = useState<any>([]);
     const {themeMode, symbol, timeFrame} = useStore();
 
-   /* useEffect(() => {
-        // Connect to the server
-        const newSocket = io(WEBSOCKET_ADDRESS);
+    /* useEffect(() => {
+         // Connect to the server
+         const newSocket = io(WEBSOCKET_ADDRESS);
 
-        // Set up event handlers
-        newSocket.on('connect', () => {
-            console.log('Connected to server');
-            const msg = {
-                symbol: symbol,
-                timeFrame: '5s'
-            }
+         // Set up event handlers
+         newSocket.on('connect', () => {
+             console.log('Connected to server');
+             const msg = {
+                 symbol: symbol,
+                 timeFrame: '5s'
+             }
 
-            newSocket.emit('message', msg);
+             newSocket.emit('message', msg);
 
-           /!* setInterval(() => {
-                newSocket.emit('message', msg);
-            }, 5000);*!/
-        });
+            /!* setInterval(() => {
+                 newSocket.emit('message', msg);
+             }, 5000);*!/
+         });
 
-        newSocket.on('disconnect', () => {
+         newSocket.on('disconnect', () => {
 
-            console.log('Disconnected from server');
-        });
+             console.log('Disconnected from server');
+         });
 
-        newSocket.on('message', (message: any) => {
-            console.log('Received message:', message);
-            handleRealTimeTick(message)
-        });
+         newSocket.on('message', (message: any) => {
+             console.log('Received message:', message);
+             handleRealTimeTick(message)
+         });
 
-        // Remember to disconnect the socket when the component unmounts
-        return () => {
-            console.log('disconnect');
-            newSocket.disconnect();
-        };
-    }, [symbol, timeFrame]);*/
+         // Remember to disconnect the socket when the component unmounts
+         return () => {
+             console.log('disconnect');
+             newSocket.disconnect();
+         };
+     }, [symbol, timeFrame]);*/
 
-    const handleRealTimeTick = (message: any) => {
-        let websocketData = JSON.parse(message.server_message);
+    const handleRealTimeTick = (websocketData: any) => {
+        // let websocketData = JSON.parse(message.server_message);
         let websocketCandleDate = new Date(websocketData.t * 1000);
+        console.log({websocketCandleDate})
         let websocketCandle = {
             "date": websocketCandleDate,
             "open": parseFloat(websocketData.o),
@@ -91,8 +92,11 @@ function App() {
             setData((data: any[]) => [...data.slice(0, data.length - 1), websocketCandle])
         } else {
             console.log("new")
-            // fetchLastData(newCandle)
-            setData((data: any[]) => [...data, websocketCandle])
+            // console.log("current time", Math.floor(Date.now() / 1000))
+            // console.log("one minute before", Math.floor(Date.now() / 1000) - 60)
+
+            fetchLastData(websocketCandle)
+            // setData((data: any[]) => [...data, websocketCandle])
         }
     }
 
@@ -100,49 +104,67 @@ function App() {
     const stateRef: React.MutableRefObject<any> = useRef();
     stateRef.current = data;
 
+
     useEffect(() => {
+        // Initialize socket connection
+        const newSocket = io(WEBSOCKET_ADDRESS);
+
         const fetchDataAndConnectWebSocket = async () => {
             await fetchInitialData();
-            connectWebSocket();
+            connectWebSocket(newSocket);
         };
         fetchDataAndConnectWebSocket();
+
+        // Cleanup function
+        return () => {
+            console.log("******************* cleanup")
+            newSocket.disconnect(); // Disconnect the socket
+        };
     }, [symbol, timeFrame]);
 
 
-    const connectWebSocket = async () => {
-        const newSocket = io(WEBSOCKET_ADDRESS);
+    // const connectWebSocket = async () => {
+    const connectWebSocket = (socket:any) => {
 
         // Set up event handlers
-        newSocket.on('connect', () => {
+        socket.on('connect', () => {
             console.log('Connected to server');
-            console.log('#############################################' , symbol)
+            console.log('#############################################', symbol)
             const msg = {
                 symbol: symbol,
                 timeFrame: '5s'
             }
 
-            newSocket.emit('message', msg);
+            socket.emit('message', msg);
 
-             /*setInterval(() => {
-                 newSocket.emit('message', msg);
-             }, 5000);*/
+            /*setInterval(() => {
+                newSocket.emit('message', msg);
+            }, 5000);*/
         });
 
-        newSocket.on('disconnect', () => {
+        socket.on('disconnect', () => {
 
             console.log('Disconnected from server');
         });
 
-        newSocket.on('message', (message: any) => {
-            // console.log('Received message:', message);
-            handleRealTimeTick(message)
+        socket.on('message', (message: any) => {
+            console.log('Received message:', message);
+            let websocketData = JSON.parse(message.server_message);
+            if (websocketData.m === symbol) {
+                // console.log('handleRealTimeTick');
+                handleRealTimeTick(websocketData)
+            }
+            // else {
+            //     console.log('newSocket.disconnect()')
+            //     socket.disconnect();
+            // }
         });
 
         // Remember to disconnect the socket when the component unmounts
-        return () => {
+        /*return () => {
             console.log('disconnect');
-            newSocket.disconnect();
-        };
+            socket.disconnect();
+        };*/
     };
 
     const handleNewTick = (message: any) => {
@@ -224,9 +246,11 @@ function App() {
                     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
             }
 
+            console.log("from: " + from)
+            console.log("to: " + Math.floor(new Date().getTime() / 1000))
             const candleData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
-            // console.log(candleData)
+            console.log(candleData)
 
             setData(candleData)
         } catch (error) {
@@ -239,10 +263,11 @@ function App() {
             let from;
             let to;
 
+
             switch (timeFrame) {
                 case "1M":
-                    from = Math.floor(newCandle.date.getTime() / 1000) - (2 * 60);
-                    to = Math.floor(newCandle.date.getTime() / 1000) - (1 * 60);
+                    from = Math.floor(newCandle.date.getTime() / 1000) - 120;
+                    to = Math.floor(newCandle.date.getTime() / 1000);
                     break;
                 case "D":
                     from = Math.floor(newCandle.date.getTime() / 1000) - (1 * 24 * 3600);
@@ -254,12 +279,13 @@ function App() {
                     from = Math.floor(newCandle.date.getTime() / 1000) - (1 * 24 * 3600)
             }
 
-            // console.log("newCandle.date", newCandle.date)
+            // console.log({from})
+            // console.log({to})
 
             const candleData = await fetchCandleData(symbol, timeFrame, from, to);
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
             // console.log(candleData)
-
+            // setData((data: any[]) => [...data, websocketCandle])
             setData(candleData)
         } catch (error) {
             console.error('Error fetching candle data:', error);
