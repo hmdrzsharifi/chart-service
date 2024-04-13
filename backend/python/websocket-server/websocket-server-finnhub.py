@@ -4,10 +4,6 @@ from flask import Flask
 from flask_socketio import SocketIO
 import threading
 from datetime import datetime, timezone
-import pytz
-from datetime import datetime
-import time
-from datetime import datetime
 
 # import time
 
@@ -47,10 +43,10 @@ def handle_candle_message(symbol, timeframe):
         #          f" DESC LIMIT 1")
 
         # query_5s = ("SELECT symbol, TO_TIMESTAMP(EXTRACT(EPOCH FROM bucket)) AT TIME ZONE current_setting('TIMEZONE') AS local_timestamp, open, high, low, close, volume "
-        query_5s = ("SELECT symbol, (EXTRACT(EPOCH FROM bucket) WITH  TIME ZONE 'UTC') AS unix_timestamp, open, high, low, close, volume "
+        query_5s = ("SELECT symbol, bucket, open, high, low, close, volume "
                     "FROM ("
                     "   SELECT symbol, bucket, open, high, low, close, volume, ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY bucket DESC) AS rn "
-                    "FROM five_seconds_candle1 WHERE symbol = %s "
+                    "FROM five_seconds_candle WHERE symbol = %s "
                     ") AS sub "
                     "WHERE rn = 1;")
 
@@ -68,12 +64,12 @@ def handle_candle_message(symbol, timeframe):
         # print(last_candle[5])
         # print(last_candle[6])
 
-        dt_utc = pytz.utc.localize(last_candle[1])
-        timestamp_utc = int(dt_utc.timestamp())
+        # dt_utc = pytz.utc.localize(last_candle[1])
+        # timestamp_utc = int(dt_utc.timestamp())
 
         result = {
             # "t": int(time.mktime(last_candle[1].timetuple()))
-            "t": timestamp_utc,
+            "t": last_candle[1].isoformat(),
             "m": last_candle[0],
             "o": last_candle[2],
             "h": last_candle[3],

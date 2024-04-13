@@ -40,12 +40,13 @@ class WebSocketClient:
 
             cursor = conn.cursor()
             try:
-                query = "INSERT INTO raw_trade_data1 (TIME, SYMBOL, PRICE, QUANTITY)" + \
+                query = "INSERT INTO raw_trade_data (TIME, SYMBOL, PRICE, QUANTITY)" + \
                         " VALUES (%s,%s,%s,%s)"
                 for item in msg["data"]:
-                    # timestamp = datetime.datetime.fromtimestamp(int(item["t"] / 1000))
-                    timestamp = datetime.datetime.utcfromtimestamp(item["t"] / 1000).replace(tzinfo=datetime.timezone.utc)
+                    timestamp = datetime.datetime.fromtimestamp(int(item["t"] / 1000))
+                    # timestamp = datetime.datetime.utcfromtimestamp(item["t"] / 1000).replace(tzinfo=datetime.timezone.utc)
                     # timestamp = item["t"]
+                    # timestamp = TIMESTAMPTZ 'epoch' + 1713015317586 * INTERVAL '1 millisecond'
                     # record_to_insert = (timestamp, item["s"], item["p"], item["q"])
                     record_to_insert = (timestamp, item["s"], item["p"], item["v"])
                     cursor.execute(query, record_to_insert)

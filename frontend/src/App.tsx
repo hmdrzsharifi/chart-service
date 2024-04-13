@@ -55,7 +55,10 @@ function App() {
 
     const handleRealTimeTick = (websocketData: any) => {
         // let websocketData = JSON.parse(message.server_message);
-        let websocketCandleDate = new Date(websocketData.t * 1000);
+        // console.log("#########################", websocketData.t)
+        // let websocketCandleDate = new Date(websocketData.t * 1000);
+        let websocketCandleDate = new Date(websocketData.t);
+        // let websocketCandleDate = websocketData.t;
         console.log({websocketCandleDate})
         let websocketCandle = {
             "date": websocketCandleDate,
@@ -84,8 +87,8 @@ function App() {
         // console.log({date: websocketCandleDate})
         // console.log("{stateRef?.current?.slice(-1)[0]?.date}", stateRef?.current?.slice(-1)[0]?.date)
 
-        // console.log({lastCandleMinute})
-        // console.log({websocketCandleMinute})
+        console.log({lastCandleMinute})
+        console.log({websocketCandleMinute})
 
         if (lastCandleMinute === +websocketCandleMinute) {
             console.log("update")
@@ -246,8 +249,8 @@ function App() {
                     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
             }
 
-            console.log("from: " + from)
-            console.log("to: " + Math.floor(new Date().getTime() / 1000))
+            // console.log("from: " + from)
+            // console.log("to: " + Math.floor(new Date().getTime() / 1000))
             const candleData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
             console.log(candleData)
@@ -279,14 +282,14 @@ function App() {
                     from = Math.floor(newCandle.date.getTime() / 1000) - (1 * 24 * 3600)
             }
 
-            // console.log({from})
-            // console.log({to})
+            console.log({from})
+            console.log({to})
 
             const candleData = await fetchCandleData(symbol, timeFrame, from, to);
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
-            // console.log(candleData)
-            // setData((data: any[]) => [...data, websocketCandle])
-            setData(candleData)
+            console.log(candleData)
+            setData((data: any[]) => [...data, candleData[0]])
+            // setData(candleData)
         } catch (error) {
             console.error('Error fetching candle data:', error);
         }
