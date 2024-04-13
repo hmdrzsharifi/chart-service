@@ -3,17 +3,14 @@ import {timeFormat} from "d3-time-format";
 import * as React from "react";
 import {
     BarSeries,
-    CandlestickSeries,
     Chart,
     ChartCanvas,
     CrossHairCursor,
-    CurrentCoordinate,
     discontinuousTimeScaleProviderBuilder,
     EdgeIndicator,
     elderRay,
     ElderRaySeries,
     lastVisibleItemBasedZoomAnchor,
-    LineSeries,
     MouseCoordinateX,
     MouseCoordinateY,
     MovingAverageTooltip,
@@ -23,18 +20,20 @@ import {
     YAxis,
     ZoomButtons,
 } from "react-financial-charts";
-import { strokeDashTypes } from "@react-financial-charts/core";
 import {IOHLCData} from "../data";
 import {useEffect, useRef, useState} from "react";
 
 import {ema12, ema26, macdCalculator, smaVolume50} from "../indicator/indicators";
 
-import {TrendLine, DrawingObjectSelector, FibonacciRetracement} from "react-financial-charts";
+import {TrendLine, FibonacciRetracement} from "react-financial-charts";
 // import {saveInteractiveNodes, getInteractiveNodes} from "../interaction/interactiveutils";
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {NO_OF_CANDLES} from "../config/constants";
+import {HourAndMinutesTimeFrames} from "../type/Enum";
+import SelectedSeries from "./SelectedSeries";
+import useDesignStore from "../util/designStore";
 
 
 interface StockChartProps {
@@ -70,10 +69,11 @@ export const StockChart = (props: StockChartProps) => {
 
     const {loadingMoreData, setLoadingMoreData} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
+    const {seriesType} = useStore();
     const {symbol, setSymbol} = useStore();
-    const { themeMode } = useStore();
-    const {enableTrendLine, setEnableTrendLine} = useStore();
-    const {enableFib, setEnableFib} = useStore();
+    const {themeMode} = useDesignStore();
+    const {enableTrendLine, setEnableTrendLine} = useDesignStore();
+    const {enableFib, setEnableFib} = useDesignStore();
     const [retracements, setRetracements] = useState<any[]>([]);
     /*const [trends, setTrends] = useState([{
         start: [37, 193.5119667590028],
@@ -426,7 +426,7 @@ export const StockChart = (props: StockChartProps) => {
     const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight - elderRayHeight];
     const chartHeight = gridHeight - elderRayHeight;
 
-    const timeDisplayFormat = timeFormat(dateTimeFormat);
+    const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
 
     const xAndYColors = {
         tickLabelFill: theme.palette.mode === 'dark' ? '#fff' : '#000',
@@ -463,7 +463,9 @@ export const StockChart = (props: StockChartProps) => {
             <Chart id={3} height={chartHeight} yExtents={candleChartExtents}>
                 <XAxis showGridLines showTicks={false} showTickLabel={false} {...xAndYColors} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} {...xAndYColors} />
-                <CandlestickSeries/>
+
+                <SelectedSeries series={seriesType} data={data} />
+
                 {/*   <CandlestickSeries
 
                         fill={d => d.close > d.open ? "#547863" : "#a30f0f"}

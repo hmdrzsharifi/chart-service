@@ -6,6 +6,11 @@ html, body {
   transition: background-color 0.5s;
 }
 
+body {
+  background-image: url("https://miro.medium.com/v2/resize:fit:1400/format:webp/1*hls37XmM0ZHrJ02Ld_F5pQ.png");
+  background-clip: content-box;
+}
+
 #root {
   height: 100%;
 }
@@ -18,11 +23,18 @@ html, body {
 .toolbar {
   height: 40px;
   transition: background-color 0.5s;
+  display: flex;
+  justify-content: space-between;
+}
+
+.toolbar-right-box {
+  display: flex;
+  flex-direction: row-reverse;
 }
 
 .sidebar {
-  width: 40px;
-  transition: background-color 0.5s;
+  overflow: hidden;
+  transition: all 0.5s;
 }
 
 .chart-container {
@@ -30,12 +42,33 @@ html, body {
   flex: auto;
 }
 
+.chart {
+  background-color: #fff;
+}
+
+.toolbar-chart-icon .toolbar-chart-item {
+  display: none;
+}
+
 .footer {
-  height: 30px;
+  height: 35px !important;
   transition: background-color 0.5s;
 }
 
 
+.timeframe-menu-root {
+  height: 30px !important;
+  background: transparent !important;;
+}
+
+.timeframe-menu-root .MuiButtonBase-root {
+  min-width: 60px;
+  max-width: 60px;
+}
+
+.timeframe-menu-root .MuiBottomNavigationAction-label {
+  font-size: 15px;
+}
 
 .App {
   text-align: center;
@@ -82,10 +115,6 @@ html, body {
 
 .toolbar-select fieldset {
   border: 0;
-}
-
-.toolbar-select svg {
-  display: none;
 }
 
 .change-theme-switch svg {

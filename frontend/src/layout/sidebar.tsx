@@ -1,41 +1,38 @@
 import React from 'react';
 import {IconButton, Tooltip} from "@mui/material";
-import {DensityMedium, HorizontalRule} from '@mui/icons-material';
-import useStore from "../util/store";
+import TrendLineIcon from "../icons/TrendLineIcon";
+import FibonacciIcon from "../icons/FibonacciIcon";
+import useDesignStore from "../util/designStore";
 
 const Sidebar = (props: any) => {
 
-    const {enableTrendLine, setEnableTrendLine} = useStore();
-    const {enableFib, setEnableFib} = useStore();
+    const {enableTrendLine, setEnableTrendLine} = useDesignStore();
+    const {enableFib, setEnableFib} = useDesignStore();
+
+    const {themeSecondaryColor} = useDesignStore();
 
     return (
         <div className="sidebar" style={props.style}>
 
             <Tooltip title="Trend line" placement="right" arrow>
                 <IconButton
-                    sx={{
-                        background: enableTrendLine ? '#025394' : 'transparent'
-                    }}
                     onClick={() => {
                         setEnableTrendLine(!enableTrendLine)
                         setEnableFib(false)
                     }}
                 >
-                    <HorizontalRule/>
+                    <TrendLineIcon selected={enableTrendLine} color={themeSecondaryColor} />
                 </IconButton>
             </Tooltip>
 
-            <Tooltip title="Fibonatchi" placement="right" arrow>
+            <Tooltip title="Fibonacci" placement="right" arrow>
                 <IconButton
-                    sx={{
-                        background: enableFib ? '#025394' : 'transparent'
-                    }}
                     onClick={() => {
                         setEnableFib(!enableFib)
                         setEnableTrendLine(false)
                     }}
                 >
-                    <DensityMedium/>
+                    <FibonacciIcon selected={enableFib} color={themeSecondaryColor} />
                 </IconButton>
             </Tooltip>
 

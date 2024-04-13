@@ -10,12 +10,14 @@ import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import useStore from "./util/store";
 import {fetchCandleData} from "./util/utils";
 import io from 'socket.io-client';
+import useDesignStore from "./util/designStore";
 
 
 function App() {
 
     const [data, setData] = useState<any>([]);
-    const {themeMode, symbol, timeFrame} = useStore();
+    const {symbol, timeFrame} = useStore();
+    const {openSideBar, themeMode} = useDesignStore();
 
     /* useEffect(() => {
          // Connect to the server
@@ -302,8 +304,9 @@ function App() {
     });
 
     const backGroundColor = {
-        background: theme.palette.mode === 'dark' ? '#0080e7' : '#90caf9',
-        borderColor: theme.palette.mode === 'dark' ? '#90caf9' : '#0080e7',
+        background: theme.palette.mode === 'dark' ? '#151f28de' : '#ffffffde',
+        borderColor: theme.palette.mode === 'dark' ? '#5a687e' : '#6b6b6b',
+        chartBackground: theme.palette.mode === 'dark' ? '#121212' : '#fff',
     }
 
     if (data == null) {
@@ -322,9 +325,10 @@ function App() {
                     <div className="chart-container">
                         <Sidebar style={{
                             borderRight: 'solid 1px',
+                            width: openSideBar ? '40px' : '0',
                             ...backGroundColor
                         }}/>
-                        <div className="chart" style={{width: '100%'}}>
+                        <div className="chart" style={{width: '100%', background: backGroundColor.chartBackground}}>
                             <StockChart data={data} setData={setData} theme={theme} height={window.innerHeight - 100}
                                         ratio={3}
                                         width={window.innerWidth - 45}/>
