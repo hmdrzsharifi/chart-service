@@ -1,3 +1,29 @@
+
+
+CREATE TABLE IF NOT EXISTS raw_trade_data (
+   time TIMESTAMPTZ NOT NULL,
+   symbol text NOT NULL,
+   price double PRECISION NOT NULL,
+   quantity double PRECISION NOT NULL
+);
+
+SELECT create_hypertable('raw_trade_data', 'time');	-- turn it into a hypertable
+
+
+INSERT INTO raw_trade_data (time, symbol, price, quantity)
+VALUES
+    (TO_TIMESTAMP(1618425600) AT TIME ZONE 'UTC', 'AAPL', 135.50, 10000)
+;
+
+SELECT time AT TIME ZONE 'UTC' AS utc_timestamp,
+       symbol,
+       price
+FROM raw_trade_data
+WHERE symbol = 'AAPL';
+
+DROP MATERIALIZED VIEW one_minute_candle;
+
+
 #######################################################################
 
 CREATE TABLE IF NOT EXISTS raw_trade_data (

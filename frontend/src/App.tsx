@@ -75,6 +75,18 @@ function App() {
             "percentChange": ""
         };
 
+        const lastCandleDate = stateRef?.current?.slice(-1)[0]?.date
+        console.log('lastCandleDate', lastCandleDate)
+        console.log('websocketCandleDate', websocketCandleDate)
+        if (isWithinOneMinute(lastCandleDate, websocketCandleDate)){
+            console.log("update")
+            setData((data: any[]) => [...data.slice(0, data.length - 1), websocketCandle])
+        } else {
+            console.log("new")
+            fetchLastData(websocketCandle)
+        }
+
+        /*
         // get last item minute from data state
         const lastCandleMinute = stateRef?.current?.slice(-1)[0]?.date.getMinutes()
 
@@ -102,12 +114,26 @@ function App() {
 
             fetchLastData(websocketCandle)
             // setData((data: any[]) => [...data, websocketCandle])
-        }
+        }*/
     }
 
     // for get state value inside hooks, should ref on that state
     const stateRef: React.MutableRefObject<any> = useRef();
     stateRef.current = data;
+
+
+    function isWithinOneMinute(date1:any, date2:any) {
+        // Convert dates to timestamps in milliseconds
+        const timestamp1 = date1.getTime();
+        const timestamp2 = date2.getTime();
+
+        // Calculate the absolute difference in milliseconds
+        const difference = Math.abs(timestamp1 - timestamp2);
+
+        // Check if the absolute difference is less than or equal to 60,000 milliseconds (1 minute)
+        return difference <= 60000;
+    }
+
 
 
     useEffect(() => {
@@ -129,7 +155,7 @@ function App() {
 
 
     // const connectWebSocket = async () => {
-    const connectWebSocket = (socket:any) => {
+    const connectWebSocket = (socket: any) => {
 
         // Set up event handlers
         socket.on('connect', () => {
