@@ -140,5 +140,9 @@ body {
   fill: rgba(144, 202, 249, 0.35);
   stroke: #2976b5;
 }
+.element:hover{
+  cursor: pointer;
+  background-color: #898c8d;
+}
 
 button:focus { outline: none !important;}
