@@ -41,13 +41,9 @@ class WebSocketClient:
             cursor = conn.cursor()
             try:
                 query = "INSERT INTO raw_trade_data (TIME, SYMBOL, PRICE, QUANTITY)" + \
-                        " VALUES (%s,%s,%s,%s)"
+                        " VALUES (TO_TIMESTAMP(%s) AT TIME ZONE 'UTC' ,%s,%s,%s)"
                 for item in msg["data"]:
-                    timestamp = datetime.datetime.fromtimestamp(int(item["t"] / 1000))
-                    # timestamp = datetime.datetime.utcfromtimestamp(item["t"] / 1000).replace(tzinfo=datetime.timezone.utc)
-                    # timestamp = item["t"]
-                    # timestamp = TIMESTAMPTZ 'epoch' + 1713015317586 * INTERVAL '1 millisecond'
-                    # record_to_insert = (timestamp, item["s"], item["p"], item["q"])
+                    timestamp = int(item["t"] / 1000)
                     record_to_insert = (timestamp, item["s"], item["p"], item["v"])
                     cursor.execute(query, record_to_insert)
             except (Exception, psycopg2.Error) as error:
@@ -62,9 +58,6 @@ class WebSocketClient:
     def on_error(self, ws, error):
         print("Error:", error)
 
-
-    # def on_close(ws):
-    #     print("### closed ###")
 
     def on_close(self, ws):
         print("Connection closed")
@@ -81,9 +74,3 @@ if __name__ == "__main__":
     ws_url = 'wss://ws.finnhub.io?token=co60qgpr01qmuouob0cgco60qgpr01qmuouob0d0'
     client = WebSocketClient(ws_url)
     client.connect()
-    # ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=co60qgpr01qmuouob0cgco60qgpr01qmuouob0d0",
-    #                             on_message=on_message,
-    #                             on_error=on_error,
-    #                             on_close=on_close)
-    # ws.on_open = on_open
-    # ws.run_forever(ping_interval = 10, ping_timeout = 9)

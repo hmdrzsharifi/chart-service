@@ -1,5 +1,7 @@
 import {create} from 'zustand';
 import {TimeFrame, Series} from "../type/Enum";
+import {useState} from "react";
+import {SymbolType} from "../type/SymbolType";
 
 type Store = {
     timeFrame: TimeFrame
@@ -13,7 +15,14 @@ type Store = {
 
     seriesType: Series
     setSeriesType: (series: Series) => void
+
+    selectedSymbol : SymbolType
+    setSelectedSymbol : (symbolType: SymbolType) => void
+
+    // selectedSymbol : string
+    // setSelectedSymbol : (symbolType: string) => void
 };
+
 
 const useStore = create<Store>((set) => ({
     timeFrame: TimeFrame.D,
@@ -27,6 +36,14 @@ const useStore = create<Store>((set) => ({
 
     seriesType: Series.CANDLE,
     setSeriesType: (seriesType: Series) => set((state) => ({ seriesType: seriesType })),
+
+    selectedSymbol: {
+        description: '',
+        displaySymbol: '',
+        symbol: '',
+        type: ''
+    },
+    setSelectedSymbol: (selectedSymbol: SymbolType) => set((state) => ({ selectedSymbol: selectedSymbol })),
 }));
 
 export default useStore;

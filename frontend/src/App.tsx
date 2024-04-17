@@ -11,56 +11,18 @@ import useStore from "./util/store";
 import {fetchCandleData} from "./util/utils";
 import io from 'socket.io-client';
 import useDesignStore from "./util/designStore";
+import {TimeFrame} from "./type/Enum";
 
 
 function App() {
 
     const [data, setData] = useState<any>([]);
+    const [lastTime, setLastTime] = useState<any>(new Date());
     const {symbol, timeFrame} = useStore();
     const {openSideBar, themeMode} = useDesignStore();
 
-    /* useEffect(() => {
-         // Connect to the server
-         const newSocket = io(WEBSOCKET_ADDRESS);
-
-         // Set up event handlers
-         newSocket.on('connect', () => {
-             console.log('Connected to server');
-             const msg = {
-                 symbol: symbol,
-                 timeFrame: '5s'
-             }
-
-             newSocket.emit('message', msg);
-
-            /!* setInterval(() => {
-                 newSocket.emit('message', msg);
-             }, 5000);*!/
-         });
-
-         newSocket.on('disconnect', () => {
-
-             console.log('Disconnected from server');
-         });
-
-         newSocket.on('message', (message: any) => {
-             console.log('Received message:', message);
-             handleRealTimeTick(message)
-         });
-
-         // Remember to disconnect the socket when the component unmounts
-         return () => {
-             console.log('disconnect');
-             newSocket.disconnect();
-         };
-     }, [symbol, timeFrame]);*/
-
     const handleRealTimeTick = (websocketData: any) => {
-        // let websocketData = JSON.parse(message.server_message);
-        // console.log("#########################", websocketData.t)
-        // let websocketCandleDate = new Date(websocketData.t * 1000);
         let websocketCandleDate = new Date(websocketData.t);
-        // let websocketCandleDate = websocketData.t;
         console.log({websocketCandleDate})
         let websocketCandle = {
             "date": websocketCandleDate,
@@ -75,65 +37,47 @@ function App() {
             "percentChange": ""
         };
 
-        const lastCandleDate = stateRef?.current?.slice(-1)[0]?.date
-        console.log('lastCandleDate', lastCandleDate)
-        console.log('websocketCandleDate', websocketCandleDate)
-        if (isWithinOneMinute(lastCandleDate, websocketCandleDate)){
-            console.log("update")
-            setData((data: any[]) => [...data.slice(0, data.length - 1), websocketCandle])
-        } else {
-            console.log("new")
-            fetchLastData(websocketCandle)
+        // const lastCandleDate = stateRef?.current?.slice(-1)[0]?.date
+
+        if (timeFrame == TimeFrame.M1) {
+            if (isWithinOneMinute(websocketCandleDate)) {
+                console.log("update")
+                setData((data: any[]) => [...data.slice(0, data.length - 1), websocketCandle])
+            } else {
+                console.log("new")
+                setLastTime(new Date())
+                fetchLastData(websocketCandle)
+            }
         }
 
-        /*
-        // get last item minute from data state
-        const lastCandleMinute = stateRef?.current?.slice(-1)[0]?.date.getMinutes()
+    }
 
-        // generate current minute for websocket data
-        let websocketCandleMinute = websocketCandleDate.getMinutes().toString();
-        if (websocketCandleMinute.length === 1) websocketCandleMinute = '0' + websocketCandleMinute // if less than 10 ( 2 => 02)
+    const stateRef: React.MutableRefObject<any> = useRef();
+    stateRef.current = lastTime;
+
+    function isWithinOneMinute(websocketCandleDate: any) {
+        let lastTimeMinute = stateRef?.current.getMinutes().toString();
+        let websocketCandleDateMinute = websocketCandleDate.getMinutes().toString();
+        if (websocketCandleDateMinute.length === 1) websocketCandleDateMinute = '0' + websocketCandleDateMinute // if less than 10 ( 2 => 02)
 
         // generate current second for websocket data (ex: 12 or 05)
         let second = websocketCandleDate.getSeconds().toString();
-        if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)
+        if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)\
 
-        // console.log({date: websocketCandleDate})
-        // console.log("{stateRef?.current?.slice(-1)[0]?.date}", stateRef?.current?.slice(-1)[0]?.date)
+        console.log(`lastTimeMinute: ${lastTimeMinute} - websocketCandleDateMinute: ${websocketCandleDateMinute}`)
+        console.log("lastTimeMinute == +websocketCandleDateMinute", lastTimeMinute == +websocketCandleDateMinute)
 
-        console.log({lastCandleMinute})
-        console.log({websocketCandleMinute})
-
-        if (lastCandleMinute === +websocketCandleMinute) {
-            console.log("update")
-            setData((data: any[]) => [...data.slice(0, data.length - 1), websocketCandle])
+        if (lastTimeMinute == +websocketCandleDateMinute) {
+            return true;
         } else {
-            console.log("new")
-            // console.log("current time", Math.floor(Date.now() / 1000))
-            // console.log("one minute before", Math.floor(Date.now() / 1000) - 60)
-
-            fetchLastData(websocketCandle)
-            // setData((data: any[]) => [...data, websocketCandle])
-        }*/
+            return false;
+        }
     }
 
-    // for get state value inside hooks, should ref on that state
-    const stateRef: React.MutableRefObject<any> = useRef();
-    stateRef.current = data;
+    function convert_to_datetime(dateStr:string) : Date{
+        return new Date(dateStr);
 
-
-    function isWithinOneMinute(date1:any, date2:any) {
-        // Convert dates to timestamps in milliseconds
-        const timestamp1 = date1.getTime();
-        const timestamp2 = date2.getTime();
-
-        // Calculate the absolute difference in milliseconds
-        const difference = Math.abs(timestamp1 - timestamp2);
-
-        // Check if the absolute difference is less than or equal to 60,000 milliseconds (1 minute)
-        return difference <= 60000;
     }
-
 
 
     useEffect(() => {
@@ -168,34 +112,20 @@ function App() {
 
             socket.emit('message', msg);
 
-            /*setInterval(() => {
-                newSocket.emit('message', msg);
-            }, 5000);*/
         });
 
         socket.on('disconnect', () => {
-
             console.log('Disconnected from server');
         });
 
         socket.on('message', (message: any) => {
-            console.log('Received message:', message);
+            // console.log('Received message:', message);
             let websocketData = JSON.parse(message.server_message);
             if (websocketData.m === symbol) {
-                // console.log('handleRealTimeTick');
                 handleRealTimeTick(websocketData)
             }
-            // else {
-            //     console.log('newSocket.disconnect()')
-            //     socket.disconnect();
-            // }
         });
 
-        // Remember to disconnect the socket when the component unmounts
-        /*return () => {
-            console.log('disconnect');
-            socket.disconnect();
-        };*/
     };
 
     const handleNewTick = (message: any) => {
@@ -258,9 +188,6 @@ function App() {
 
     const fetchInitialData = async () => {
         try {
-            // const candleData = await fetchCandleData(symbol, timeFrame, fromDateString, toDateString);
-            // const candleData = await fetchCandleData(symbol, durationData, new Date(new Date().setDate(new Date().getDate() - 151)).toLocaleDateString("sv-SE"), new Date().toLocaleDateString("sv-SE"));
-
             let from;
 
             switch (timeFrame) {
@@ -277,8 +204,6 @@ function App() {
                     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
             }
 
-            // console.log("from: " + from)
-            // console.log("to: " + Math.floor(new Date().getTime() / 1000))
             const candleData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
             console.log(candleData)
@@ -313,11 +238,17 @@ function App() {
             console.log({from})
             console.log({to})
 
-            const candleData = await fetchCandleData(symbol, timeFrame, from, to);
+            const result = await fetchCandleData(symbol, timeFrame, from, to);
+            console.log('result1', result)
+            // result.sort((a: any, b: any) =>  a.date.getTime() - b.date.getTime());
+            console.log('result', result)
+            // sort on date
+            let singleResult = result[0];
+            singleResult = [singleResult, newCandle]
+            console.log('fetch result', singleResult)
+            // const candleData = result ? [result[0], newCandle] : newCandle;
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
-            console.log(candleData)
-            setData((data: any[]) => [...data, candleData[0]])
-            // setData(candleData)
+            setData((data: any[]) => [...data.slice(0, data.length - 1), ...singleResult])
         } catch (error) {
             console.error('Error fetching candle data:', error);
         }
@@ -355,7 +286,8 @@ function App() {
                             ...backGroundColor
                         }}/>
                         <div className="chart" style={{width: '100%', background: backGroundColor.chartBackground}}>
-                            <StockChart data={data} setData={setData} theme={theme} height={window.innerHeight - 100}
+                            <StockChart data={data} setData={setData} theme={theme}
+                                        height={window.innerHeight - 100}
                                         ratio={3}
                                         width={window.innerWidth - 45}/>
                         </div>

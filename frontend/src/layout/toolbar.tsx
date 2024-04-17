@@ -1,8 +1,19 @@
-import React from 'react';
+import React , {useState} from 'react';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import useStore from "../util/store";
-import {Tooltip, IconButton, Switch} from "@mui/material";
+import {
+    Tooltip,
+    IconButton,
+    Switch,
+    TextField,
+    Tabs,
+    Tab,
+    List,
+    ListItem,
+    ListItemText,
+    Autocomplete, Grid
+} from "@mui/material";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import ExpandMore from "@mui/icons-material/ExpandMore";
@@ -14,6 +25,14 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import { Series } from "../type/Enum";
 import BaseLineIcon from "../icons/BaseLineIcon";
 import AreaIcon from "../icons/AreaIcon";
+import Modal from "@mui/material/Modal";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Scrollbar from 'react-scrollbars-custom';
+import {Close, Search} from "@mui/icons-material";
+import {fetchCandleData, fetchSymbolData} from "../util/utils";
+import {SymbolType} from "../type/SymbolType";
 
 const Toolbar = (props: any) => {
 
@@ -21,6 +40,35 @@ const Toolbar = (props: any) => {
     const {setSeriesType} = useStore();
     const {setThemeSecondaryColor} = useDesignStore();
     const {themeMode, setThemeMode, openSideBar, setOpenSideBar} = useDesignStore();
+    const [open, setOpen] = useState<boolean>(false);
+    const [tabValue, setTabValue] = useState<number>(0);
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [options, setOptions] = useState<number[]>([]);
+    const [symbolList, setSymbolList] = useState<SymbolType[]>([]);
+    const {selectedSymbol , setSelectedSymbol} = useStore();
+
+
+    const handleOpen = () =>{
+        setOpen(true)
+    };
+    const handleClose = () => setOpen(false);
+    const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+        setTabValue(newValue)
+    };
+    const handleSearch = (event: React.ChangeEvent<{}>, value: string) => {
+        console.log({event})
+        console.log({value})
+        setSearchTerm(value);
+    };
+
+    const sendToApp = async (item: any) => {
+        console.log({item})
+        // const symbolData = await fetchSymbolData(item.symbol);
+        // setSymbolList(candleData);
+        setSelectedSymbol(item)
+        handleClose()
+    }
+
 
     return (
         <div className="toolbar" style={props.style}>
@@ -34,6 +82,91 @@ const Toolbar = (props: any) => {
                         <EditNoteIcon sx={{ width: 30, height: 30 }} />
                     </IconButton>
                 </Tooltip>
+                {/*sx={{ bgcolor: 'grey', '&:hover': { bgcolor: 'grey' } }}*/}
+                {/*<Button variant="outlined" onClick={handleOpen} color={'primary'}>*/}
+                {/*    Open Popup*/}
+                {/*</Button>*/}
+                <IconButton onClick={handleOpen}>
+                    <Search />
+                </IconButton>
+                <span onClick={handleOpen} style={{cursor:'pointer' , fontWeight:'bolder'}}>
+                {selectedSymbol?.displaySymbol}
+                </span>
+                <Modal
+                    open={open}
+                    onClose={handleClose}
+                    sx={{ maxHeight: '95%' }}
+                    aria-labelledby="modal-modal-title"
+                    aria-describedby="modal-modal-description"
+                >
+                    <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+                        <Typography id="modal-modal-title" variant="h6" component="h2">
+                            Select Symbol
+                        </Typography>
+                        <IconButton aria-label='close' onClick={handleClose} style={{position:'absolute' , top:'10px' , right:'10px'}}>
+                            <Close />
+                        </IconButton>
+                        <Autocomplete
+                            freeSolo
+                            options={options}
+                            renderInput={(params) => <TextField {...params} label="Search" variant="outlined" />}
+                            onInputChange={(event, value) => handleSearch(event , value)}
+                        />
+                        <Tabs value={tabValue} onChange={handleChangeTab} sx={{ mt: 2 }}>
+                            <Tab label="all" />
+                            <Tab label="stock" />
+                        </Tabs>
+                        <Scrollbar style={{ height: 300 }}>
+                        {tabValue === 0 && (
+                            <List>
+                                {
+                                    [{
+                                    displaySymbol: 'Btc',
+                                    description: 'main crypto coin',
+                                    symbol: 'BIT',
+                                }, {
+                                    displaySymbol: 'Theter',
+                                    description: 'main stable coin',
+                                    symbol: 'TTR'
+                                }]
+                                //     symbolList
+                                        .filter(item => item.displaySymbol.toString().toLowerCase().includes(searchTerm)).map((item) => (
+                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>{item.displaySymbol}</span>
+                                        <span>{item.description}</span>
+                                        <span>{item.symbol}</span>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                        {tabValue === 1 && (
+                            <List sx={{ mt: 2 }}>
+                                {
+                                    [{
+                                        displaySymbol: 'Btc',
+                                        description: 'main crypto coin',
+                                        symbol: 'BIT',
+                                        type: ''
+                                    }, {
+                                        displaySymbol: 'Theter',
+                                        description: 'main stable coin',
+                                        symbol: 'TTR',
+                                        type: ''
+                                    }]
+                                        //     symbolList
+                                        .filter(item => item.displaySymbol.toString().toLowerCase().includes(searchTerm)).map((item) => (
+                                        <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span>{item.displaySymbol}</span>
+                                            <span>{item.description}</span>
+                                            <span>{item.symbol}</span>
+                                        </ListItem>
+                                    ))}
+                            </List>
+                        )}
+                        </Scrollbar>
+                        <Button onClick={handleClose} sx={{ mt: 2 }}>Close</Button>
+                    </Box>
+                </Modal>
             </div>
             <div className="toolbar-right-box">
                 <Switch onChange={() => {
