@@ -425,6 +425,7 @@ export const StockChart = (props: StockChartProps) => {
     const barChartHeight = gridHeight / 4;
     const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight - elderRayHeight];
     const chartHeight = gridHeight - elderRayHeight;
+    const {isDisableMovingAverage,setIsDisableMovingAverage} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
 
@@ -494,6 +495,7 @@ export const StockChart = (props: StockChartProps) => {
                                    strokeWidth={3}
                                    arrowWidth={2}
                     />*/}
+                {isDisableMovingAverage ? null : (
                 <MovingAverageTooltip
                     origin={[8, 24]}
                     options={[
@@ -511,6 +513,7 @@ export const StockChart = (props: StockChartProps) => {
                         },
                     ]}
                 />
+                )}
 
                 <ZoomButtons onReset={handleReset}/>
                 <OHLCTooltip origin={[8, 16]}/>

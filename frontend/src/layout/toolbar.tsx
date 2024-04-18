@@ -12,7 +12,7 @@ import {
     List,
     ListItem,
     ListItemText,
-    Autocomplete, Grid, Avatar, Menu
+    Autocomplete, Grid, Avatar, Menu, Checkbox
 } from "@mui/material";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -48,6 +48,8 @@ const Toolbar = (props: any) => {
     const {selectedSymbol , setSelectedSymbol} = useStore();
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
+    const {isDisableMovingAverage,setIsDisableMovingAverage} = useStore();
+
 
     const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
         setMenuOpen(!menuOpen);
@@ -75,6 +77,10 @@ const Toolbar = (props: any) => {
         setSelectedSymbol(item)
         handleClose()
     }
+
+    const handleCheckboxChange = () => {
+        setIsDisableMovingAverage(!isDisableMovingAverage);
+    };
 
 
     return (
@@ -230,19 +236,103 @@ const Toolbar = (props: any) => {
                     open={menuOpen}
                     onClose={() => setMenuOpen(false)}
                 >
-                    <MenuItem value='MOVING_AVERAGE' onClick={() => setMenuOpen(false)}>Moving Average</MenuItem>
-                    <MenuItem value='BOLLINGER_BAND' onClick={() => setMenuOpen(false)}>Bollinger Band</MenuItem>
-                    <MenuItem value='COMPARE' onClick={() => setMenuOpen(false)}>Compare</MenuItem>
-                    <MenuItem value='MACD' onClick={() => setMenuOpen(false)}>Macd</MenuItem>
-                    <MenuItem value='RSI_AND_ATR' onClick={() => setMenuOpen(false)}>Rsi_and_Atr</MenuItem>
-                    <MenuItem value='STOCHASTIC_OSCILLATOR' onClick={() => setMenuOpen(false)}>Stochastic Oscillator</MenuItem>
-                    <MenuItem value='FORCEINDEX' onClick={() => setMenuOpen(false)}>ForceIndex</MenuItem>
-                    <MenuItem value='ELDERRAY' onClick={() => setMenuOpen(false)}>Elderray</MenuItem>
-                    <MenuItem value='ELDER_IMPULSE' onClick={() => setMenuOpen(false)}>Elder_Impulse</MenuItem>
-                    <MenuItem value='SAR' onClick={() => setMenuOpen(false)}>SAR</MenuItem>
-                    <MenuItem value='VOLUME_PROFILE' onClick={() => setMenuOpen(false)}>Volume Profile</MenuItem>
-                    <MenuItem value='VOLUME_PROFILE_BY_SESSION' onClick={() => setMenuOpen(false)}>Volume profile py Session</MenuItem>
-                    {/* محتوای منو */}
+                    <MenuItem value='MOVING_AVERAGE' onClick={() => setIsDisableMovingAverage(!isDisableMovingAverage)}>
+                        Moving Average
+                        <Checkbox
+                            checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        />
+                    </MenuItem>
+                    <MenuItem value='BOLLINGER_BAND' onClick={() => setMenuOpen(false)}>
+                        Bollinger Band
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='COMPARE' onClick={() => setMenuOpen(false)}>
+                        Compare
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='MACD' onClick={() => setMenuOpen(false)}>
+                        Macd
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='RSI_AND_ATR' onClick={() => setMenuOpen(false)}>
+                        Rsi_and_Atr
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='STOCHASTIC_OSCILLATOR' onClick={() => setMenuOpen(false)}>
+                        Stochastic Oscillator
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='FORCEINDEX' onClick={() => setMenuOpen(false)}>
+                        ForceIndex
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='ELDERRAY' onClick={() => setMenuOpen(false)}>
+                        Elderray
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='ELDER_IMPULSE' onClick={() => setMenuOpen(false)}>
+                        Elder_Impulse
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='SAR' onClick={() => setMenuOpen(false)}>
+                        SAR
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='VOLUME_PROFILE' onClick={() => setMenuOpen(false)}>
+                        Volume Profile
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='VOLUME_PROFILE_BY_SESSION' onClick={() => setMenuOpen(false)}>
+                        Volume profile py Session
+                        <Checkbox
+                            // checked={!isDisableMovingAverage}
+                            onChange={handleCheckboxChange}
+                            name="enableDisableMovingAverage"
+                            color="primary"
+                        /></MenuItem>
                 </Menu>
 
             </div>
@@ -251,4 +341,3 @@ const Toolbar = (props: any) => {
 }
 
 export default Toolbar;
-

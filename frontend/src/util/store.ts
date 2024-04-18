@@ -19,6 +19,9 @@ type Store = {
     selectedSymbol : SymbolType
     setSelectedSymbol : (symbolType: SymbolType) => void
 
+    isDisableMovingAverage : boolean
+    setIsDisableMovingAverage : (isDisableMovingAverage: boolean) => void
+
     // selectedSymbol : string
     // setSelectedSymbol : (symbolType: string) => void
 };
@@ -44,6 +47,10 @@ const useStore = create<Store>((set) => ({
         type: ''
     },
     setSelectedSymbol: (selectedSymbol: SymbolType) => set((state) => ({ selectedSymbol: selectedSymbol })),
+
+    isDisableMovingAverage : true,
+    setIsDisableMovingAverage : (isDisableMovingAverage: boolean) => set((state) => ({isDisableMovingAverage:isDisableMovingAverage}))
+
 }));
 
 export default useStore;
