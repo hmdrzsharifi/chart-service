@@ -12,7 +12,7 @@ import {
     List,
     ListItem,
     ListItemText,
-    Autocomplete, Grid
+    Autocomplete, Grid, Avatar, Menu
 } from "@mui/material";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -30,9 +30,9 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
-import {Close, Search} from "@mui/icons-material";
-import {fetchCandleData, fetchSymbolData} from "../util/utils";
+import {Close, Search, SmartButton} from "@mui/icons-material";
 import {SymbolType} from "../type/SymbolType";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const Toolbar = (props: any) => {
 
@@ -46,6 +46,13 @@ const Toolbar = (props: any) => {
     const [options, setOptions] = useState<number[]>([]);
     const [symbolList, setSymbolList] = useState<SymbolType[]>([]);
     const {selectedSymbol , setSelectedSymbol} = useStore();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [anchorEl, setAnchorEl] = useState<any>(null);
+
+    const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setMenuOpen(!menuOpen);
+        setAnchorEl(event.currentTarget);
+    };
 
 
     const handleOpen = () =>{
@@ -206,16 +213,42 @@ const Toolbar = (props: any) => {
                     <MenuItem value={Series.AREA}><AreaIcon/> <span className='toolbar-chart-item'>Area</span></MenuItem>
                     <MenuItem value={Series.BASE_LINE}><BaseLineIcon/> <span className='toolbar-chart-item'>Base Line</span></MenuItem>
                 </Select>
+                <IconButton
+                    aria-label="Studies"
+                    aria-haspopup="true"
+                    aria-expanded={menuOpen ? 'true' : undefined}
+                    onClick={handleMenuToggle}
+                    color="inherit"
+                >
+                    <Typography variant="button" sx={{ mr: 1 }}  classes={{root: 'toolbar-select'}}>
+                        Studies
+                    </Typography>
+                    <ExpandMoreIcon />
+                </IconButton>
+                <Menu
+                    anchorEl={anchorEl}
+                    open={menuOpen}
+                    onClose={() => setMenuOpen(false)}
+                >
+                    <MenuItem value='MOVING_AVERAGE' onClick={() => setMenuOpen(false)}>Moving Average</MenuItem>
+                    <MenuItem value='BOLLINGER_BAND' onClick={() => setMenuOpen(false)}>Bollinger Band</MenuItem>
+                    <MenuItem value='COMPARE' onClick={() => setMenuOpen(false)}>Compare</MenuItem>
+                    <MenuItem value='MACD' onClick={() => setMenuOpen(false)}>Macd</MenuItem>
+                    <MenuItem value='RSI_AND_ATR' onClick={() => setMenuOpen(false)}>Rsi_and_Atr</MenuItem>
+                    <MenuItem value='STOCHASTIC_OSCILLATOR' onClick={() => setMenuOpen(false)}>Stochastic Oscillator</MenuItem>
+                    <MenuItem value='FORCEINDEX' onClick={() => setMenuOpen(false)}>ForceIndex</MenuItem>
+                    <MenuItem value='ELDERRAY' onClick={() => setMenuOpen(false)}>Elderray</MenuItem>
+                    <MenuItem value='ELDER_IMPULSE' onClick={() => setMenuOpen(false)}>Elder_Impulse</MenuItem>
+                    <MenuItem value='SAR' onClick={() => setMenuOpen(false)}>SAR</MenuItem>
+                    <MenuItem value='VOLUME_PROFILE' onClick={() => setMenuOpen(false)}>Volume Profile</MenuItem>
+                    <MenuItem value='VOLUME_PROFILE_BY_SESSION' onClick={() => setMenuOpen(false)}>Volume profile py Session</MenuItem>
+                    {/* محتوای منو */}
+                </Menu>
 
             </div>
-
-
-
-
-
-
         </div>
     )
 }
 
 export default Toolbar;
+
