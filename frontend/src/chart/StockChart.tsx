@@ -34,6 +34,17 @@ import {NO_OF_CANDLES} from "../config/constants";
 import {HourAndMinutesTimeFrames} from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
+import Modal from "@mui/material/Modal";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import {Button, IconButton} from "@mui/material";
+import {Close} from "@mui/icons-material";
+import {
+    MACDSeries,
+} from "react-financial-charts";
+import {
+    MACDTooltip,
+} from "react-financial-charts";
 
 
 interface StockChartProps {
@@ -425,15 +436,30 @@ export const StockChart = (props: StockChartProps) => {
     const barChartHeight = gridHeight / 4;
     const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight - elderRayHeight];
     const chartHeight = gridHeight - elderRayHeight;
-    const {isDisableMovingAverage,setIsDisableMovingAverage} = useStore();
+    const {disableMovingAverage,setDisableMovingAverage} = useStore();
+    const {disableElderRay,setDisableElderRay} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
+    const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
+    const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
+
 
     const xAndYColors = {
         tickLabelFill: theme.palette.mode === 'dark' ? '#fff' : '#000',
         tickStrokeStyle: theme.palette.mode === 'dark' ? '#fff' : '#000',
         strokeStyle: theme.palette.mode === 'dark' ? '#fff' : '#000'
     }
+
+    const macdAppearance = {
+        strokeStyle: {
+            macd: "#FF0000",
+            signal: "#00F300",
+            zero:'#FF0000'
+        },
+        fillStyle: {
+            divergence: "#4682B4"
+        },
+    };
 
     return (
         <ChartCanvas
@@ -495,8 +521,9 @@ export const StockChart = (props: StockChartProps) => {
                                    strokeWidth={3}
                                    arrowWidth={2}
                     />*/}
-                {isDisableMovingAverage ? null : (
+                {!disableMovingAverage && (
                 <MovingAverageTooltip
+                    onClick={() => setOpenMovingAverageModal(true)}
                     origin={[8, 24]}
                     options={[
                         {
@@ -514,6 +541,24 @@ export const StockChart = (props: StockChartProps) => {
                     ]}
                 />
                 )}
+
+                <Modal
+                    open={openMovingAverageModal}
+                    onClose={() => setOpenMovingAverageModal(false)}
+                    sx={{ maxHeight: '95%' }}
+                    aria-labelledby="modal-modal-title"
+                    aria-describedby="modal-modal-description"
+                >
+                    <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+                        <Typography id="modal-modal-title" variant="h6" component="h2">
+                            changing
+                        </Typography>
+                        <Button color='error' title='disable MovingAverage' onClick={() => {
+                            setDisableMovingAverage(true)
+                            setOpenMovingAverageModal(false)
+                        }}> disable MovingAverage </Button>
+                    </Box>
+                </Modal>
 
                 <ZoomButtons onReset={handleReset}/>
                 <OHLCTooltip origin={[8, 16]}/>
@@ -578,13 +623,66 @@ export const StockChart = (props: StockChartProps) => {
                         {...mouseEdgeAppearance}/>*/}
                 <ElderRaySeries yAccessor={elder.accessor()}/>
 
+                {!disableElderRay && (
                 <SingleValueTooltip
+                    // origin={[10,50]}
+                    className='elderChart'
+                    xInitDisplay='200px'
+                    onClick={() => setOpenElderRayModal(true)}
                     yAccessor={elder.accessor()}
                     yLabel="Elder Ray"
                     yDisplayFormat={(d: any) =>
                         `${pricesDisplayFormat(d.bullPower)}, ${pricesDisplayFormat(d.bearPower)}`
                     }
-                    origin={[8, 16]}
+                    origin={[8, 30]}
+                />
+                    )}
+                <Modal
+                    open={openElderRayModal}
+                    onClose={() => setOpenElderRayModal(false)}
+                    sx={{ maxHeight: '95%' }}
+                    aria-labelledby="modal-modal-title"
+                    aria-describedby="modal-modal-description"
+                >
+                    <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+                        <Typography id="modal-modal-title" variant="h6" component="h2">
+                            changing
+                        </Typography>
+                        <Button color='error' title='disable ElderRay' onClick={() => {
+                            setDisableElderRay(true)
+                            setOpenElderRayModal(false)
+                        }}> disable ElderRay </Button>
+                    </Box>
+                </Modal>
+            </Chart>
+            <Chart id={5} height={150}
+                   yExtents={macdCalculator.accessor()}
+                   origin={(w, h) => [0, h - 150]} padding={{ top: 10, bottom: 10 }}
+            >
+                <XAxis axisAt="bottom" orient="bottom"/>
+                <YAxis axisAt="right" orient="right" ticks={2} />
+
+                <MouseCoordinateX
+                    at="bottom"
+                    orient="bottom"
+                    displayFormat={timeFormat("%Y-%m-%d")}
+                    rectRadius={5}
+                    {...mouseEdgeAppearance}
+                />
+                <MouseCoordinateY
+                    at="right"
+                    orient="right"
+                    displayFormat={format(".2f")}
+                    {...mouseEdgeAppearance}
+                />
+
+                <MACDSeries yAccessor={d => d.macd}
+                            {...macdAppearance} />
+                <MACDTooltip
+                    origin={[-38, 15]}
+                    yAccessor={d => d.macd}
+                    options={macdCalculator.options()}
+                    appearance={macdAppearance}
                 />
             </Chart>
             {/* <LineSeries

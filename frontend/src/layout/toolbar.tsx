@@ -48,7 +48,8 @@ const Toolbar = (props: any) => {
     const {selectedSymbol , setSelectedSymbol} = useStore();
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
-    const {isDisableMovingAverage,setIsDisableMovingAverage} = useStore();
+    const {disableMovingAverage,setDisableMovingAverage} = useStore();
+    const {disableElderRay,setDisableElderRay} = useStore();
 
 
     const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -77,10 +78,6 @@ const Toolbar = (props: any) => {
         setSelectedSymbol(item)
         handleClose()
     }
-
-    const handleCheckboxChange = () => {
-        setIsDisableMovingAverage(!isDisableMovingAverage);
-    };
 
 
     return (
@@ -236,102 +233,101 @@ const Toolbar = (props: any) => {
                     open={menuOpen}
                     onClose={() => setMenuOpen(false)}
                 >
-                    <MenuItem value='MOVING_AVERAGE' onClick={() => setIsDisableMovingAverage(!isDisableMovingAverage)}>
-                        Moving Average
-                        <Checkbox
-                            checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                    <MenuItem value='MOVING_AVERAGE' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setDisableMovingAverage(!disableMovingAverage)}>
+                        <span>Moving Average</span>
+                        <Switch checked={!disableMovingAverage}
+                        onClick={() => setDisableMovingAverage(!disableMovingAverage)}
+                        name="enableDisableMovingAverage"
+                        color="primary"
                         />
                     </MenuItem>
-                    <MenuItem value='BOLLINGER_BAND' onClick={() => setMenuOpen(false)}>
-                        Bollinger Band
-                        <Checkbox
-                            // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
+                    <MenuItem value='ELDERRAY' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setDisableElderRay(!disableElderRay)}>
+                        <span>Elderray</span>
+                        <Switch
+                            checked={!disableElderRay}
+                            onClick={() => setDisableElderRay(!disableElderRay)}
+                            name="enableDisableElderRay"
                             color="primary"
                         /></MenuItem>
-                    <MenuItem value='COMPARE' onClick={() => setMenuOpen(false)}>
-                        Compare
-                        <Checkbox
+                    <MenuItem value='BOLLINGER_BAND' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Bollinger Band</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         /></MenuItem>
-                    <MenuItem value='MACD' onClick={() => setMenuOpen(false)}>
-                        Macd
-                        <Checkbox
+                    <MenuItem value='COMPARE' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setMenuOpen(false)}>
+                        <span>Compare</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         /></MenuItem>
-                    <MenuItem value='RSI_AND_ATR' onClick={() => setMenuOpen(false)}>
-                        Rsi_and_Atr
-                        <Checkbox
+                    <MenuItem value='MACD' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setMenuOpen(false)}>
+                        <span>Macd</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
                             name="enableDisableMovingAverage"
-                            color="primary"
+                                color="primary"
                         /></MenuItem>
-                    <MenuItem value='STOCHASTIC_OSCILLATOR' onClick={() => setMenuOpen(false)}>
-                        Stochastic Oscillator
-                        <Checkbox
+                    <MenuItem value='RSI_AND_ATR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Rsi_and_Atr</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         /></MenuItem>
-                    <MenuItem value='FORCEINDEX' onClick={() => setMenuOpen(false)}>
-                        ForceIndex
-                        <Checkbox
+                    <MenuItem value='STOCHASTIC_OSCILLATOR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Stochastic Oscillator</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         /></MenuItem>
-                    <MenuItem value='ELDERRAY' onClick={() => setMenuOpen(false)}>
-                        Elderray
-                        <Checkbox
+                    <MenuItem value='FORCEINDEX' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>ForceIndex</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         /></MenuItem>
-                    <MenuItem value='ELDER_IMPULSE' onClick={() => setMenuOpen(false)}>
-                        Elder_Impulse
-                        <Checkbox
+                    <MenuItem value='ELDER_IMPULSE' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Elder_Impulse</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         /></MenuItem>
-                    <MenuItem value='SAR' onClick={() => setMenuOpen(false)}>
-                        SAR
-                        <Checkbox
+                    <MenuItem value='SAR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>SAR</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         /></MenuItem>
-                    <MenuItem value='VOLUME_PROFILE' onClick={() => setMenuOpen(false)}>
-                        Volume Profile
-                        <Checkbox
+                    <MenuItem value='VOLUME_PROFILE' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Volume Profile</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         /></MenuItem>
-                    <MenuItem value='VOLUME_PROFILE_BY_SESSION' onClick={() => setMenuOpen(false)}>
-                        Volume profile py Session
-                        <Checkbox
+                    <MenuItem value='VOLUME_PROFILE_BY_SESSION' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Volume profile py Session</span>
+                        <Switch
                             // checked={!isDisableMovingAverage}
-                            onChange={handleCheckboxChange}
-                            name="enableDisableMovingAverage"
-                            color="primary"
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         /></MenuItem>
                 </Menu>
 
