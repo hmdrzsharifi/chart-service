@@ -13,14 +13,17 @@ const SelectedSeries = (props: {series: Series, data: any[]}) => {
     switch (props.series) {
 
         case Series.CANDLE:
-            selectedSeries = <CandlestickSeries />
+            selectedSeries = <CandlestickSeries
+                fill={(d: any) => (d.close > d.open ? "#8cc176" : "#b82c0c")}
+                wickStroke={(d: any) => (d.close > d.open ? "#8cc176" : "#b82c0c")}
+            />
             break;
 
 
         case Series.BAR:
             selectedSeries =
                 <OHLCSeries
-                    stroke={(d: any) => (d.close > d.open ? "#26a69a" : "#ef5350")}
+                    stroke={(d: any) => (d.close > d.open ? "#8cc176" : "#b82c0c")}
                 />
             break;
 
@@ -45,6 +48,7 @@ const SelectedSeries = (props: {series: Series, data: any[]}) => {
             selectedSeries =
                 <AlternatingFillAreaSeries
                     yAccessor={d => d.close}
+                    fillStyle={{ top: 'rgba(140,193,118,0.44)', bottom: 'rgba(184,44,12,0.45)' }}
                     baseAt={props.data.length > 0 ? props.data.map(item => item.close).reduce((a, b) => a + b) / props.data.length : 0}
                 />
             break

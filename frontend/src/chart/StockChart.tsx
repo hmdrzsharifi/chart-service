@@ -34,6 +34,8 @@ import {NO_OF_CANDLES} from "../config/constants";
 import {HourAndMinutesTimeFrames} from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
+import {useTheme} from "@mui/material/styles";
+import getDesignTokens from "../config/theme";
 
 
 interface StockChartProps {
@@ -66,6 +68,7 @@ export const StockChart = (props: StockChartProps) => {
 
     const [fixedPosition, setFixedPosition] = useState(false)
     const [xExtents, setXExtents] = useState([0, 0])
+    const muiTheme = useTheme();
 
     const {loadingMoreData, setLoadingMoreData} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
@@ -429,9 +432,10 @@ export const StockChart = (props: StockChartProps) => {
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
 
     const xAndYColors = {
-        tickLabelFill: theme.palette.mode === 'dark' ? '#fff' : '#000',
-        tickStrokeStyle: theme.palette.mode === 'dark' ? '#fff' : '#000',
-        strokeStyle: theme.palette.mode === 'dark' ? '#fff' : '#000'
+        tickLabelFill: getDesignTokens(themeMode).palette.lineColor,
+        tickStrokeStyle: getDesignTokens(themeMode).palette.lineColor,
+        strokeStyle: getDesignTokens(themeMode).palette.lineColor,
+        gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
     }
 
     return (
@@ -476,9 +480,10 @@ export const StockChart = (props: StockChartProps) => {
                 <CurrentCoordinate yAccessor={ema26.accessor()} fillStyle={ema26.stroke()}/>
                 <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
                 <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>*/}
-                <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat}/>
+                <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10}/>
                 <EdgeIndicator
                     itemType="last"
+                    arrowWidth={10}
                     rectWidth={margin.right}
                     fill={openCloseColor}
                     lineStroke={openCloseColor}
@@ -495,6 +500,7 @@ export const StockChart = (props: StockChartProps) => {
                                    arrowWidth={2}
                     />*/}
                 <MovingAverageTooltip
+                    textFill={getDesignTokens(themeMode).palette.text.primary}
                     origin={[8, 24]}
                     options={[
                         {
@@ -513,7 +519,7 @@ export const StockChart = (props: StockChartProps) => {
                 />
 
                 <ZoomButtons onReset={handleReset}/>
-                <OHLCTooltip origin={[8, 16]}/>
+                <OHLCTooltip origin={[8, 16]} textFill={getDesignTokens(themeMode).palette.text.primary}/>
 
                 <TrendLine
                     // ref={saveInteractiveNodes("Trendline", 3)}
@@ -524,12 +530,12 @@ export const StockChart = (props: StockChartProps) => {
                     onStart={() => console.log("START", trends)}
                     onComplete={onDrawCompleteChart}
                     appearance={{
-                        strokeStyle: themeMode === 'dark' ? '#fff' : '#000',
+                        strokeStyle: getDesignTokens(themeMode).palette.lineColor,
                         strokeWidth: 1,
                         strokeDasharray: "Solid",
                         edgeStrokeWidth: 1,
-                        edgeFill: themeMode === 'dark' ? '#fff' : '#000',
-                        edgeStroke: themeMode === 'dark' ? '#000' : '#fff',
+                        edgeFill: getDesignTokens(themeMode).palette.lineColor,
+                        edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
                     }}
                     // onComplete={() => console.log("End", trends)}
                     trends={trends}
@@ -542,14 +548,14 @@ export const StockChart = (props: StockChartProps) => {
                     retracements={retracements}
                     onComplete={onFibComplete}
                     appearance={{
-                        strokeStyle: themeMode === 'dark' ? '#fff' : '#000',
+                        strokeStyle: getDesignTokens(themeMode).palette.lineColor,
                         strokeWidth: 1,
                         fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
                         fontSize: 11,
-                        fontFill: themeMode === 'dark' ? '#fff' : '#000',
-                        edgeStroke: themeMode === 'dark' ? '#fff' : '#000',
-                        edgeFill: themeMode === 'dark' ? '#000' : '#fff',
-                        nsEdgeFill: themeMode === 'dark' ? '#fff' : '#000',
+                        fontFill: getDesignTokens(themeMode).palette.text.primary,
+                        edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
+                        edgeFill: getDesignTokens(themeMode).palette.lineColor,
+                        nsEdgeFill: getDesignTokens(themeMode).palette.edgeStroke,
                         edgeStrokeWidth: 1,
                         r: 5,
                     }}
@@ -563,7 +569,7 @@ export const StockChart = (props: StockChartProps) => {
                 origin={elderRayOrigin}
                 padding={{top: 8, bottom: 8}}
             >
-                <XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>
+                <XAxis showGridLines {...xAndYColors}/>
                 <YAxis ticks={4} tickFormat={pricesDisplayFormat} {...xAndYColors}/>
 
                 <MouseCoordinateX displayFormat={timeDisplayFormat}/>

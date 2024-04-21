@@ -7,7 +7,6 @@ html, body {
 }
 
 body {
-  background-image: url("https://miro.medium.com/v2/resize:fit:1400/format:webp/1*hls37XmM0ZHrJ02Ld_F5pQ.png");
   background-clip: content-box;
 }
 
@@ -43,7 +42,7 @@ body {
 }
 
 .chart {
-  background-color: #fff;
+
 }
 
 .toolbar-chart-icon .toolbar-chart-item {
@@ -66,8 +65,9 @@ body {
   max-width: 60px;
 }
 
+.MuiSelect-select,
 .timeframe-menu-root .MuiBottomNavigationAction-label {
-  font-size: 15px;
+  font-size: 12px !important;
 }
 
 .App {

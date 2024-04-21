@@ -15,7 +15,7 @@ CORS(app, resources={r'*': {'origins': '*'}})
 def fetch_candle_data_dummy():
     try:
         # Read the TSV file into a pandas DataFrame
-        df = pd.read_csv('rest-data-' + request.get_json().get('Ticker') + '.tsv', sep='\t')
+        df = pd.read_csv('rest-data.tsv', sep='\t')
 
         # Convert DataFrame to JSON
         json_data = df.to_json(orient='records')

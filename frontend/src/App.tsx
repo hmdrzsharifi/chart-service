@@ -12,6 +12,7 @@ import {fetchCandleData} from "./util/utils";
 import io from 'socket.io-client';
 import useDesignStore from "./util/designStore";
 import {TimeFrame} from "./type/Enum";
+import getDesignTokens from "./config/theme";
 
 
 function App() {
@@ -86,7 +87,7 @@ function App() {
 
         const fetchDataAndConnectWebSocket = async () => {
             await fetchInitialData();
-            connectWebSocket(newSocket);
+            // connectWebSocket(newSocket);
         };
         fetchDataAndConnectWebSocket();
 
@@ -254,17 +255,7 @@ function App() {
         }
     };
 
-    const theme = createTheme({
-        palette: {
-            mode: themeMode,
-        },
-    });
-
-    const backGroundColor = {
-        background: theme.palette.mode === 'dark' ? '#151f28de' : '#ffffffde',
-        borderColor: theme.palette.mode === 'dark' ? '#5a687e' : '#6b6b6b',
-        chartBackground: theme.palette.mode === 'dark' ? '#121212' : '#fff',
-    }
+    const theme = React.useMemo(() => createTheme(getDesignTokens(themeMode)), [themeMode]);
 
     if (data == null) {
         return <div>Loading...</div>;
@@ -275,17 +266,23 @@ function App() {
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
                 <div className="app-container">
-                    <Toolbar style={{
-                        borderBottom: 'solid 3px',
-                        ...backGroundColor
-                    }}/>
+                    <Toolbar
+                        style={{
+                            borderBottom: 'solid 1px',
+                            background: getDesignTokens(themeMode).palette.backgroundBar,
+                            borderColor: getDesignTokens(themeMode).palette.borderBar
+                            }}
+                    />
                     <div className="chart-container">
                         <Sidebar style={{
                             borderRight: 'solid 1px',
                             width: openSideBar ? '40px' : '0',
-                            ...backGroundColor
+                            background: getDesignTokens(themeMode).palette.backgroundBar,
+                            borderColor: getDesignTokens(themeMode).palette.borderBar
                         }}/>
-                        <div className="chart" style={{width: '100%', background: backGroundColor.chartBackground}}>
+                        <div className="chart" style={{width: '100%',
+                            background: getDesignTokens(themeMode).palette.chartBackground
+                        }}>
                             <StockChart data={data} setData={setData} theme={theme}
                                         height={window.innerHeight - 100}
                                         ratio={3}
@@ -293,8 +290,9 @@ function App() {
                         </div>
                     </div>
                     <Footer style={{
-                        borderTop: 'solid 3px',
-                        ...backGroundColor
+                        borderTop: 'solid 1px',
+                        background: getDesignTokens(themeMode).palette.backgroundBar,
+                        borderColor: getDesignTokens(themeMode).palette.borderBar
                     }}/>
                 </div>
             </ThemeProvider>
