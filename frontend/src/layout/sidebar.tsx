@@ -8,6 +8,9 @@ const Sidebar = (props: any) => {
 
     const {enableTrendLine, setEnableTrendLine} = useDesignStore();
     const {enableFib, setEnableFib} = useDesignStore();
+    const {enableEquidistant, setEnableEquidistant} = useDesignStore();
+    const {enableBrush, setEnableBrush} = useDesignStore();
+
 
     const {themeSecondaryColor} = useDesignStore();
 
@@ -19,6 +22,8 @@ const Sidebar = (props: any) => {
                     onClick={() => {
                         setEnableTrendLine(!enableTrendLine)
                         setEnableFib(false)
+                        setEnableEquidistant(false)
+                        setEnableBrush(false)
                     }}
                 >
                     <TrendLineIcon selected={enableTrendLine} color={themeSecondaryColor} />
@@ -30,11 +35,41 @@ const Sidebar = (props: any) => {
                     onClick={() => {
                         setEnableFib(!enableFib)
                         setEnableTrendLine(false)
+                        setEnableEquidistant(false)
+                        setEnableBrush(false)
                     }}
                 >
                     <FibonacciIcon selected={enableFib} color={themeSecondaryColor} />
                 </IconButton>
             </Tooltip>
+
+            <Tooltip title="Equidistant Channel" placement="right" arrow>
+                <IconButton
+                    onClick={() => {
+                        setEnableEquidistant(!enableEquidistant)
+                        setEnableTrendLine(false)
+                        setEnableFib(false)
+                        setEnableBrush(false)
+
+                    }}
+                >
+                    <TrendLineIcon selected={enableEquidistant} color={themeSecondaryColor} />
+                </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Equidistant Channel" placement="right" arrow>
+                <IconButton
+                    onClick={() => {
+                        setEnableBrush(!enableBrush)
+                        setEnableEquidistant(false)
+                        setEnableTrendLine(false)
+                        setEnableFib(false)
+                    }}
+                >
+                    <FibonacciIcon selected={enableEquidistant} color={themeSecondaryColor} />
+                </IconButton>
+            </Tooltip>
+
 
         </div>
     )

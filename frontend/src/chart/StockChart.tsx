@@ -25,7 +25,7 @@ import {useEffect, useRef, useState} from "react";
 
 import {ema12, ema26, macdCalculator, smaVolume50} from "../indicator/indicators";
 
-import {TrendLine, FibonacciRetracement} from "react-financial-charts";
+import {TrendLine, FibonacciRetracement , EquidistantChannel , Brush} from "react-financial-charts";
 // import {saveInteractiveNodes, getInteractiveNodes} from "../interaction/interactiveutils";
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
@@ -85,7 +85,10 @@ export const StockChart = (props: StockChartProps) => {
     const {themeMode} = useDesignStore();
     const {enableTrendLine, setEnableTrendLine} = useDesignStore();
     const {enableFib, setEnableFib} = useDesignStore();
+    const {enableEquidistant, setEnableEquidistant} = useDesignStore();
+    const {enableBrush, setEnableBrush} = useDesignStore();
     const [retracements, setRetracements] = useState<any[]>([]);
+    const BRUSH_TYPE = "2D";
     /*const [trends, setTrends] = useState([{
         start: [37, 193.5119667590028],
         end: [107, 180.54797783933518],
@@ -94,6 +97,7 @@ export const StockChart = (props: StockChartProps) => {
         selected: undefined
     }])*/
     const [trends, setTrends] = useState<TrendLineType[]>([])
+    const [brushes, setBrushes] = useState<any[]>([])
 
     // const [trends, setTrends] = useState<any[]>([]);
 
@@ -326,6 +330,18 @@ export const StockChart = (props: StockChartProps) => {
         setRetracements(retracements)
     }
 
+    const onDrawComplete = (channels_1 : any) => {
+        // this gets called on
+        // 1. draw complete of drawing object
+        // 2. drag complete of drawing object
+        // this.setState({
+        console.log({channels_1});
+        setEnableEquidistant(false)
+            // enableInteractiveObject: false,
+            // channels_1
+        // });
+    }
+
     const handleSelection = (interactives: any) => {
         /* const state = toObject(interactives, each => {
              return [
@@ -425,7 +441,7 @@ export const StockChart = (props: StockChartProps) => {
     useEffect(() => {
 
         // change Indicators according to themeMode
-        changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements)
+        changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements , )
 
     }, [themeMode])
 
@@ -448,6 +464,22 @@ export const StockChart = (props: StockChartProps) => {
         tickLabelFill: theme.palette.mode === 'dark' ? '#fff' : '#000',
         tickStrokeStyle: theme.palette.mode === 'dark' ? '#fff' : '#000',
         strokeStyle: theme.palette.mode === 'dark' ? '#fff' : '#000'
+    }
+
+    const handleBrush1 = (brushCoords:any, moreProps:any) => {
+        const { start, end } = brushCoords;
+        const left = Math.min(start.xValue, end.xValue);
+        const right = Math.max(start.xValue, end.xValue);
+
+        const low = Math.min(start.yValue, end.yValue);
+        const high = Math.max(start.yValue, end.yValue);
+
+        // uncomment the line below to make the brush to zoom
+        // setState({
+        //     xExtents: [left, right],
+        //     yExtents1: BRUSH_TYPE === "2D" ? [low, high] : this.state.yExtents1,
+        //     brushEnabled: false,
+        // });
     }
 
     const macdAppearance = {
@@ -602,6 +634,33 @@ export const StockChart = (props: StockChartProps) => {
                         r: 5,
                     }}
                 />
+
+                <EquidistantChannel
+                    // ref={this.saveInteractiveNodes("EquidistantChannel", 1)}
+                    enabled={enableEquidistant}
+                    onStart={() => console.log("START")}
+                    onComplete={onDrawComplete}
+                    // channels={channels_1}\
+                    // appearance={{
+                    //     strokeStyle: themeMode === 'dark' ? '#fff' : '#000',
+                    //     strokeWidth: 1,
+                    //     fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
+                    //     fontSize: 11,
+                    //     fontFill: themeMode === 'dark' ? '#fff' : '#000',
+                    //     edgeStroke: themeMode === 'dark' ? '#fff' : '#000',
+                    //     edgeFill: themeMode === 'dark' ? '#000' : '#fff',
+                    //     nsEdgeFill: themeMode === 'dark' ? '#fff' : '#000',
+                    //     edgeStrokeWidth: 1,
+                    //     r: 5,
+                    // }}
+                />
+
+                <Brush
+                    // ref={this.saveInteractiveNode(1)}
+                    interactiveState={{}}
+                    enabled={enableBrush}
+                    type={BRUSH_TYPE}
+                    onBrush={handleBrush1}/>
 
             </Chart>
             <Chart
