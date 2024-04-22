@@ -12,7 +12,7 @@ import {
     List,
     ListItem,
     ListItemText,
-    Autocomplete, Grid
+    Autocomplete, Grid, Avatar, Menu, Checkbox
 } from "@mui/material";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -30,9 +30,11 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
-import {Close, Search} from "@mui/icons-material";
-import {fetchCandleData, fetchSymbolData} from "../util/utils";
+import {Close, Search, SmartButton} from "@mui/icons-material";
 import {SymbolType} from "../type/SymbolType";
+import {fetchCandleData, fetchSymbolData} from "../util/utils";
+
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const Toolbar = (props: any) => {
 
@@ -46,6 +48,16 @@ const Toolbar = (props: any) => {
     const [options, setOptions] = useState<number[]>([]);
     const [symbolList, setSymbolList] = useState<SymbolType[]>([]);
     const {selectedSymbol , setSelectedSymbol} = useStore();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [anchorEl, setAnchorEl] = useState<any>(null);
+    const {disableMovingAverage,setDisableMovingAverage} = useStore();
+    const {disableElderRay,setDisableElderRay} = useStore();
+
+
+    const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setMenuOpen(!menuOpen);
+        setAnchorEl(event.currentTarget);
+    };
 
 
     const handleOpen = () =>{
@@ -206,14 +218,122 @@ const Toolbar = (props: any) => {
                     <MenuItem value={Series.AREA}><AreaIcon/> <span className='toolbar-chart-item'>Area</span></MenuItem>
                     <MenuItem value={Series.BASE_LINE}><BaseLineIcon/> <span className='toolbar-chart-item'>Base Line</span></MenuItem>
                 </Select>
+                <IconButton
+                    aria-label="Studies"
+                    aria-haspopup="true"
+                    aria-expanded={menuOpen ? 'true' : undefined}
+                    onClick={handleMenuToggle}
+                    color="inherit"
+                >
+                    <Typography variant="button" sx={{ mr: 1 }}  classes={{root: 'toolbar-select'}}>
+                        Studies
+                    </Typography>
+                    <ExpandMoreIcon />
+                </IconButton>
+                <Menu
+                    anchorEl={anchorEl}
+                    open={menuOpen}
+                    onClose={() => setMenuOpen(false)}
+                >
+                    <MenuItem value='MOVING_AVERAGE' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setDisableMovingAverage(!disableMovingAverage)}>
+                        <span>Moving Average</span>
+                        <Switch checked={!disableMovingAverage}
+                        onClick={() => setDisableMovingAverage(!disableMovingAverage)}
+                        name="enableDisableMovingAverage"
+                        color="primary"
+                        />
+                    </MenuItem>
+                    <MenuItem value='ELDERRAY' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setDisableElderRay(!disableElderRay)}>
+                        <span>Elderray</span>
+                        <Switch
+                            checked={!disableElderRay}
+                            onClick={() => setDisableElderRay(!disableElderRay)}
+                            name="enableDisableElderRay"
+                            color="primary"
+                        /></MenuItem>
+                    <MenuItem value='BOLLINGER_BAND' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Bollinger Band</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                    <MenuItem value='COMPARE' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setMenuOpen(false)}>
+                        <span>Compare</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                    <MenuItem value='MACD' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setMenuOpen(false)}>
+                        <span>Macd</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                            name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                    <MenuItem value='RSI_AND_ATR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Rsi_and_Atr</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                    <MenuItem value='STOCHASTIC_OSCILLATOR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Stochastic Oscillator</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                    <MenuItem value='FORCEINDEX' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>ForceIndex</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                    <MenuItem value='ELDER_IMPULSE' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Elder_Impulse</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                    <MenuItem value='SAR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>SAR</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                    <MenuItem value='VOLUME_PROFILE' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Volume Profile</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                    <MenuItem value='VOLUME_PROFILE_BY_SESSION' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                        <span>Volume profile py Session</span>
+                        <Switch
+                            // checked={!isDisableMovingAverage}
+                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
+                        /></MenuItem>
+                </Menu>
 
             </div>
-
-
-
-
-
-
         </div>
     )
 }

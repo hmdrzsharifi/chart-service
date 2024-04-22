@@ -19,6 +19,14 @@ type Store = {
     selectedSymbol : SymbolType
     setSelectedSymbol : (symbolType: SymbolType) => void
 
+    disableMovingAverage : boolean
+    setDisableMovingAverage : (isDisableMovingAverage: boolean) => void
+
+    disableElderRay : boolean
+    setDisableElderRay : (isDisableMovingAverage: boolean) => void
+
+    disableMACD : boolean
+    setDisableMACD : (isDisableMACD: boolean) => void
     // selectedSymbol : string
     // setSelectedSymbol : (symbolType: string) => void
 };
@@ -44,6 +52,15 @@ const useStore = create<Store>((set) => ({
         type: ''
     },
     setSelectedSymbol: (selectedSymbol: SymbolType) => set((state) => ({ selectedSymbol: selectedSymbol })),
+
+    disableMovingAverage : true,
+    setDisableMovingAverage : (disableMovingAverage: boolean) => set((state) => ({disableMovingAverage:disableMovingAverage})),
+
+    disableElderRay : true,
+    setDisableElderRay : (disableElderRay: boolean) => set((state) => ({disableElderRay:disableElderRay})),
+
+    disableMACD : true,
+    setDisableMACD : (disableMACD: boolean) => set((state) => ({disableMACD:disableMACD}))
 }));
 
 export default useStore;

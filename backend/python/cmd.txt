@@ -16,3 +16,9 @@ pip3 install websocket-client
 
 set-python3.bat
 pip install websocket-client
+
+
+
+docker pull redis/redis-stack
+docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 -e REDIS_ARGS="--requirepass mypassword" redis/redis-stack:latest
+http://localhost:8001

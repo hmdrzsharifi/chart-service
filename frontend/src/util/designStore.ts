@@ -13,6 +13,12 @@ type DesignStore = {
     enableFib: boolean
     setEnableFib: (enableFib: boolean) => void
 
+    enableEquidistant: boolean
+    setEnableEquidistant: (enableEquidistant: boolean) => void
+
+    enableBrush: boolean
+    setEnableBrush: (enableBrush: boolean) => void
+
     themeSecondaryColor: string
     setThemeSecondaryColor: (color: string) => void
 };
@@ -21,7 +27,7 @@ const useDesignStore = create<DesignStore>((set) => ({
     openSideBar: false,
     setOpenSideBar: (openSideBar: boolean) => set((state) => ({ openSideBar: openSideBar })),
 
-    themeMode: 'light',
+    themeMode: 'dark',
     setThemeMode: (mode: 'dark' | 'light') => set((state) => ({ themeMode: mode })),
 
     enableTrendLine: false,
@@ -29,6 +35,12 @@ const useDesignStore = create<DesignStore>((set) => ({
 
     enableFib: false,
     setEnableFib: (enableFib: boolean) => set((state) => ({ enableFib: enableFib })),
+
+    enableEquidistant: false,
+    setEnableEquidistant: (enableEquidistant: boolean) => set((state) => ({ enableEquidistant: enableEquidistant })),
+
+    enableBrush: false,
+    setEnableBrush: (enableBrush: boolean) => set((state) => ({ enableBrush: enableBrush })),
 
     themeSecondaryColor: '#000',
     setThemeSecondaryColor: (color: string) => set((state) => ({ themeSecondaryColor: color })),

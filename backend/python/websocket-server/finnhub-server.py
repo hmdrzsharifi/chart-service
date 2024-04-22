@@ -38,7 +38,7 @@ def websocket_thread():
         ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
 
     # websocket.enableTrace(True)  # Disable verbose tracing
-    ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=cohqsq9r01qkmfrcols0cohqsq9r01qkmfrcolsg",
+    ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=co60qgpr01qmuouob0cgco60qgpr01qmuouob0d0",
                                 on_message=on_message,
                                 on_error=on_error,
                                 on_close=on_close)

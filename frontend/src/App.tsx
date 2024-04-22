@@ -12,6 +12,7 @@ import {fetchCandleData} from "./util/utils";
 import io from 'socket.io-client';
 import useDesignStore from "./util/designStore";
 import {TimeFrame} from "./type/Enum";
+import getDesignTokens from "./config/theme";
 
 
 function App() {
@@ -79,6 +80,36 @@ function App() {
 
     }
 
+    /*useEffect(() => {
+        const socket = io('your_server_url');
+        socket.on('price_update', (newPriceData) => {
+            // Update the last candle with new price data
+            setData((prevData) => {
+                const updatedData = [...prevData];
+                const lastCandle = updatedData[updatedData.length - 1];
+                if (lastCandle) {
+                    // Update candle with new price data
+                    lastCandle.close = newPriceData.close;
+                    if (newPriceData.high > lastCandle.high) {
+                        lastCandle.high = newPriceData.high;
+                    }
+                    if (newPriceData.low < lastCandle.low) {
+                        lastCandle.low = newPriceData.low;
+                    }
+                    // Optional: Update open to first price received
+                    if (!lastCandle.open) {
+                        lastCandle.open = newPriceData.open;
+                    }
+                }
+                return updatedData;
+            });
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, []);*/
+
 
     useEffect(() => {
         // Initialize socket connection
@@ -106,8 +137,8 @@ function App() {
             console.log('Connected to server');
             console.log('#############################################', symbol)
             const msg = {
-                symbol: symbol,
-                timeFrame: '5s'
+                symbol: symbol
+                // timeFrame: '5s'
             }
 
             socket.emit('message', msg);
@@ -254,17 +285,7 @@ function App() {
         }
     };
 
-    const theme = createTheme({
-        palette: {
-            mode: themeMode,
-        },
-    });
-
-    const backGroundColor = {
-        background: theme.palette.mode === 'dark' ? '#151f28de' : '#ffffffde',
-        borderColor: theme.palette.mode === 'dark' ? '#5a687e' : '#6b6b6b',
-        chartBackground: theme.palette.mode === 'dark' ? '#121212' : '#fff',
-    }
+    const theme = React.useMemo(() => createTheme(getDesignTokens(themeMode)), [themeMode]);
 
     if (data == null) {
         return <div>Loading...</div>;
@@ -275,17 +296,23 @@ function App() {
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
                 <div className="app-container">
-                    <Toolbar style={{
-                        borderBottom: 'solid 3px',
-                        ...backGroundColor
-                    }}/>
+                    <Toolbar
+                        style={{
+                            borderBottom: 'solid 1px',
+                            background: getDesignTokens(themeMode).palette.backgroundBar,
+                            borderColor: getDesignTokens(themeMode).palette.borderBar
+                            }}
+                    />
                     <div className="chart-container">
                         <Sidebar style={{
                             borderRight: 'solid 1px',
                             width: openSideBar ? '40px' : '0',
-                            ...backGroundColor
+                            background: getDesignTokens(themeMode).palette.backgroundBar,
+                            borderColor: getDesignTokens(themeMode).palette.borderBar
                         }}/>
-                        <div className="chart" style={{width: '100%', background: backGroundColor.chartBackground}}>
+                        <div className="chart" style={{width: '100%',
+                            background: getDesignTokens(themeMode).palette.chartBackground
+                        }}>
                             <StockChart data={data} setData={setData} theme={theme}
                                         height={window.innerHeight - 100}
                                         ratio={3}
@@ -293,8 +320,9 @@ function App() {
                         </div>
                     </div>
                     <Footer style={{
-                        borderTop: 'solid 3px',
-                        ...backGroundColor
+                        borderTop: 'solid 1px',
+                        background: getDesignTokens(themeMode).palette.backgroundBar,
+                        borderColor: getDesignTokens(themeMode).palette.borderBar
                     }}/>
                 </div>
             </ThemeProvider>
