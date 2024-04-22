@@ -3,6 +3,8 @@ import {IconButton, Tooltip} from "@mui/material";
 import TrendLineIcon from "../icons/TrendLineIcon";
 import FibonacciIcon from "../icons/FibonacciIcon";
 import useDesignStore from "../util/designStore";
+import EquidistantChannel from "../icons/EquidistantChannel";
+import Brush from "../icons/Brush";
 
 const Sidebar = (props: any) => {
 
@@ -53,11 +55,11 @@ const Sidebar = (props: any) => {
 
                     }}
                 >
-                    <TrendLineIcon selected={enableEquidistant} color={themeSecondaryColor} />
+                    <EquidistantChannel selected={enableEquidistant} color={themeSecondaryColor} />
                 </IconButton>
             </Tooltip>
 
-            <Tooltip title="Equidistant Channel" placement="right" arrow>
+            <Tooltip title="brush" placement="right" arrow>
                 <IconButton
                     onClick={() => {
                         setEnableBrush(!enableBrush)
@@ -66,7 +68,7 @@ const Sidebar = (props: any) => {
                         setEnableFib(false)
                     }}
                 >
-                    <FibonacciIcon selected={enableEquidistant} color={themeSecondaryColor} />
+                    <Brush selected={enableEquidistant} color={themeSecondaryColor} />
                 </IconButton>
             </Tooltip>
 
