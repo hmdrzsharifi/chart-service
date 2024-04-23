@@ -3,7 +3,7 @@ from datetime import time
 import websocket
 import redis
 
-redis_client = redis.StrictRedis(host='adi.dev.modernisc.com', port=6379, db=0 , password="mypassword" , decode_responses=True)
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0 , decode_responses=True)
 
 class WebSocketClient:
     def __init__(self, url):
@@ -28,17 +28,18 @@ class WebSocketClient:
     def on_message(self, ws, message):
         print("Received message:", message)
         try:
+
             msg = None
             msg = json.loads(message)
             for item in msg["data"]:
                 if(item["s"] == "BINANCE:BTCUSDT"):
                     # redis_client.lpush('BINANCE:BTCUSDT', json.dumps(item))
-                    redis_client.publish("BINANCE:BTCUSDT", json.dumps(item))
-                    print("Message BINANCE:BTCUSDT saved to Redis")
-                if(item["s"] == "AAPL"):
+                    redis_client.publish("crypto", json.dumps(item))
+                    print("Message crypto saved to Redis")
+                if(item["s"] == "AAPL" or item["s"] == "AMZN"):
                     # redis_client.lpush('AAPL', json.dumps(item))
-                    redis_client.publish("AAPL", json.dumps(item))
-                    print("Message AAPL saved to Redis")
+                    redis_client.publish("stock", json.dumps(item))
+                    print("Message stock saved to Redis")
 
 
         except KeyboardInterrupt:
@@ -52,7 +53,7 @@ class WebSocketClient:
 
     def on_open(self, ws):
         ws.send('{"type":"subscribe","symbol":"AAPL"}')
-        # ws.send('{"type":"subscribe","symbol":"AMZN"}')
+        ws.send('{"type":"subscribe","symbol":"AMZN"}')
         ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
         # ws.send('{"type":"subscribe","symbol":"IC MARKETS:1"}')
 
