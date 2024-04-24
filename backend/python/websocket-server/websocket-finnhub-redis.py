@@ -7,10 +7,10 @@ from flask_socketio import SocketIO
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0,
+redis_client = redis.StrictRedis(host='adi.dev.modernisc.com', port=6379, db=0, password="mypassword",
                                  decode_responses=True)
 
-current_subscription = None
+current_symbol = None
 
 
 @socketio.on('connect')
@@ -30,27 +30,16 @@ def handle_message(data):
 
 
 def handle_candle_message(symbol):
-    global current_subscription
     try:
+        global current_symbol
         redis_pubsub = redis_client.pubsub()
-        redis_client.pubsub_channels()
-        if current_subscription is not None or current_subscription != symbol:
-            if (current_subscription is not None):
-                redis_pubsub.unsubscribe()
-            current_subscription = symbol
-
-        redis_pubsub.subscribe(str(current_subscription))
-        # for message in redis_pubsub.listen():
-        while True:
-            message = redis_pubsub.get_message()
+        redis_pubsub.subscribe("crypto", "stock")
+        current_symbol = symbol
+        for message in redis_pubsub.listen():
             if message['type'] == 'message':
                 candle_data = json.loads(message['data'])
-                if (candle_data['s'] == 'BINANCE:BTCUSDT'):
-                    socketio.emit('crypto', candle_data)
-                if (candle_data['s'] == 'AAPL'):
-                 socketio.emit('stock', candle_data)
-                if (candle_data['s'] == 'AMZN'):
-                 socketio.emit('stock', candle_data)
+                if candle_data['s'] == str(current_symbol):
+                    socketio.emit('message', candle_data)
 
     except Exception as e:
         print("Error:", e)

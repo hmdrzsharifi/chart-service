@@ -3,7 +3,7 @@ from datetime import time
 import websocket
 import redis
 
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0 , decode_responses=True)
+redis_client = redis.StrictRedis(host='adi.dev.modernisc.com', port=6379, db=0 , password='mypassword' , decode_responses=True)
 
 class WebSocketClient:
     def __init__(self, url):
@@ -34,11 +34,11 @@ class WebSocketClient:
             for item in msg["data"]:
                 if(item["s"] == "BINANCE:BTCUSDT"):
                     # redis_client.lpush('BINANCE:BTCUSDT', json.dumps(item))
-                    redis_client.publish("crypto", json.dumps(item))
+                    redis_client.publish(channel="crypto", message=json.dumps(item))
                     print("Message crypto saved to Redis")
                 if(item["s"] == "AAPL" or item["s"] == "AMZN"):
                     # redis_client.lpush('AAPL', json.dumps(item))
-                    redis_client.publish("stock", json.dumps(item))
+                    redis_client.publish(channel="stock", message=json.dumps(item))
                     print("Message stock saved to Redis")
 
 
