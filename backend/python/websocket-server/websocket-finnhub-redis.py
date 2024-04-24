@@ -1,8 +1,8 @@
 import json
-
 import redis
 from flask import Flask
 from flask_socketio import SocketIO
+from multiprocessing import Process
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -32,9 +32,9 @@ def handle_message(data):
 def handle_candle_message(symbol):
     try:
         global current_symbol
+        current_symbol = symbol
         redis_pubsub = redis_client.pubsub()
         redis_pubsub.subscribe("crypto", "stock")
-        current_symbol = symbol
         for message in redis_pubsub.listen():
             if message['type'] == 'message':
                 candle_data = json.loads(message['data'])
@@ -46,4 +46,22 @@ def handle_candle_message(symbol):
 
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=8000, debug=False)
+    # Start a separate process for the Flask app
+    flask_process = Process(target=socketio.run, kwargs={'app': app, 'host': '172.31.13.30', 'port': 8000, 'debug': False})
+
+    # Start a separate process for handling Redis messages
+    redis_process = Process(target=handle_candle_message)
+
+    # Start both processes
+    flask_process.start()
+    redis_process.start()
+
+    # Wait for both processes to finish
+    flask_process.join()
+    redis_process.join()
+
+
+
+
+
+
