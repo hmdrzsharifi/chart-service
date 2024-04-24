@@ -2,7 +2,15 @@ import {
     AlternatingFillAreaSeries,
     CandlestickSeries,
     OHLCSeries,
-    AreaSeries, LineSeries,
+    AreaSeries,
+    BarSeries,
+    LineSeries,
+    MACDSeries,
+    ScatterSeries,
+    RSISeries,
+    CircleMarker,
+    StraightLine
+
 } from "react-financial-charts";
 import {Series} from "../type/Enum";
 import * as React from "react";

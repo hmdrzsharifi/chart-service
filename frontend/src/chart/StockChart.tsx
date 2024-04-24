@@ -3,38 +3,54 @@ import {timeFormat} from "d3-time-format";
 import * as React from "react";
 import {
     BarSeries,
+    LineSeries,
+    MACDSeries,
+    ElderRaySeries,
+    AreaSeries,
+
     Chart,
     ChartCanvas,
+
     CrossHairCursor,
-    discontinuousTimeScaleProviderBuilder,
+    CurrentCoordinate,
     EdgeIndicator,
-    elderRay,
-    ElderRaySeries,
-    lastVisibleItemBasedZoomAnchor,
     MouseCoordinateX,
     MouseCoordinateY,
+
+    discontinuousTimeScaleProviderBuilder,
+    elderRay,
+    lastVisibleItemBasedZoomAnchor,
+
+    MACDTooltip,
     MovingAverageTooltip,
     OHLCTooltip,
+    RSITooltip,
     SingleValueTooltip,
+
     XAxis,
     YAxis,
     ZoomButtons,
-    CurrentCoordinate,
-    LineSeries
+    CircleMarker
+
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
 import {useEffect, useRef, useState} from "react";
 
 import {
     atr14,
-    bb, defaultSar,
+    bb,
+    defaultSar,
     ema12,
+    ema20,
     ema26,
-    ema50, fi,
+    ema50,
+    fi,
     fullSTO,
     macdCalculator,
     rsiCalculator,
+    sma20,
     smaVolume50,
+    tma20,
     wma20
 } from "../indicator/indicators";
 
@@ -52,14 +68,18 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import {Button, IconButton} from "@mui/material";
 import {Close} from "@mui/icons-material";
-import {
-    MACDSeries,
-} from "react-financial-charts";
-import {
-    MACDTooltip,
-} from "react-financial-charts";
 import {useTheme} from "@mui/material/styles";
 import getDesignTokens from "../config/theme";
+
+import {
+    macdAppearance,
+    atrAppearance,
+    axisAppearance,
+    mouseEdgeAppearance,
+    theme,
+    edgeIndicatorAppearance,
+    volumeAppearance
+} from '../indicator/indicatorSettings'
 
 interface StockChartProps {
     readonly data: IOHLCData[];
@@ -70,16 +90,6 @@ interface StockChartProps {
     readonly ratio: number;
     readonly theme?: any;
 }
-
-const mouseEdgeAppearance = {
-    textFill: "#542605",
-    stroke: "#05233B",
-    strokeOpacity: 1,
-    strokeWidth: 3,
-    arrowWidth: 5,
-    fill: "#BCDEFA",
-};
-
 
 export const StockChart = (props: StockChartProps) => {
     const margin = {left: 0, right: 48, top: 0, bottom: 24};
@@ -445,9 +455,10 @@ export const StockChart = (props: StockChartProps) => {
     // const calculatedData = smaVolume50(macdCalculator(ema12(ema26(initialData))));
 
     let calculatedData = calculateData(initialData)
-   /* if (calculatedData.length <= 1) {
-        return null
-    }*/
+
+    /* if (calculatedData.length <= 1) {
+         return null
+     }*/
 
     function calculateData(inputData: any) {
         /*return ema20(
@@ -523,16 +534,6 @@ export const StockChart = (props: StockChartProps) => {
         // });
     }
 
-    const macdAppearance = {
-        strokeStyle: {
-            macd: "#FF0000",
-            signal: "#00F300",
-            zero: '#FF0000'
-        },
-        fillStyle: {
-            divergence: "#4682B4"
-        },
-    };
 
     // @ts-ignore
     return (
@@ -553,23 +554,23 @@ export const StockChart = (props: StockChartProps) => {
             onLoadBefore={handleDataLoadBefore}
         >
             /*##### Main Chart #####*/
-            <Chart id={1} height={chartHeight} yExtents={candleChartExtents}>
+            <Chart
+                id={1}
+                height={chartHeight}
+                yExtents={candleChartExtents}
+            >
                 <XAxis showGridLines showTicks={false} showTickLabel={false} {...xAndYColors} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} {...xAndYColors} />
 
                 <SelectedSeries series={seriesType} data={data}/>
 
                 {!disableMovingAverage && (
-                    <LineSeries yAccessor={ema26.accessor()} strokeStyle={ema26.stroke()}/>
-                )}
-                {!disableMovingAverage && (
-                    <CurrentCoordinate yAccessor={ema26.accessor()} fillStyle={ema26.stroke()}/>
-                )}
-                {!disableMovingAverage && (
-                    <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
-                )}
-                {!disableMovingAverage && (
-                    <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
+                    <div>
+                        <LineSeries yAccessor={ema26.accessor()} strokeStyle={ema26.stroke()}/>
+                        <CurrentCoordinate yAccessor={ema26.accessor()} fillStyle={ema26.stroke()}/>
+                        <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
+                        <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
+                    </div>
                 )}
 
                 <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10}/>
@@ -714,28 +715,37 @@ export const StockChart = (props: StockChartProps) => {
             </Chart>
 
             /*##### Volume Chart #####*/
-            <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={barChartExtents}>
+            {/*{volume.active && (*/}
+            <Chart
+                id={2}
+                height={barChartHeight}
+                origin={barChartOrigin}
+                yExtents={barChartExtents}
+                // yExtents={[d => d.volume, smaVolume50.accessor()]}
+            >
                 <XAxis {...xAndYColors} />
                 <YAxis {...xAndYColors} />
-                <BarSeries fillStyle={volumeColor} yAccessor={volumeSeries}/>
+                <BarSeries fillStyle={volumeColor} yAccessor={d => d.volume}/>
+                {/*<AreaSeries yAccessor={smaVolume50.accessor()} {...volumeAppearance} />*/}
             </Chart>
+            {/*)}*/}
 
             /*##### ElderRay Chart #####*/
             {!disableElderRay && (
-            <Chart id={3} height={elderRayHeight} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
-                   padding={{top: 8, bottom: 8}}>
-                {/*<XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>*/}
-                <XAxis showGridLines {...xAndYColors}/>
-                <YAxis ticks={4} tickFormat={pricesDisplayFormat} {...xAndYColors}/>
+                <Chart id={3} height={elderRayHeight} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
+                       padding={{top: 8, bottom: 8}}>
+                    {/*<XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>*/}
+                    <XAxis showGridLines {...xAndYColors}/>
+                    <YAxis ticks={4} tickFormat={pricesDisplayFormat} {...xAndYColors}/>
 
-                <MouseCoordinateX displayFormat={timeDisplayFormat}/>
-                <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat}/>
-                <MouseCoordinateY
-                    at="right"
-                    orient="right"
-                    displayFormat={format(".2f")}
-                    {...mouseEdgeAppearance}/>
-                <ElderRaySeries yAccessor={elder.accessor()}/>
+                    <MouseCoordinateX displayFormat={timeDisplayFormat}/>
+                    <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat}/>
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={pricesDisplayFormat}
+                        {...mouseEdgeAppearance}/>
+                    <ElderRaySeries yAccessor={elder.accessor()}/>
                     <SingleValueTooltip
                         // origin={[10,50]}
                         className='elderChart'
@@ -749,74 +759,182 @@ export const StockChart = (props: StockChartProps) => {
                         origin={[8, 16]}
                     />
 
-                <Modal
-                    open={openElderRayModal}
-                    onClose={() => setOpenElderRayModal(false)}
-                    sx={{maxHeight: '95%'}}
-                    aria-labelledby="modal-modal-title"
-                    aria-describedby="modal-modal-description"
-                >
-                    <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 400,
-                        bgcolor: 'background.paper',
-                        boxShadow: 24,
-                        p: 4
-                    }}>
-                        <Typography id="modal-modal-title" variant="h6" component="h2">
-                            changing
-                        </Typography>
-                        <Button color='error' title='disable ElderRay' onClick={() => {
-                            setDisableElderRay(true)
-                            setOpenElderRayModal(false)
-                        }}> disable ElderRay </Button>
-                    </Box>
-                </Modal>
-            </Chart>
+                    <Modal
+                        open={openElderRayModal}
+                        onClose={() => setOpenElderRayModal(false)}
+                        sx={{maxHeight: '95%'}}
+                        aria-labelledby="modal-modal-title"
+                        aria-describedby="modal-modal-description"
+                    >
+                        <Box sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 400,
+                            bgcolor: 'background.paper',
+                            boxShadow: 24,
+                            p: 4
+                        }}>
+                            <Typography id="modal-modal-title" variant="h6" component="h2">
+                                changing
+                            </Typography>
+                            <Button color='error' title='disable ElderRay' onClick={() => {
+                                setDisableElderRay(true)
+                                setOpenElderRayModal(false)
+                            }}> disable ElderRay </Button>
+                        </Box>
+                    </Modal>
+                </Chart>
             )}
 
             /*##### MACD Chart #####*/
             {!disableMACD && (
-            <Chart id={4} height={150}
-                   yExtents={macdCalculator.accessor()}
-                   origin={(w, h) => [0, h - 150]} padding={{top: 10, bottom: 10}}
-            >
-                <XAxis axisAt="bottom" orient="bottom"/>
-                <YAxis axisAt="right" orient="right" ticks={2}/>
+                <Chart id={4} height={150}
+                       yExtents={macdCalculator.accessor()}
+                       origin={(w, h) => [0, h - 150]} padding={{top: 10, bottom: 10}}
+                >
+                    <XAxis axisAt="bottom" orient="bottom"/>
+                    <YAxis axisAt="right" orient="right" ticks={2}/>
 
-                <MouseCoordinateX
-                    at="bottom"
-                    orient="bottom"
-                    displayFormat={timeFormat("%Y-%m-%d")}
-                    rectRadius={5}
-                    {...mouseEdgeAppearance}
-                />
-                <MouseCoordinateY
-                    at="right"
-                    orient="right"
-                    displayFormat={format(".2f")}
-                    {...mouseEdgeAppearance}
-                />
+                    <MouseCoordinateX
+                        at="bottom"
+                        orient="bottom"
+                        displayFormat={timeFormat("%Y-%m-%d")}
+                        rectRadius={5}
+                        {...mouseEdgeAppearance}
+                    />
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={pricesDisplayFormat}
+                        {...mouseEdgeAppearance}
+                    />
 
-                <MACDSeries yAccessor={d => d.macd}
-                            {...macdAppearance} />
-                <MACDTooltip
-                    origin={[-38, 15]}
-                    yAccessor={d => d.macd}
-                    options={macdCalculator.options()}
-                    appearance={macdAppearance}
-                />
-            </Chart>
+                    <MACDSeries yAccessor={d => d.macd} {...macdAppearance} />
+                    <MACDTooltip
+                        origin={[-38, 15]}
+                        yAccessor={d => d.macd}
+                        options={macdCalculator.options()}
+                        appearance={macdAppearance}
+                    />
+                </Chart>
             )}
 
-            {/* <LineSeries
-                yAccessor={custom_indicator_state.accessor()}
-                stroke={custom_indicator.stroke()}
-                highlightOnHover
-            />*/}
+           {/* {rsi.active && (
+                <Chart
+                    id={4}
+                    yExtents={[0, 100]}
+                    height={rsi.height}
+                    origin={(w, h) => [
+                        0,
+                        h - rsi.height - (atr.active ? atr.height : 0) - (forceIndex.active ? forceIndex.height : 0)
+                    ]}
+                    padding={{ top: 10, bottom: 10 }}
+                >
+                    <XAxis
+                        axisAt="bottom"
+                        orient="bottom"
+                        showTicks={!atr.active && !forceIndex.active}
+                        {...xGrid}
+                        {...axisAppearance}
+                        outerTickSize={0}
+                    />
+
+                    <YAxis axisAt="right" orient="right" tickValues={[30, 50, 70]} {...yGrid} {...axisAppearance} />
+
+                    {!atr.active &&
+                    !forceIndex.active && (
+                        <MouseCoordinateX
+                            at="bottom"
+                            orient="bottom"
+                            displayFormat={timeFormat('%Y-%m-%d')}
+                            {...mouseEdgeAppearance}
+                        />
+                    )}
+                    <MouseCoordinateY at="right" orient="right" displayFormat={format('.2f')} {...mouseEdgeAppearance} />
+
+                    <RSISeries yAccessor={d => d.rsi} />
+
+                    <RSITooltip origin={[-28, 15]} yAccessor={d => d.rsi} options={rsiCalculator.options()} />
+                </Chart>
+            )}*/}
+{/*            {atr.active && (
+                <Chart
+                    id={5}
+                    yExtents={atr14.accessor()}
+                    height={atr.height}
+                    origin={(w, h) => [0, h - atr.height - (forceIndex.active ? forceIndex.height : 0)]}
+                    padding={{ top: 10, bottom: 10 }}
+                >
+                    <XAxis
+                        axisAt="bottom"
+                        orient="bottom"
+                        {...xGrid}
+                        {...axisAppearance}
+                        outerTickSize={0}
+                        showTicks={!forceIndex.active}
+                    />
+                    <YAxis axisAt="right" orient="right" {...yGrid} {...axisAppearance} ticks={2} />
+
+                    {!forceIndex.active && (
+                        <MouseCoordinateX
+                            at="bottom"
+                            orient="bottom"
+                            displayFormat={timeFormat('%Y-%m-%d')}
+                            {...mouseEdgeAppearance}
+                        />
+                    )}
+                    <MouseCoordinateY at="right" orient="right" displayFormat={format('.2f')} {...mouseEdgeAppearance} />
+
+                    <LineSeries yAccessor={atr14.accessor()} {...atrAppearance} />
+                    <SingleValueTooltip
+                        yAccessor={atr14.accessor()}
+                        yLabel={`ATR (${atr14.options().windowSize})`}
+                        yDisplayFormat={format('.2f')}
+                        origin={[-40, 15]}
+                    />
+                </Chart>
+            )}*/}
+
+           {/* {forceIndex.active && (
+                <Chart
+                    id={6}
+                    height={150}
+                    yExtents={fi.accessor()}
+                    origin={(w, h) => [0, h - 150]}
+                    padding={{ top: 30, right: 0, bottom: 10, left: 0 }}
+                >
+                    <XAxis axisAt="bottom" orient="bottom" {...xGrid} {...axisAppearance} outerTickSize={0} />
+                    <YAxis
+                        axisAt="right"
+                        orient="right"
+                        {...yGrid}
+                        ticks={4}
+                        tickFormat={format('.2s')}
+                        {...axisAppearance}
+                    />
+                    <MouseCoordinateX
+                        at="bottom"
+                        orient="bottom"
+                        displayFormat={timeFormat('%Y-%m-%d')}
+                        {...mouseEdgeAppearance}
+                    />
+                    <MouseCoordinateY at="right" orient="right" displayFormat={format('.4s')} {...mouseEdgeAppearance} />
+
+                    <AreaSeries baseAt={scale => scale(0)} yAccessor={fi.accessor()} />
+                    <StraightLine yValue={0} />
+
+                    <SingleValueTooltip
+                        yAccessor={fi.accessor()}
+                        yLabel="ForceIndex (1)"
+                        yDisplayFormat={format('.4s')}
+                        origin={[-40, 15]}
+                    />
+                </Chart>
+            )}
+*/}
+
             <CrossHairCursor/>
             {/*
             <DrawingObjectSelector
@@ -857,22 +975,8 @@ const volumeColor = (data: IOHLCData) => {
     return data.close > data.open ? "#8cc17699" : "#b82c0c99";
 };
 
-const volumeSeries = (data: IOHLCData) => {
-    return data.volume;
-};
 
 const openCloseColor = (data: IOHLCData) => {
     return data.close > data.open ? "#8cc176" : "#b82c0c";
 };
 
-// export default withOHLCData()(withSize({ style: { minHeight: 500 } })(withDeviceRatio()(StockChart)));
-
-/*
-export const MinutesStockChart = withOHLCData("MINUTES")(
-    withSize({ style: { minHeight: 600 } })(withDeviceRatio()(StockChart)),
-);
-
-export const SecondsStockChart = withOHLCData("SECONDS")(
-    withSize({ style: { minHeight: 600 } })(withDeviceRatio()(StockChart)),
-);
-*/

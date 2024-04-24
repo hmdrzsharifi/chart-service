@@ -22,9 +22,63 @@ function App() {
     const {symbol, timeFrame} = useStore();
     const {openSideBar, themeMode} = useDesignStore();
 
+    const handleRealTimeTick2 = (websocketData: any) => {
+        let websocketDate = new Date(websocketData.t);
+        console.log({websocketDate})
+       /* let websocketCandle = {
+            "date": websocketCandleDate,
+            "open": parseFloat(websocketData.o),
+            "high": parseFloat(websocketData.h),
+            "low": parseFloat(websocketData.l),
+            "close": parseFloat(websocketData.c),
+            "volume": parseFloat(websocketData.v),
+            "split": "",
+            "dividend": "",
+            "absoluteChange": "",
+            "percentChange": ""
+        };*/
+
+        const lastCandleDate = stateRef?.current?.slice(-1)[0]?.date
+
+        if (timeFrame == TimeFrame.M1) {
+            // console.log("TimeFrame.M1")
+            if (isWithinOneMinute(websocketDate, lastCandleDate)) {
+                // console.log("update")
+                const lastCandle = data[data.length - 1];
+                // if (lastCandle && websocketData.p > lastCandle.high) {
+                if (lastCandle && lastCandle.close > lastCandle.open) {
+                    // asc candle
+                    lastCandle.close = websocketData.p;
+                } else {
+                    // desc candle
+                    lastCandle.open = websocketData.p;
+                }
+
+                if (lastCandle && websocketData.p > lastCandle.high) {
+                    lastCandle.high = websocketData.p;
+                }
+
+                if (lastCandle && websocketData.p < lastCandle.low) {
+                    lastCandle.low = websocketData.p;
+                }
+
+                setData((data: any[]) => [...data.slice(0, data.length - 1), lastCandle])
+            } else {
+                console.log("new")
+                setLastTime(new Date())
+                // fetchLastData()
+            }
+        }
+
+        if (timeFrame == TimeFrame.D) {
+            // console.log("TimeFrame.D")
+        }
+
+    }
+
     const handleRealTimeTick = (websocketData: any) => {
         let websocketCandleDate = new Date(websocketData.t);
-        console.log({websocketCandleDate})
+        // console.log({websocketCandleDate})
         let websocketCandle = {
             "date": websocketCandleDate,
             "open": parseFloat(websocketData.o),
@@ -38,26 +92,28 @@ function App() {
             "percentChange": ""
         };
 
-        // const lastCandleDate = stateRef?.current?.slice(-1)[0]?.date
+        const lastCandleDate = stateRef?.current?.slice(-1)[0]?.date
 
         if (timeFrame == TimeFrame.M1) {
-            if (isWithinOneMinute(websocketCandleDate)) {
+            if (isWithinOneMinute(websocketCandleDate, lastCandleDate)) {
                 console.log("update")
                 setData((data: any[]) => [...data.slice(0, data.length - 1), websocketCandle])
             } else {
                 console.log("new")
                 setLastTime(new Date())
-                fetchLastData(websocketCandle)
+                // fetchLastData(websocketCandle)
             }
         }
 
     }
 
     const stateRef: React.MutableRefObject<any> = useRef();
-    stateRef.current = lastTime;
+    // stateRef.current = lastTime;
 
-    function isWithinOneMinute(websocketCandleDate: any) {
-        let lastTimeMinute = stateRef?.current.getMinutes().toString();
+    function isWithinOneMinute(websocketCandleDate: any, lastCandleDate: any) {
+        // let lastTimeMinute = stateRef?.lastCandleDate.getMinutes().toString();
+        console.log({lastCandleDate})
+        let lastTimeMinute = lastCandleDate.getMinutes().toString();
         let websocketCandleDateMinute = websocketCandleDate.getMinutes().toString();
         if (websocketCandleDateMinute.length === 1) websocketCandleDateMinute = '0' + websocketCandleDateMinute // if less than 10 ( 2 => 02)
 
@@ -65,8 +121,8 @@ function App() {
         let second = websocketCandleDate.getSeconds().toString();
         if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)\
 
-        console.log(`lastTimeMinute: ${lastTimeMinute} - websocketCandleDateMinute: ${websocketCandleDateMinute}`)
-        console.log("lastTimeMinute == +websocketCandleDateMinute", lastTimeMinute == +websocketCandleDateMinute)
+        // console.log(`lastTimeMinute: ${lastTimeMinute} - websocketCandleDateMinute: ${websocketCandleDateMinute}`)
+        // console.log("lastTimeMinute == +websocketCandleDateMinute", lastTimeMinute == +websocketCandleDateMinute)
 
         if (lastTimeMinute == +websocketCandleDateMinute) {
             return true;
@@ -110,7 +166,6 @@ function App() {
         };
     }, []);*/
 
-
     useEffect(() => {
         // Initialize socket connection
         const newSocket = io(WEBSOCKET_ADDRESS);
@@ -130,7 +185,7 @@ function App() {
 
 
     // const connectWebSocket = async () => {
-    const connectWebSocket = (socket: any) => {
+    const connectWebSocket = async (socket: any) => {
 
         // Set up event handlers
         socket.on('connect', () => {
@@ -138,7 +193,6 @@ function App() {
             console.log('#############################################', symbol)
             const msg = {
                 symbol: symbol
-                // timeFrame: '5s'
             }
 
             socket.emit('message', msg);
@@ -151,9 +205,12 @@ function App() {
 
         socket.on('message', (message: any) => {
             // console.log('Received message:', message);
-            let websocketData = JSON.parse(message.server_message);
-            if (websocketData.m === symbol) {
-                handleRealTimeTick(websocketData)
+            // console.log('Received price:', message.p);
+            // let websocketData = JSON.parse(message);
+
+            if (message.s === symbol) {
+                // handleRealTimeTick(websocketData)
+                handleRealTimeTick2(message)
             }
         });
 
@@ -245,7 +302,46 @@ function App() {
         }
     };
 
-    const fetchLastData = async (newCandle: any) => {
+    const fetchLastData = async () => {
+        try {
+            let from;
+            let to;
+
+            switch (timeFrame) {
+                case "1M":
+                    from = Math.floor(new Date().getTime() / 1000) - 120;
+                    to = Math.floor(new Date().getTime() / 1000);
+                    break;
+                case "D":
+                    from = Math.floor(new Date().getTime() / 1000) - (1 * 24 * 3600);
+                    break;
+
+                //todo add other time frame
+
+                default:
+                    from = Math.floor(new Date().getTime() / 1000) - (1 * 24 * 3600)
+            }
+
+            console.log({from})
+            console.log({to})
+
+            const result = await fetchCandleData(symbol, timeFrame, from, to);
+            console.log('result1', result)
+            // result.sort((a: any, b: any) =>  a.date.getTime() - b.date.getTime());
+            // console.log('result', result)
+            // sort on date
+            let singleResult = result[0];
+            // singleResult = [singleResult, newCandle]
+            console.log('fetch result', singleResult)
+            // const candleData = result ? [result[0], newCandle] : newCandle;
+            // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
+            setData((data: any[]) => [...data.slice(0, data.length - 1), ...singleResult])
+        } catch (error) {
+            console.error('Error fetching candle data:', error);
+        }
+    };
+
+  /*  const fetchLastData = async (newCandle: any) => {
         try {
             let from;
             let to;
@@ -283,7 +379,7 @@ function App() {
         } catch (error) {
             console.error('Error fetching candle data:', error);
         }
-    };
+    };*/
 
     const theme = React.useMemo(() => createTheme(getDesignTokens(themeMode)), [themeMode]);
 
