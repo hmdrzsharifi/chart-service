@@ -19,6 +19,9 @@ type DesignStore = {
     enableBrush: boolean
     setEnableBrush: (enableBrush: boolean) => void
 
+    enableInteractiveObject: boolean
+    setEnableInteractiveObject: (enableInteractiveObject: boolean) => void
+
     themeSecondaryColor: string
     setThemeSecondaryColor: (color: string) => void
 };
@@ -41,6 +44,9 @@ const useDesignStore = create<DesignStore>((set) => ({
 
     enableBrush: false,
     setEnableBrush: (enableBrush: boolean) => set((state) => ({ enableBrush: enableBrush })),
+
+    enableInteractiveObject: false,
+    setEnableInteractiveObject: (enableInteractiveObject: boolean) => set((state) => ({ enableInteractiveObject: enableInteractiveObject })),
 
     themeSecondaryColor: '#000',
     setThemeSecondaryColor: (color: string) => set((state) => ({ themeSecondaryColor: color })),

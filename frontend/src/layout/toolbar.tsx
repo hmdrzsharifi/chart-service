@@ -22,7 +22,7 @@ import BarIcon from "../icons/BarIcon";
 import LineIcon from "../icons/LineIcon";
 import useDesignStore from "../util/designStore";
 import EditNoteIcon from '@mui/icons-material/EditNote';
-import { Series } from "../type/Enum";
+import {Series, TimeFrame} from "../type/Enum";
 import BaseLineIcon from "../icons/BaseLineIcon";
 import AreaIcon from "../icons/AreaIcon";
 import Modal from "@mui/material/Modal";
@@ -30,7 +30,7 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
-import {Close, Search, SmartButton} from "@mui/icons-material";
+import {Close, Info, Message, Search, SmartButton} from "@mui/icons-material";
 import {SymbolType} from "../type/SymbolType";
 import {fetchCandleData, fetchSymbolData} from "../util/utils";
 
@@ -43,6 +43,7 @@ const Toolbar = (props: any) => {
     const {setThemeSecondaryColor} = useDesignStore();
     const {themeMode, setThemeMode, openSideBar, setOpenSideBar} = useDesignStore();
     const [open, setOpen] = useState<boolean>(false);
+    const [openInfoModal, setOpenInfoModal] = useState<boolean>(false);
     const [tabValue, setTabValue] = useState<number>(0);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [options, setOptions] = useState<number[]>([]);
@@ -52,6 +53,8 @@ const Toolbar = (props: any) => {
     const [anchorEl, setAnchorEl] = useState<any>(null);
     const {disableMovingAverage,setDisableMovingAverage} = useStore();
     const {disableElderRay,setDisableElderRay} = useStore();
+    const {timeFrame, setTimeFrame} = useStore();
+    const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
 
 
     const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -59,9 +62,12 @@ const Toolbar = (props: any) => {
         setAnchorEl(event.currentTarget);
     };
 
-
     const handleOpen = () =>{
         setOpen(true)
+    };
+
+    const handleInfoModalOpen = () =>{
+        setOpenInfoModal(true)
     };
     const handleClose = () => setOpen(false);
     const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
@@ -98,9 +104,46 @@ const Toolbar = (props: any) => {
                 {/*<Button variant="outlined" onClick={handleOpen} color={'primary'}>*/}
                 {/*    Open Popup*/}
                 {/*</Button>*/}
+                <Tooltip title="Info" placement="bottom" arrow>
+                <IconButton onClick={handleInfoModalOpen}>
+                    <Message />
+                </IconButton>
+                </Tooltip>
+                <Modal
+                    open={openInfoModal}
+                    onClose={() => setOpenInfoModal(false)}
+                    sx={{maxHeight: '95%'}}
+                    aria-labelledby="modal-modal-title"
+                    aria-describedby="modal-modal-description"
+                >
+                    <Box sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 400,
+                        bgcolor: 'background.paper',
+                        boxShadow: 24,
+                        p: 4
+                    }}>
+                        <Typography id="modal-modal-title" variant="h6" component="h2">
+                            Info
+                        </Typography>
+                        <Button color='success' title='Enable Info' onClick={() => {
+                            setDisableHoverTooltip(false)
+                            setOpenInfoModal(false)
+                        }}>Enable Info</Button>
+                        <Button color='error' title='Disable Info' onClick={() => {
+                            setDisableHoverTooltip(true)
+                            setOpenInfoModal(false)
+                        }}>Disable Info</Button>
+                    </Box>
+                </Modal>
+                <Tooltip title="Search Symbol" placement="bottom" arrow>
                 <IconButton onClick={handleOpen}>
                     <Search />
                 </IconButton>
+                </Tooltip>
                 <span onClick={handleOpen} style={{cursor:'pointer' , fontWeight:'bolder'}}>
                 {selectedSymbol?.displaySymbol}
                 </span>
@@ -218,6 +261,25 @@ const Toolbar = (props: any) => {
                     <MenuItem value={Series.AREA}><AreaIcon/> <span className='toolbar-chart-item'>Area</span></MenuItem>
                     <MenuItem value={Series.BASE_LINE}><BaseLineIcon/> <span className='toolbar-chart-item'>Base Line</span></MenuItem>
                 </Select>
+
+                <Select
+                    labelId="demo-select-small-label"
+                    defaultValue={timeFrame}
+                    classes={{root: 'toolbar-select'}}
+                    IconComponent={ExpandMore}
+                    // @ts-ignore
+                    onChange={(event) => setTimeFrame(event?.target?.value)}
+                >
+                    <MenuItem value={TimeFrame.D}><span className='toolbar-chart-item'>D</span></MenuItem>
+                    <MenuItem value={TimeFrame.M1}><span className='toolbar-chart-item'>1M</span></MenuItem>
+                    <MenuItem value={TimeFrame.M5}><span className='toolbar-chart-item'>5M</span></MenuItem>
+                    <MenuItem value={TimeFrame.M15}><span className='toolbar-chart-item'>15M</span></MenuItem>
+                    <MenuItem value={TimeFrame.M30}><span className='toolbar-chart-item'>30M</span></MenuItem>
+                    <MenuItem value={TimeFrame.H}><span className='toolbar-chart-item'>1H</span></MenuItem>
+                    <MenuItem value={TimeFrame.W}><span className='toolbar-chart-item'>W</span></MenuItem>
+                    <MenuItem value={TimeFrame.M}>-<span className='toolbar-chart-item'>M</span></MenuItem>
+                </Select>
+
                 <IconButton
                     aria-label="Studies"
                     aria-haspopup="true"

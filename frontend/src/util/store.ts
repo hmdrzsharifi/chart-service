@@ -1,6 +1,5 @@
 import {create} from 'zustand';
 import {TimeFrame, Series} from "../type/Enum";
-import {useState} from "react";
 import {SymbolType} from "../type/SymbolType";
 
 type Store = {
@@ -27,6 +26,9 @@ type Store = {
 
     disableMACD : boolean
     setDisableMACD : (isDisableMACD: boolean) => void
+
+    disableHoverTooltip : boolean
+    setDisableHoverTooltip : (disableHoverTooltip: boolean) => void
     // selectedSymbol : string
     // setSelectedSymbol : (symbolType: string) => void
 };
@@ -60,7 +62,10 @@ const useStore = create<Store>((set) => ({
     setDisableElderRay : (disableElderRay: boolean) => set((state) => ({disableElderRay:disableElderRay})),
 
     disableMACD : true,
-    setDisableMACD : (disableMACD: boolean) => set((state) => ({disableMACD:disableMACD}))
+    setDisableMACD : (disableMACD: boolean) => set((state) => ({disableMACD:disableMACD})),
+
+    disableHoverTooltip : true,
+    setDisableHoverTooltip : (disableHoverTooltip: boolean) => set((state) => ({disableHoverTooltip:disableHoverTooltip}))
 }));
 
 export default useStore;

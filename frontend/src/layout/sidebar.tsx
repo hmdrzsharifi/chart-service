@@ -5,6 +5,7 @@ import FibonacciIcon from "../icons/FibonacciIcon";
 import useDesignStore from "../util/designStore";
 import Brush from "../icons/Brush";
 import EquidistantChannel from "../icons/EquidistantChannel";
+import InteractiveText from "../icons/InteractiveText";
 
 const Sidebar = (props: any) => {
 
@@ -12,6 +13,7 @@ const Sidebar = (props: any) => {
     const {enableFib, setEnableFib} = useDesignStore();
     const {enableEquidistant, setEnableEquidistant} = useDesignStore();
     const {enableBrush, setEnableBrush} = useDesignStore();
+    const {enableInteractiveObject, setEnableInteractiveObject} = useDesignStore();
 
 
     const {themeSecondaryColor} = useDesignStore();
@@ -26,6 +28,7 @@ const Sidebar = (props: any) => {
                         setEnableFib(false)
                         setEnableEquidistant(false)
                         setEnableBrush(false)
+                        setEnableInteractiveObject(false)
                     }}
                 >
                     <TrendLineIcon selected={enableTrendLine} color={themeSecondaryColor} />
@@ -39,6 +42,7 @@ const Sidebar = (props: any) => {
                         setEnableTrendLine(false)
                         setEnableEquidistant(false)
                         setEnableBrush(false)
+                        setEnableInteractiveObject(false)
                     }}
                 >
                     <FibonacciIcon selected={enableFib} color={themeSecondaryColor} />
@@ -52,7 +56,7 @@ const Sidebar = (props: any) => {
                         setEnableTrendLine(false)
                         setEnableFib(false)
                         setEnableBrush(false)
-
+                        setEnableInteractiveObject(false)
                     }}
                 >
                     <EquidistantChannel selected={enableEquidistant} color={themeSecondaryColor} />
@@ -66,9 +70,25 @@ const Sidebar = (props: any) => {
                         setEnableEquidistant(false)
                         setEnableTrendLine(false)
                         setEnableFib(false)
+                        setEnableInteractiveObject(false)
                     }}
                 >
                     <Brush selected={enableEquidistant} color={themeSecondaryColor} />
+                </IconButton>
+            </Tooltip>
+
+            <Tooltip title="InteractiveText" placement="right" arrow>
+                <IconButton
+                    onClick={() => {
+                        setEnableInteractiveObject(!enableInteractiveObject)
+                        console.log(enableInteractiveObject)
+                        setEnableEquidistant(false)
+                        setEnableTrendLine(false)
+                        setEnableFib(false)
+                        setEnableBrush(false)
+                    }}
+                >
+                    <InteractiveText selected={enableEquidistant} color={themeSecondaryColor} />
                 </IconButton>
             </Tooltip>
 

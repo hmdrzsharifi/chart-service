@@ -10,20 +10,20 @@ const Footer = (props: any) => {
 
     return (
         <div className="footer" style={props.style}>
-            <BottomNavigation
-                value={timeFrame}
-                showLabels
-                classes={{ root: 'timeframe-menu-root' }}
-                sx={{ justifyContent: 'flex-end' }}
-                onChange={(event, newValue) => setTimeFrame(newValue)}
-            >
-                {TimeFrames.map((item: any, index: number) => {
-                    return <BottomNavigationAction value={item} label={item} sx={{
-                        borderRight: [0,4].includes(index) ? 'solid 3px #ccc' : 'none',
-                    }} />
-                })}
+            {/*<BottomNavigation*/}
+            {/*    value={timeFrame}*/}
+            {/*    showLabels*/}
+            {/*    classes={{ root: 'timeframe-menu-root' }}*/}
+            {/*    sx={{ justifyContent: 'flex-end' }}*/}
+            {/*    onChange={(event, newValue) => setTimeFrame(newValue)}*/}
+            {/*>*/}
+            {/*    {TimeFrames.map((item: any, index: number) => {*/}
+            {/*        return <BottomNavigationAction value={item} label={item} sx={{*/}
+            {/*            borderRight: [0,4].includes(index) ? 'solid 3px #ccc' : 'none',*/}
+            {/*        }} />*/}
+            {/*    })}*/}
 
-            </BottomNavigation>
+            {/*</BottomNavigation>*/}
         </div>
     )
 }

@@ -26,7 +26,7 @@ import {
     OHLCTooltip,
     RSITooltip,
     SingleValueTooltip,
-
+    HoverTooltip,
     XAxis,
     YAxis,
     ZoomButtons,
@@ -35,6 +35,7 @@ import {
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
 import {useEffect, useRef, useState} from "react";
+import { isHover, saveNodeType } from "react-financial-charts";
 
 import {
     atr14,
@@ -54,8 +55,8 @@ import {
     wma20
 } from "../indicator/indicators";
 
-import {TrendLine, FibonacciRetracement, EquidistantChannel, Brush} from "react-financial-charts";
-// import {saveInteractiveNodes, getInteractiveNodes} from "../interaction/interactiveutils";
+import {TrendLine, FibonacciRetracement, EquidistantChannel, Brush , InteractiveText} from "react-financial-charts";
+import {saveInteractiveNodes, getInteractiveNodes} from "../interaction/interactiveutils";
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
@@ -111,7 +112,11 @@ export const StockChart = (props: StockChartProps) => {
     const {enableFib, setEnableFib} = useDesignStore();
     const {enableEquidistant, setEnableEquidistant} = useDesignStore();
     const {enableBrush, setEnableBrush} = useDesignStore();
+    const {enableInteractiveObject, setEnableInteractiveObject} = useDesignStore();
     const [retracements, setRetracements] = useState<any[]>([]);
+    const [textList_1, textList_3] = useState<any[]>([]);
+    const [hover, setHover] = useState<boolean>();
+    const [selected, setSelected] = useState<boolean>(false);
     const BRUSH_TYPE = "2D";
     /*const [trends, setTrends] = useState([{
         start: [37, 193.5119667590028],
@@ -124,11 +129,54 @@ export const StockChart = (props: StockChartProps) => {
     const [channels, setChannels] = useState<any[]>([])
     const [brushes, setBrushes] = useState<any[]>([])
 
+    const dateFormat = timeFormat("%Y-%m-%d");
+    const numberFormat = format(".2f");
+
     // const [trends, setTrends] = useState<any[]>([]);
 
     function handleReset() {
         setFixedPosition(false);
     }
+
+    function handleHover(_: React.MouseEvent, moreProps: any) {
+        if (hover !== moreProps.hovering) {
+            setHover(moreProps.hovering);
+        }
+    }
+
+    const hoverHandler = {
+        onHover: handleHover,
+        onUnHover: handleHover,
+    };
+
+    const handleDragStart = (_: React.MouseEvent, moreProps: any) => {
+        // const { position } = this.props;
+        const { mouseXY } = moreProps;
+        const {
+            chartConfig: { yScale },
+            xScale,
+        } = moreProps;
+        const [mouseX, mouseY] = mouseXY;
+
+        // const [textCX, textCY] = position;
+        // const dx = mouseX - xScale(textCX);
+        // const dy = mouseY - yScale(textCY);
+
+        // this.dragStartPosition = {
+        //     position,
+        //     dx,
+        //     dy,
+        // };
+    };
+
+    // const onDrag?: (e: React.MouseEvent, index: number | undefined, xyValue: number[]) => void;
+    // const handleDrag = (e: React.MouseEvent, moreProps: any) => {
+    //     const { index, onDrag } = this.props;
+    //     if (onDrag === undefined) {
+    //         return;
+    //     }
+
+    // onDragComplete?: (e: React.MouseEvent, moreProps: any) => void;
 
     const canvasRef = useRef(null);
 
@@ -136,6 +184,19 @@ export const StockChart = (props: StockChartProps) => {
 
     function getMaxUndefined(calculators: any) {
         return calculators.map((each: any) => each.undefinedLength()).reduce((a: any, b: any) => Math.max(a, b));
+    }
+    const interactiveTextOnDrawComplete = (textList:any, moreProps:any) => {
+        // this gets called on
+        // 1. draw complete of drawing object
+        // 2. drag complete of drawing object
+        console.log({textList})
+        const { id: chartId } = moreProps.chartConfig;
+        setEnableInteractiveObject(false)
+        // [`textList_${chartId}`]: textList
+
+        // this.setState({
+        //     enableInteractiveObject: false
+        // });
     }
 
     /* const ema12 = ema()
@@ -505,6 +566,7 @@ export const StockChart = (props: StockChartProps) => {
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
     const {disableElderRay, setDisableElderRay} = useStore();
     const {disableMACD, setDisableMACD} = useStore();
+    const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
@@ -525,6 +587,7 @@ export const StockChart = (props: StockChartProps) => {
 
         const low = Math.min(start.yValue, end.yValue);
         const high = Math.max(start.yValue, end.yValue);
+
 
         // uncomment the line below to make the brush to zoom
         // setState({
@@ -711,6 +774,59 @@ export const StockChart = (props: StockChartProps) => {
                     enabled={enableBrush}
                     type={BRUSH_TYPE}
                     onBrush={handleBrush1}/>
+
+                {/*<InteractiveText*/}
+                {/*    onChoosePosition={(e: React.MouseEvent, newText: any, moreProps: any) =>{*/}
+
+                {/*    } }*/}
+                {/*    ref={saveNodeType("text")}*/}
+                {/*    // selected={selected || hover}*/}
+                {/*    // interactiveCursorClass="react-financial-charts-move-cursor"*/}
+                {/*    {...hoverHandler}*/}
+                {/*    enabled={enableInteractiveObject}*/}
+                {/*    // onDragStart={handleDragStart}*/}
+                {/*    // onDrag={this.handleDrag}*/}
+                {/*    // onDragComplete={onDragComplete}*/}
+                {/*    // position={position}*/}
+                {/*    // bgFillStyle={getDesignTokens(themeMode).palette.lineColor}*/}
+                {/*    // bgStroke={getDesignTokens(themeMode).palette.edgeStroke}*/}
+                {/*    // bgStrokeWidth={1}*/}
+                {/*    // textFill={getDesignTokens(themeMode).palette.text.primary}*/}
+                {/*    // fontFamily={fontFamily}*/}
+                {/*    // fontStyle={fontStyle}*/}
+                {/*    // fontWeight={fontWeight}*/}
+                {/*    // fontSize={fontSize}*/}
+                {/*    // text={text}*/}
+                {/*/>*/}
+
+                {!disableHoverTooltip && (
+                <HoverTooltip
+                    yAccessor={ema12.accessor()}
+                    tooltip={{
+                        content: ({ currentItem, xAccessor }) => ({
+                            x: dateFormat(xAccessor(currentItem)),
+                            y: [
+                                {
+                                    label: "open",
+                                    value: currentItem.open && numberFormat(currentItem.open),
+                                },
+                                {
+                                    label: "high",
+                                    value: currentItem.high && numberFormat(currentItem.high),
+                                },
+                                {
+                                    label: "low",
+                                    value: currentItem.low && numberFormat(currentItem.low),
+                                },
+                                {
+                                    label: "close",
+                                    value: currentItem.close && numberFormat(currentItem.close),
+                                },
+                            ],
+                        }),
+                    }}
+                />
+                    )}
 
             </Chart>
 
