@@ -754,18 +754,18 @@ export const StockChart = (props: StockChartProps) => {
                     onStart={() => console.log("START")}
                     onComplete={onDrawComplete}
                     channels={channels}
-                    // appearance={{
-                    //     strokeStyle: themeMode === 'dark' ? '#fff' : '#000',
-                    //     strokeWidth: 1,
-                    //     fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
-                    //     fontSize: 11,
-                    //     fontFill: themeMode === 'dark' ? '#fff' : '#000',
-                    //     edgeStroke: themeMode === 'dark' ? '#fff' : '#000',
-                    //     edgeFill: themeMode === 'dark' ? '#000' : '#fff',
-                    //     nsEdgeFill: themeMode === 'dark' ? '#fff' : '#000',
-                    //     edgeStrokeWidth: 1,
-                    //     r: 5,
-                    // }}
+                    appearance={{
+                        stroke: "#000000",
+                        strokeOpacity: 1,
+                        strokeWidth: 1,
+                        fill: "rgba(112, 176, 217, 0.4)",
+                        fillOpacity:0.1,
+                        edgeStroke: "#000000",
+                        edgeFill: "#FFFFFF",
+                        edgeFill2: "#250B98",
+                        edgeStrokeWidth: 1,
+                        r: 5,
+                    }}
                 />
 
                 <Brush
