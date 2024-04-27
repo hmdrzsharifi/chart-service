@@ -22,62 +22,126 @@ function App() {
     const {symbol, timeFrame} = useStore();
     const {openSideBar, themeMode} = useDesignStore();
 
+    // const handleRealTimeTick2 = (websocketData: any) => {
+    //     console.log({websocketData})
+    //     let websocketDate = new Date(websocketData.t);
+    //     console.log({websocketDate})
+    //     setLastTime(websocketDate)
+    //    /* let websocketCandle = {
+    //         "date": websocketCandleDate,
+    //         "open": parseFloat(websocketData.o),
+    //         "high": parseFloat(websocketData.h),
+    //         "low": parseFloat(websocketData.l),
+    //         "close": parseFloat(websocketData.c),
+    //         "volume": parseFloat(websocketData.v),
+    //         "split": "",
+    //         "dividend": "",
+    //         "absoluteChange": "",
+    //         "percentChange": ""
+    //     };*/
+    //
+    //     console.log('stateRef.current' , stateRef.current)
+    //     const lastCandleDate = stateRef?.current
+    //
+    //     if (timeFrame == TimeFrame.M1) {
+    //         // console.log("TimeFrame.M1")
+    //         if (isWithinOneMinute(websocketDate, lastCandleDate)) {
+    //             // console.log("update")
+    //             const lastCandle = data[data.length - 1];
+    //             // if (lastCandle && websocketData.p > lastCandle.high) {
+    //             if (lastCandle && lastCandle.close > lastCandle.open) {
+    //                 // asc candle
+    //                 lastCandle.close = websocketData.p;
+    //             } else {
+    //                 // desc candle
+    //                 lastCandle.open = websocketData.p;
+    //             }
+    //
+    //             if (lastCandle && websocketData.p > lastCandle.high) {
+    //                 lastCandle.high = websocketData.p;
+    //             }
+    //
+    //             if (lastCandle && websocketData.p < lastCandle.low) {
+    //                 lastCandle.low = websocketData.p;
+    //             }
+    //
+    //             setData((data: any[]) => [...data.slice(0, data.length - 1), lastCandle])
+    //         } else {
+    //             console.log("new")
+    //             setLastTime(new Date())
+    //             // fetchLastData()
+    //         }
+    //     }
+    //
+    //     if (timeFrame == TimeFrame.D) {
+    //         // console.log("TimeFrame.D")
+    //     }
+    //
+    // }
+
     const handleRealTimeTick2 = (websocketData: any) => {
-        console.log({websocketData})
-        let websocketDate = new Date(websocketData.t);
-        console.log({websocketDate})
-        setLastTime(websocketDate)
-       /* let websocketCandle = {
-            "date": websocketCandleDate,
-            "open": parseFloat(websocketData.o),
-            "high": parseFloat(websocketData.h),
-            "low": parseFloat(websocketData.l),
-            "close": parseFloat(websocketData.c),
-            "volume": parseFloat(websocketData.v),
-            "split": "",
-            "dividend": "",
-            "absoluteChange": "",
-            "percentChange": ""
-        };*/
+        console.log({ websocketData });
+        const websocketDate: Date = new Date(websocketData.t);
+        console.log({ websocketDate });
+        setLastTime(websocketDate);
 
-        console.log('stateRef.current' , stateRef.current)
-        const lastCandleDate = stateRef?.current
+        const lastCandleDate: Date | undefined = stateRef?.current;
 
-        if (timeFrame == TimeFrame.M1) {
-            // console.log("TimeFrame.M1")
-            if (isWithinOneMinute(websocketDate, lastCandleDate)) {
-                // console.log("update")
-                const lastCandle = data[data.length - 1];
-                // if (lastCandle && websocketData.p > lastCandle.high) {
-                if (lastCandle && lastCandle.close > lastCandle.open) {
-                    // asc candle
-                    lastCandle.close = websocketData.p;
-                } else {
-                    // desc candle
-                    lastCandle.open = websocketData.p;
-                }
+        if (timeFrame === TimeFrame.M1) {
+            if (lastCandleDate && isWithinOneMinute(websocketDate, lastCandleDate)) {
+                console.log("update")
+                setData((prevData: any[]) => {
+                    const updatedData = [...prevData];
+                    if (updatedData.length > 0) {
+                        const lastCandle = updatedData[updatedData.length - 1];
+                        if (lastCandle) {
+                            if (lastCandle.close > lastCandle.open) {
+                                lastCandle.close = websocketData.p;
+                            } else {
+                                lastCandle.open = websocketData.p;
+                            }
 
-                if (lastCandle && websocketData.p > lastCandle.high) {
-                    lastCandle.high = websocketData.p;
-                }
+                            if (websocketData.p > lastCandle.high) {
+                                lastCandle.high = websocketData.p;
+                            }
 
-                if (lastCandle && websocketData.p < lastCandle.low) {
-                    lastCandle.low = websocketData.p;
-                }
-
-                setData((data: any[]) => [...data.slice(0, data.length - 1), lastCandle])
+                            if (websocketData.p < lastCandle.low) {
+                                lastCandle.low = websocketData.p;
+                            }
+                        }
+                    }
+                    return updatedData;
+                });
             } else {
                 console.log("new")
-                setLastTime(new Date())
-                // fetchLastData()
+                fetchInitialData()
+
+            //     setData((prevData: any[]) => {
+            //         const newCandle = {
+            //             date: websocketDate,
+            //             open: parseFloat(websocketData.o),
+            //             high: parseFloat(websocketData.h),
+            //             low: parseFloat(websocketData.l),
+            //             close: parseFloat(websocketData.c),
+            //             volume: parseFloat(websocketData.v),
+            //             split: "",
+            //             dividend: "",
+            //             absoluteChange: "",
+            //             percentChange: ""
+            //         };
+            //         const updatedData = prevData.concat(newCandle);
+            //         updatedData.sort((a, b) => a.date.getTime() - b.date.getTime());
+            //         setLastTime(new Date());
+            //         return updatedData;
+            //     });
             }
         }
 
-        if (timeFrame == TimeFrame.D) {
+        if (timeFrame === TimeFrame.D) {
             // console.log("TimeFrame.D")
         }
-
     }
+
 
     const handleRealTimeTick = (websocketData: any) => {
         let websocketCandleDate = new Date(websocketData.t);
