@@ -117,16 +117,28 @@ const Toolbar = (props: any) => {
                     aria-labelledby="modal-modal-title"
                     aria-describedby="modal-modal-description"
                 >
-                    <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 400,
-                        bgcolor: 'background.paper',
-                        boxShadow: 24,
-                        p: 4
-                    }}>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 400,
+                            bgcolor: 'background.paper',
+                            boxShadow: 24,
+                            p: 4,
+                            borderRadius: 8, // شکل گرد بخش‌های گوشه ای با رادیوس بزرگتر
+                            border: '2px solid #ccc', // حاشیه دور کادر با ضخامت بیشتر
+                            '& .MuiButton-root': {
+                                marginBottom: '10px', // فاصله بین دکمه‌ها
+                                width: '100%', // دکمه‌ها را به پهنای 100٪ از کادر Modal کنید
+                            },
+                            '& .MuiTypography-root': {
+                                textAlign: 'center', // متن عنوان به وسط
+                                marginBottom: '20px', // فاصله بین عنوان و دکمه‌ها
+                            },
+                        }}
+                    >
                         <Typography id="modal-modal-title" variant="h6" component="h2">
                             Info
                         </Typography>
