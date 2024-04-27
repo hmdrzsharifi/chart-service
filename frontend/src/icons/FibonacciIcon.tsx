@@ -3,7 +3,7 @@ import App from "../App";
 const FibonacciIcon = (props: {selected: boolean, color: string}) => {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28" stroke={props.color} stroke-width={props.selected ? '1' : '0'}>
-            <g fill={props.color} fill-rule="nonzero">
+            <g fill="currentColor" fill-rule="nonzero">
                 <path d="M3 5h22v-1h-22z"></path>
                 <path d="M3 17h22v-1h-22z"></path>
                 <path d="M3 11h19.5v-1h-19.5z"></path>

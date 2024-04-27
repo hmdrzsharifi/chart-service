@@ -300,7 +300,7 @@ const Toolbar = (props: any) => {
                     onClick={handleMenuToggle}
                     color="inherit"
                 >
-                    <Typography variant="button" sx={{ mr: 1 }}  classes={{root: 'toolbar-select'}}>
+                    <Typography variant="caption" sx={{ mr: 1 }}  classes={{root: 'toolbar-select'}}>
                         Studies
                     </Typography>
                     <ExpandMoreIcon />
