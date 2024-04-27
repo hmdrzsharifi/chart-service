@@ -52,7 +52,7 @@ import {
     sma20,
     smaVolume50,
     tma20,
-    wma20
+    wma20,
 } from "../indicator/indicators";
 
 import {TrendLine, FibonacciRetracement, EquidistantChannel, Brush , InteractiveText} from "react-financial-charts";
@@ -101,6 +101,7 @@ export const StockChart = (props: StockChartProps) => {
 
     const [fixedPosition, setFixedPosition] = useState(false)
     const [xExtents, setXExtents] = useState([0, 0])
+    const [yExtents1, setYExtents1] = useState<any>()
     const muiTheme = useTheme();
 
     const {loadingMoreData, setLoadingMoreData} = useStore();
@@ -126,7 +127,7 @@ export const StockChart = (props: StockChartProps) => {
         selected: undefined
     }])*/
     const [trends, setTrends] = useState<TrendLineType[]>([])
-    const [channels, setChannels] = useState<any[]>([])
+    const [equidistantChannels, setEquidistantChannels] = useState<any[]>([])
     const [brushes, setBrushes] = useState<any[]>([])
 
     const dateFormat = timeFormat("%Y-%m-%d");
@@ -415,17 +416,16 @@ export const StockChart = (props: StockChartProps) => {
         setRetracements(retracements)
     }
 
-    const onDrawComplete = (channels_1: any) => {
+    const onDrawCompleteEquidistantChannel = (event: any, equidistantChannels: any) => {
         // this gets called on
-        // 1. draw complete of drawing object
-        // 2. drag complete of drawing object
-        // this.setState({
-        console.log({channels_1});
-        setEnableEquidistant(false)
-        // enableInteractiveObject: false,
-        // channels_1
-        // });
+        // 1. draw complete of trendline
+        // @ts-ignore
+        console.log({equidistantChannels});
+        setEnableEquidistant(false);
+        setEquidistantChannels(equidistantChannels)
     }
+
+
 
     const handleSelection = (interactives: any) => {
         /* const state = toObject(interactives, each => {
@@ -449,11 +449,16 @@ export const StockChart = (props: StockChartProps) => {
             const newRetracements = retracements.filter(each => !each.selected)
 
             setRetracements(newRetracements)
+
+            const newEquidistantChannel = equidistantChannels.filter(each => !each.selected)
+
+            setEquidistantChannels(newEquidistantChannel)
         } else if (key === 'Escape') {
             // @ts-ignore
             canvasRef?.current?.cancelDrag()
             setEnableTrendLine(false)
             setEnableFib(false)
+            setEnableEquidistant(false)
         }
     };
 
@@ -580,17 +585,20 @@ export const StockChart = (props: StockChartProps) => {
         gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
     }
 
-    const handleBrush1 = (brushCoords: any, moreProps: any) => {
-        const {start, end} = brushCoords;
+    const handleBrush1 = (brushCoords:any, moreProps:any) => {
+        const { start, end } = brushCoords;
         const left = Math.min(start.xValue, end.xValue);
         const right = Math.max(start.xValue, end.xValue);
 
         const low = Math.min(start.yValue, end.yValue);
         const high = Math.max(start.yValue, end.yValue);
 
-
         // uncomment the line below to make the brush to zoom
-        // setState({
+        setXExtents([left, right])
+        setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
+        setEnableBrush(false)
+        console.log(enableBrush)
+        // this.setState({
         //     xExtents: [left, right],
         //     yExtents1: BRUSH_TYPE === "2D" ? [low, high] : this.state.yExtents1,
         //     brushEnabled: false,
@@ -750,10 +758,11 @@ export const StockChart = (props: StockChartProps) => {
 
                 <EquidistantChannel
                     // ref={this.saveInteractiveNodes("EquidistantChannel", 1)}
+                    // onSelect={onDrawComplete}
                     enabled={enableEquidistant}
                     onStart={() => console.log("START")}
-                    onComplete={onDrawComplete}
-                    channels={channels}
+                    onComplete={onDrawCompleteEquidistantChannel}
+                    channels={equidistantChannels}
                     appearance={{
                         stroke: "#000000",
                         strokeOpacity: 1,
@@ -762,7 +771,7 @@ export const StockChart = (props: StockChartProps) => {
                         fillOpacity:0.1,
                         edgeStroke: "#000000",
                         edgeFill: "#FFFFFF",
-                        edgeFill2: "#250B98",
+                        edgeFill2: "#070707",
                         edgeStrokeWidth: 1,
                         r: 5,
                     }}
@@ -770,8 +779,9 @@ export const StockChart = (props: StockChartProps) => {
 
                 <Brush
                     // ref={this.saveInteractiveNode(1)}
-                    interactiveState={{}}
+                    interactiveState={handleBrush1}
                     enabled={enableBrush}
+                    fillStyle="rgba(112, 176, 217, 0.4)"
                     type={BRUSH_TYPE}
                     onBrush={handleBrush1}/>
 
@@ -784,19 +794,19 @@ export const StockChart = (props: StockChartProps) => {
                 {/*    // interactiveCursorClass="react-financial-charts-move-cursor"*/}
                 {/*    {...hoverHandler}*/}
                 {/*    enabled={enableInteractiveObject}*/}
-                {/*    // onDragStart={handleDragStart}*/}
-                {/*    // onDrag={this.handleDrag}*/}
-                {/*    // onDragComplete={onDragComplete}*/}
-                {/*    // position={position}*/}
-                {/*    // bgFillStyle={getDesignTokens(themeMode).palette.lineColor}*/}
-                {/*    // bgStroke={getDesignTokens(themeMode).palette.edgeStroke}*/}
-                {/*    // bgStrokeWidth={1}*/}
-                {/*    // textFill={getDesignTokens(themeMode).palette.text.primary}*/}
-                {/*    // fontFamily={fontFamily}*/}
-                {/*    // fontStyle={fontStyle}*/}
-                {/*    // fontWeight={fontWeight}*/}
-                {/*    // fontSize={fontSize}*/}
-                {/*    // text={text}*/}
+                {/*    onDragStart={handleDragStart}*/}
+                {/*    onDrag={handleDrag}*/}
+                {/*    onDragComplete={onDragComplete}*/}
+                {/*    position={position}*/}
+                {/*    bgFillStyle={getDesignTokens(themeMode).palette.lineColor}*/}
+                {/*    bgStroke={getDesignTokens(themeMode).palette.edgeStroke}*/}
+                {/*    bgStrokeWidth={1}*/}
+                {/*    textFill={getDesignTokens(themeMode).palette.text.primary}*/}
+                {/*    fontFamily={fontFamily}*/}
+                {/*    fontStyle={fontStyle}*/}
+                {/*    fontWeight={fontWeight}*/}
+                {/*    fontSize={fontSize}*/}
+                {/*    text={text}*/}
                 {/*/>*/}
 
                 {!disableHoverTooltip && (
