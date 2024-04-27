@@ -758,7 +758,7 @@ export const StockChart = (props: StockChartProps) => {
 
                 <EquidistantChannel
                     // ref={this.saveInteractiveNodes("EquidistantChannel", 1)}
-                    // onSelect={onDrawComplete}
+                    onSelect={onDrawCompleteEquidistantChannel}
                     enabled={enableEquidistant}
                     onStart={() => console.log("START")}
                     onComplete={onDrawCompleteEquidistantChannel}
