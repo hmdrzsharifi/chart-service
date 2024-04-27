@@ -326,7 +326,7 @@ const Toolbar = (props: any) => {
                             name="enableDisableElderRay"
                             color="primary"
                         /></MenuItem>
-                    <MenuItem value='MACD' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='MACD' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setDisableMACD(!disableMACD)}>
                         <span>Macd</span>
                         <Switch
                             checked={!disableMACD}
