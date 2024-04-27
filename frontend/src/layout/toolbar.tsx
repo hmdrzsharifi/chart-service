@@ -55,6 +55,7 @@ const Toolbar = (props: any) => {
     const {disableElderRay,setDisableElderRay} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
+    const {disableMACD, setDisableMACD} = useStore();
 
 
     const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -313,6 +314,14 @@ const Toolbar = (props: any) => {
                             name="enableDisableElderRay"
                             color="primary"
                         /></MenuItem>
+                    <MenuItem value='MACD' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setMenuOpen(false)}>
+                        <span>Macd</span>
+                        <Switch
+                            checked={!disableMACD}
+                            onClick={() => setDisableMACD(!disableMACD)}
+                            name="enableDisableMACD"
+                            color="primary"
+                        /></MenuItem>
                     <MenuItem value='BOLLINGER_BAND' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
                         <span>Bollinger Band</span>
                         <Switch
@@ -327,14 +336,6 @@ const Toolbar = (props: any) => {
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
                                 name="enableDisableMovingAverage"
-                                color="primary"
-                        /></MenuItem>
-                    <MenuItem value='MACD' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setMenuOpen(false)}>
-                        <span>Macd</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
                                 color="primary"
                         /></MenuItem>
                     <MenuItem value='RSI_AND_ATR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
