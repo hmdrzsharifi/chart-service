@@ -23,8 +23,10 @@ function App() {
     const {openSideBar, themeMode} = useDesignStore();
 
     const handleRealTimeTick2 = (websocketData: any) => {
+        console.log({websocketData})
         let websocketDate = new Date(websocketData.t);
         console.log({websocketDate})
+        setLastTime(websocketDate)
        /* let websocketCandle = {
             "date": websocketCandleDate,
             "open": parseFloat(websocketData.o),
@@ -38,7 +40,8 @@ function App() {
             "percentChange": ""
         };*/
 
-        const lastCandleDate = stateRef?.current?.slice(-1)[0]?.date
+        console.log('stateRef.current' , stateRef.current)
+        const lastCandleDate = stateRef?.current
 
         if (timeFrame == TimeFrame.M1) {
             // console.log("TimeFrame.M1")
@@ -108,7 +111,7 @@ function App() {
     }
 
     const stateRef: React.MutableRefObject<any> = useRef();
-    // stateRef.current = lastTime;
+    stateRef.current = lastTime;
 
     function isWithinOneMinute(websocketCandleDate: any, lastCandleDate: any) {
         // let lastTimeMinute = stateRef?.lastCandleDate.getMinutes().toString();
