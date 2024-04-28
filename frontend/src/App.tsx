@@ -13,6 +13,8 @@ import io from 'socket.io-client';
 import useDesignStore from "./util/designStore";
 import {TimeFrame} from "./type/Enum";
 import getDesignTokens from "./config/theme";
+import Decimal from 'decimal.js';
+
 
 
 function App() {
@@ -80,7 +82,6 @@ function App() {
     // }
 
     const handleRealTimeTick2 = (websocketData: any) => {
-        console.log({ websocketData });
         const websocketDate: Date = new Date(websocketData.t);
         console.log({ websocketDate });
         setLastTime(websocketDate);
@@ -95,6 +96,12 @@ function App() {
                     if (updatedData.length > 0) {
                         const lastCandle = updatedData[updatedData.length - 1];
                         if (lastCandle) {
+                            // if (websocketData.p > lastCandle.high){
+                            //     websocketData.p = lastCandle.high
+                            // }
+                            // if (websocketData.p < lastCandle.high) {
+                            //     websocketData.p = lastCandle.high
+                            // }
                             if (lastCandle.close > lastCandle.open) {
                                 lastCandle.close = websocketData.p;
                             } else {
@@ -108,8 +115,10 @@ function App() {
                             if (websocketData.p < lastCandle.low) {
                                 lastCandle.low = websocketData.p;
                             }
+                            console.log({updatedData})
                         }
                     }
+                    console.log({updatedData})
                     return updatedData;
                 });
             } else {
@@ -275,9 +284,13 @@ function App() {
             // console.log('Received price:', message.p);
             // let websocketData = JSON.parse(message);
 
+            // console.log("decimal" , message.map((item: any) => ({...item, p: new Decimal(item.p)})))
+            const convertedMessage = {...message, p: new Decimal(message.p).toNumber()}
+            console.log("decimal" , {...message, p: new Decimal(message.p).toNumber()})
             if (message.s === symbol) {
+
                 // handleRealTimeTick(websocketData)
-                handleRealTimeTick2(message)
+                handleRealTimeTick2(convertedMessage)
             }
         });
 
