@@ -2,6 +2,7 @@ import finnhub
 import pandas as pd
 from flask import Flask, request
 from flask_cors import CORS
+import json
 
 pd.set_option('display.float_format', '{:.8f}'.format)
 
@@ -23,11 +24,12 @@ def fetch_candle_data():
     # Stock candles
     res = finnhub_client.stock_candles(symbol, time_frame, from_time, to_time)
 
-    df = pd.DataFrame(res)
-
-    # Convert to JSON
-    json_data = df.to_json(orient='records')
-
+    if res.get('s') == "ok" :
+        df = pd.DataFrame(res)
+        # Convert to JSON
+        json_data = df.to_json(orient='records')
+    else:
+        json_data = json.dumps(res)
     return json_data
 
 

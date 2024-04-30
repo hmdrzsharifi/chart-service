@@ -86,7 +86,9 @@ function App() {
         console.log({ websocketDate });
         setLastTime(websocketDate);
 
-        const lastCandleDate: Date | undefined = stateRef?.current;
+        const lastCandle = data[data.length - 1];
+        // const lastCandleDate: Date | undefined = stateRef?.current;
+        const lastCandleDate = new Date(lastCandle.date);
 
         if (timeFrame === TimeFrame.M1) {
             if (lastCandleDate && isWithinOneMinute(websocketDate, lastCandleDate)) {
@@ -123,7 +125,7 @@ function App() {
                 });
             } else {
                 console.log("new")
-                fetchInitialData()
+                fetchLastData()
 
             //     setData((prevData: any[]) => {
             //         const newCandle = {
@@ -384,28 +386,28 @@ function App() {
 
     const fetchLastData = async () => {
         try {
-            let from;
-            let to;
+            let fromDate;
+            let toDate;
 
             switch (timeFrame) {
                 case "1M":
-                    from = Math.floor(new Date().getTime() / 1000) - 120;
-                    to = Math.floor(new Date().getTime() / 1000);
+                    fromDate = Math.floor(new Date().getTime() / 1000) - 120;
+                    toDate = Math.floor(new Date().getTime() / 1000);
                     break;
                 case "D":
-                    from = Math.floor(new Date().getTime() / 1000) - (1 * 24 * 3600);
+                    fromDate = Math.floor(new Date().getTime() / 1000) - (1 * 24 * 3600);
                     break;
 
                 //todo add other time frame
 
                 default:
-                    from = Math.floor(new Date().getTime() / 1000) - (1 * 24 * 3600)
+                    fromDate = Math.floor(new Date().getTime() / 1000) - (1 * 24 * 3600)
             }
 
-            console.log({from})
-            console.log({to})
+            console.log({fromDate})
+            console.log({toDate})
 
-            const result = await fetchCandleData(symbol, timeFrame, from, to);
+            const result = await fetchCandleData(symbol, timeFrame, fromDate, toDate);
             console.log('result1', result)
             // result.sort((a: any, b: any) =>  a.date.getTime() - b.date.getTime());
             // console.log('result', result)
@@ -415,7 +417,7 @@ function App() {
             console.log('fetch result', singleResult)
             // const candleData = result ? [result[0], newCandle] : newCandle;
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
-            setData((data: any[]) => [...data.slice(0, data.length - 1), ...singleResult])
+            setData((data: any[]) => [...data.slice(0, data.length - 1), singleResult])
         } catch (error) {
             console.error('Error fetching candle data:', error);
         }

@@ -1,86 +1,53 @@
 import {format} from "d3-format";
 import {timeFormat} from "d3-time-format";
 import * as React from "react";
+import {useEffect, useRef, useState} from "react";
 import {
     BarSeries,
-    LineSeries,
-    MACDSeries,
-    ElderRaySeries,
-    AreaSeries,
-
+    Brush,
     Chart,
     ChartCanvas,
-
     CrossHairCursor,
     CurrentCoordinate,
+    discontinuousTimeScaleProviderBuilder,
     EdgeIndicator,
+    elderRay,
+    ElderRaySeries,
+    EquidistantChannel,
+    FibonacciRetracement,
+    HoverTooltip,
+    lastVisibleItemBasedZoomAnchor,
+    LineSeries,
+    MACDSeries,
+    MACDTooltip,
     MouseCoordinateX,
     MouseCoordinateY,
-
-    discontinuousTimeScaleProviderBuilder,
-    elderRay,
-    lastVisibleItemBasedZoomAnchor,
-
-    MACDTooltip,
     MovingAverageTooltip,
     OHLCTooltip,
-    RSITooltip,
     SingleValueTooltip,
-    HoverTooltip,
+    TrendLine,
     XAxis,
     YAxis,
-    ZoomButtons,
-    CircleMarker
-
+    ZoomButtons
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
-import {useEffect, useRef, useState} from "react";
-import { isHover, saveNodeType } from "react-financial-charts";
 
-import {
-    atr14,
-    bb,
-    defaultSar,
-    ema12,
-    ema20,
-    ema26,
-    ema50,
-    fi,
-    fullSTO,
-    macdCalculator,
-    rsiCalculator,
-    sma20,
-    smaVolume50,
-    tma20,
-    wma20,
-} from "../indicator/indicators";
-
-import {TrendLine, FibonacciRetracement, EquidistantChannel, Brush , InteractiveText} from "react-financial-charts";
-import {saveInteractiveNodes, getInteractiveNodes} from "../interaction/interactiveutils";
+import {ema12, ema26, macdCalculator, smaVolume50,} from "../indicator/indicators";
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {NO_OF_CANDLES} from "../config/constants";
-import {HourAndMinutesTimeFrames} from "../type/Enum";
+import {HourAndMinutesTimeFrames, TimeFrame} from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {Button, IconButton} from "@mui/material";
-import {Close} from "@mui/icons-material";
+import {Button} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import getDesignTokens from "../config/theme";
 
-import {
-    macdAppearance,
-    atrAppearance,
-    axisAppearance,
-    mouseEdgeAppearance,
-    theme,
-    edgeIndicatorAppearance,
-    volumeAppearance
-} from '../indicator/indicatorSettings'
+import {macdAppearance, mouseEdgeAppearance} from '../indicator/indicatorSettings'
 
 interface StockChartProps {
     readonly data: IOHLCData[];
@@ -101,6 +68,8 @@ export const StockChart = (props: StockChartProps) => {
 
     const [fixedPosition, setFixedPosition] = useState(false)
     const [xExtents, setXExtents] = useState([0, 0])
+    // const [xScale, setXScale] = useState()
+    // const [xAccessor, setXAccessor] = useState()
     const [yExtents1, setYExtents1] = useState<any>()
     const muiTheme = useTheme();
 
@@ -285,26 +254,32 @@ export const StockChart = (props: StockChartProps) => {
         }*/
     };
 
-    const handleDataLoadBefore = async (start: any, end: any) => {
+    const handleDataLoadBefore = async (start: number, end: number) => {
+        const rowsToDownload = end - Math.ceil(start);
+
+        console.log({rowsToDownload})
+
+        // onLoadData?.(rowsToDownload, -Math.ceil(start));
+
         // setXExtents([e, e + LENGTH_TO_SHOW])
         // setFixedPosition(true);
         console.log("My Data Before")
-        console.log({start})
-        console.log({end})
+        // console.log({start})
+        // console.log({end})
 
         if (Math.ceil(start) === end) return;
 
-        const rowsToDownload = end - Math.ceil(start);
+        // const rowsToDownload = end - Math.ceil(start);
 
-        const maxWindowSize = getMaxUndefined([ema26,
+       /* const maxWindowSize = getMaxUndefined([ema26,
             ema12,
             macdCalculator,
             smaVolume50
 
-        ]);
+        ]);*/
 
         /* SERVER - START */
-        const dataToCalculate = data
+       /* const dataToCalculate = data
             .slice(-rowsToDownload - maxWindowSize - data.length, -data.length);
 
         console.log({dataToCalculate})
@@ -315,17 +290,17 @@ export const StockChart = (props: StockChartProps) => {
         const {index} = indexCalculator(
             calculatedData
                 .slice(-rowsToDownload)
-                .concat(data));
+                .concat(data));*/
         /* SERVER - END */
 
-        const xScaleProvider = discontinuousTimeScaleProviderBuilder()
+      /*  const xScaleProvider = discontinuousTimeScaleProviderBuilder()
             .initialIndex(Math.ceil(start))
             .withIndex(index);
 
-        const {data: linearData, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(data));
+        const {data: linearData, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(data));*/
 
 
-        console.log({rowsToDownload})
+        // console.log({rowsToDownload})
         // console.log({loadingMoreData})
         //
         // if (loadingMoreData) {
@@ -335,30 +310,87 @@ export const StockChart = (props: StockChartProps) => {
         //
         // setLoadingMoreData(true);
 
+        // const {data: linearData, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(data));
+
+
         try {
             // Find the earliest date in the current dataset
-            const earliestDate = new Date(data[0].date);
+            const endDate = new Date(data[0].date);
 
-            console.log("TIME ***************", earliestDate.getTime())
+            console.log("earliestDate TIME ***************", endDate)
 
             // Calculate the new start date to fetch from (7 days before the earliest date)
-            const endDate = new Date(earliestDate);
+            // const endDate = new Date(earliestDate);
+            // console.log("earliestDate TIME ***************", endDate)
             // const startDate = endDate.getDate() - 150;
 
             // Format dates to 'YYYY-MM-DD HH:MM:SS' format
             // const fromDateString = startDate.toISOString().slice(0, 19).replace('T', ' ');
             // const toDateString = earliestDate.toISOString().slice(0, 19).replace('T', ' ');
 
+            let from;
+            switch (timeFrame) {
+                case "1M":
+                    from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 60);
+                    break;
+                case "D":
+                    from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600);
+                    break;
+
+                //todo add other time frame
+
+                default:
+                    from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600)
+            }
+
+            // const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // Fetch more data
-            const moreData = await fetchCandleData(symbol, 'D', Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600), Math.floor(endDate.getTime() / 1000));
+            const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
 
             console.log({moreData})
             // Combine new data with existing data
             const combinedData = moreData.concat(data);
 
             console.log({combinedData})
-
             setData(combinedData)
+
+            setFixedPosition(true)
+
+            // Update the state with the combined data
+            // const { ema26, ema12, macdCalculator, smaVolume50 } = this.state;
+
+            // Recalculate the scale with the new combined data
+            const calculatedData = ema26(ema12(macdCalculator(smaVolume50(combinedData))));
+            const indexCalculator = discontinuousTimeScaleProviderBuilder().indexCalculator();
+
+            // Recalculate the index with the newly combined data
+            const { index } = indexCalculator(calculatedData);
+            const xScaleProvider = discontinuousTimeScaleProviderBuilder().withIndex(index);
+            const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
+            setData(linearData)
+
+            // setXScale(xScale)
+            // setXAccessor(xAccessor)
+            // setDisplayXAccessor(xAccessor)
+            // Update the state with the new data and the recalculated scale
+
+                // After the state has been updated, adjust the xScale domain to create a buffer
+                // const { xScale, xAccessor, data } = this.state;
+                // this.props.onUpdateData(this.state.data);
+                const totalPoints = data.length;
+                const bufferPoints = 5; // Number of points to leave as a buffer to the right
+                const startPoint = xAccessor(data[Math.max(0, totalPoints - bufferPoints)]);
+                const endPoint = xAccessor(data[totalPoints - 1]);
+
+                // Set the visible scale domain to show data up to the buffer
+                xScale.domain([startPoint, endPoint]);
+
+                // Force update to re-render the chart with the new domain
+                // this.forceUpdate();
+
+            // const max = xAccessor(data[data.length - 1]);
+            // const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
+            // setXExtents([min, max + 10])
             // setLoadingMoreData(false);
 
             // Update the state with the combined data
@@ -644,6 +676,7 @@ export const StockChart = (props: StockChartProps) => {
                     </div>
                 )}
 
+                <MouseCoordinateX at="bottom" orient="bottom" displayFormat={timeFrame == TimeFrame.M1 ? timeFormat("%H-%M-%S") : timeFrame == TimeFrame.D ? timeFormat("%Y-%m-%d") : timeFormat("%Y-%m-%d")} />
                 <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10}/>
                 <EdgeIndicator
                     itemType="last"

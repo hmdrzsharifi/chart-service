@@ -24,7 +24,9 @@ export async function fetchCandleData(symbol:any, tf:any, from:any, to:any) {
         }
 
         const json = await response.json();
-
+        // if (json.) {
+        //
+        // }
         // const jsonData = JSON.parse(json);
         json.forEach((entry:any) => {
             resultData.push(mapObjectFinnhub(entry));
