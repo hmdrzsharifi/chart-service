@@ -14,6 +14,7 @@ import useDesignStore from "./util/designStore";
 import {TimeFrame} from "./type/Enum";
 import getDesignTokens from "./config/theme";
 import Decimal from 'decimal.js';
+import moment from 'moment-timezone';
 
 
 
@@ -84,11 +85,13 @@ function App() {
     const handleRealTimeTick2 = (websocketData: any) => {
         const websocketDate: Date = new Date(websocketData.t);
         console.log({ websocketDate });
-        setLastTime(websocketDate);
+        // setLastTime(websocketDate);
 
-        const lastCandle = data[data.length - 1];
+        // const lastCandle = data[data.length - 1];
         // const lastCandleDate: Date | undefined = stateRef?.current;
-        const lastCandleDate = new Date(lastCandle.date);
+        // const lastCandleDate = new Date(lastCandle.date);
+        const lastCandleDate = stateRef?.current
+
 
         if (timeFrame === TimeFrame.M1) {
             if (lastCandleDate && isWithinOneMinute(websocketDate, lastCandleDate)) {
@@ -415,6 +418,7 @@ function App() {
             let singleResult = result[0];
             // singleResult = [singleResult, newCandle]
             console.log('fetch result', singleResult)
+            setLastTime(singleResult.date)
             // const candleData = result ? [result[0], newCandle] : newCandle;
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
             setData((data: any[]) => [...data.slice(0, data.length - 1), singleResult])
