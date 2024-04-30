@@ -14,7 +14,6 @@ import useDesignStore from "./util/designStore";
 import {TimeFrame} from "./type/Enum";
 import getDesignTokens from "./config/theme";
 import Decimal from 'decimal.js';
-import moment from 'moment-timezone';
 
 
 
@@ -82,18 +81,41 @@ function App() {
     //
     // }
 
-    const handleRealTimeTick2 = (websocketData: any) => {
-        const websocketDate: Date = new Date(websocketData.t);
-        console.log({ websocketDate });
-        // setLastTime(websocketDate);
+    const handleRealTimeTick2 = (dataFeed: any) => {
+        const websocketDate: Date = new Date(dataFeed.t);
 
-        // const lastCandle = data[data.length - 1];
-        // const lastCandleDate: Date | undefined = stateRef?.current;
-        // const lastCandleDate = new Date(lastCandle.date);
-        const lastCandleDate = stateRef?.current
+        const lastCandlestick  = data[data.length - 1];
+        // const lastCandleDate = new Date(lastCandlestick.date);
+
+        // const lastCandleDate = stateRef?.current
+
+        const newCandlestick = {
+            open: lastCandlestick.open,
+            high: Math.max(lastCandlestick.high, dataFeed.p),
+            low: Math.min(lastCandlestick.low, dataFeed.p),
+            close: lastCandlestick.close,
+            volume: dataFeed.v,
+            timestamp: dataFeed.t,
+        };
 
 
+        let timestampDiff;
         if (timeFrame === TimeFrame.M1) {
+            timestampDiff = 60000; // 1 minute
+        } else if (timeFrame === TimeFrame.D) {
+            timestampDiff = 86400000; // 1 day
+        }
+
+        // @ts-ignore
+        if (newCandlestick.timestamp - lastCandlestick.timestamp >= timestampDiff) {
+            // New time period, create a new candlestick
+            setData([...data, newCandlestick]);
+        } else {
+            // Update the last candlestick
+            setData([...data.slice(0, -1), newCandlestick]);
+        }
+
+     /*   if (timeFrame === TimeFrame.M1) {
             if (lastCandleDate && isWithinOneMinute(websocketDate, lastCandleDate)) {
                 console.log("update")
                 setData((prevData: any[]) => {
@@ -101,24 +123,18 @@ function App() {
                     if (updatedData.length > 0) {
                         const lastCandle = updatedData[updatedData.length - 1];
                         if (lastCandle) {
-                            // if (websocketData.p > lastCandle.high){
-                            //     websocketData.p = lastCandle.high
-                            // }
-                            // if (websocketData.p < lastCandle.high) {
-                            //     websocketData.p = lastCandle.high
-                            // }
                             if (lastCandle.close > lastCandle.open) {
-                                lastCandle.close = websocketData.p;
+                                lastCandle.close = dataFeed.p;
                             } else {
-                                lastCandle.open = websocketData.p;
+                                lastCandle.open = dataFeed.p;
                             }
 
-                            if (websocketData.p > lastCandle.high) {
-                                lastCandle.high = websocketData.p;
+                            if (dataFeed.p > lastCandle.high) {
+                                lastCandle.high = dataFeed.p;
                             }
 
-                            if (websocketData.p < lastCandle.low) {
-                                lastCandle.low = websocketData.p;
+                            if (dataFeed.p < lastCandle.low) {
+                                lastCandle.low = dataFeed.p;
                             }
                             console.log({updatedData})
                         }
@@ -129,31 +145,12 @@ function App() {
             } else {
                 console.log("new")
                 fetchLastData()
-
-            //     setData((prevData: any[]) => {
-            //         const newCandle = {
-            //             date: websocketDate,
-            //             open: parseFloat(websocketData.o),
-            //             high: parseFloat(websocketData.h),
-            //             low: parseFloat(websocketData.l),
-            //             close: parseFloat(websocketData.c),
-            //             volume: parseFloat(websocketData.v),
-            //             split: "",
-            //             dividend: "",
-            //             absoluteChange: "",
-            //             percentChange: ""
-            //         };
-            //         const updatedData = prevData.concat(newCandle);
-            //         updatedData.sort((a, b) => a.date.getTime() - b.date.getTime());
-            //         setLastTime(new Date());
-            //         return updatedData;
-            //     });
             }
         }
-
-        if (timeFrame === TimeFrame.D) {
+*/
+     /*   if (timeFrame === TimeFrame.D) {
             // console.log("TimeFrame.D")
-        }
+        }*/
     }
 
 
@@ -418,9 +415,9 @@ function App() {
             let singleResult = result[0];
             // singleResult = [singleResult, newCandle]
             console.log('fetch result', singleResult)
-            setLastTime(singleResult.date)
             // const candleData = result ? [result[0], newCandle] : newCandle;
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
+            setLastTime(singleResult.date)
             setData((data: any[]) => [...data.slice(0, data.length - 1), singleResult])
         } catch (error) {
             console.error('Error fetching candle data:', error);
