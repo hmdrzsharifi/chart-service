@@ -84,7 +84,9 @@ function App() {
     const handleRealTimeTick2 = (dataFeed: any) => {
         const websocketDate: Date = new Date(dataFeed.t);
 
-        const lastCandlestick  = data[data.length - 1];
+        const lastCandlestick  = stateDataRef.current[stateDataRef.current.length - 1];
+        // console.log({lastCandlestick})
+
         // const lastCandleDate = new Date(lastCandlestick.date);
 
         // const lastCandleDate = stateRef?.current
@@ -95,7 +97,7 @@ function App() {
             low: Math.min(lastCandlestick.low, dataFeed.p),
             close: lastCandlestick.close,
             volume: dataFeed.v,
-            timestamp: dataFeed.t,
+            date: new Date(dataFeed.t)
         };
 
 
@@ -107,12 +109,12 @@ function App() {
         }
 
         // @ts-ignore
-        if (newCandlestick.timestamp - lastCandlestick.timestamp >= timestampDiff) {
+        if (newCandlestick.date.getTime() - lastCandlestick.date.getTime() >= timestampDiff) {
             // New time period, create a new candlestick
-            setData([...data, newCandlestick]);
+            setData([...stateDataRef.current , newCandlestick]);
         } else {
             // Update the last candlestick
-            setData([...data.slice(0, -1), newCandlestick]);
+            setData([...stateDataRef.current.slice(0, -1), newCandlestick]);
         }
 
      /*   if (timeFrame === TimeFrame.M1) {
@@ -154,60 +156,12 @@ function App() {
     }
 
 
-    const handleRealTimeTick = (websocketData: any) => {
-        let websocketCandleDate = new Date(websocketData.t);
-        // console.log({websocketCandleDate})
-        let websocketCandle = {
-            "date": websocketCandleDate,
-            "open": parseFloat(websocketData.o),
-            "high": parseFloat(websocketData.h),
-            "low": parseFloat(websocketData.l),
-            "close": parseFloat(websocketData.c),
-            "volume": parseFloat(websocketData.v),
-            "split": "",
-            "dividend": "",
-            "absoluteChange": "",
-            "percentChange": ""
-        };
-
-        const lastCandleDate = stateRef?.current?.slice(-1)[0]?.date
-
-        if (timeFrame == TimeFrame.M1) {
-            if (isWithinOneMinute(websocketCandleDate, lastCandleDate)) {
-                console.log("update")
-                setData((data: any[]) => [...data.slice(0, data.length - 1), websocketCandle])
-            } else {
-                console.log("new")
-                setLastTime(new Date())
-                // fetchLastData(websocketCandle)
-            }
-        }
-
-    }
-
     const stateRef: React.MutableRefObject<any> = useRef();
     stateRef.current = lastTime;
 
-    function isWithinOneMinute(websocketCandleDate: any, lastCandleDate: any) {
-        // let lastTimeMinute = stateRef?.lastCandleDate.getMinutes().toString();
-        console.log({lastCandleDate})
-        let lastTimeMinute = lastCandleDate.getMinutes().toString();
-        let websocketCandleDateMinute = websocketCandleDate.getMinutes().toString();
-        if (websocketCandleDateMinute.length === 1) websocketCandleDateMinute = '0' + websocketCandleDateMinute // if less than 10 ( 2 => 02)
+    const stateDataRef: React.MutableRefObject<any> = useRef();
+    stateDataRef.current = data;
 
-        // generate current second for websocket data (ex: 12 or 05)
-        let second = websocketCandleDate.getSeconds().toString();
-        if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)\
-
-        // console.log(`lastTimeMinute: ${lastTimeMinute} - websocketCandleDateMinute: ${websocketCandleDateMinute}`)
-        // console.log("lastTimeMinute == +websocketCandleDateMinute", lastTimeMinute == +websocketCandleDateMinute)
-
-        if (lastTimeMinute == +websocketCandleDateMinute) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     function convert_to_datetime(dateStr:string) : Date{
         return new Date(dateStr);
@@ -492,7 +446,7 @@ function App() {
                         <div className="chart" style={{width: '100%',
                             background: getDesignTokens(themeMode).palette.chartBackground
                         }}>
-                            <StockChart data={data} setData={setData} theme={theme}
+                            <StockChart data={stateDataRef.current} setData={setData} theme={theme}
                                         height={window.innerHeight - 100}
                                         ratio={3}
                                         width={window.innerWidth - 45}/>
