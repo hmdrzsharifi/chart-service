@@ -85,31 +85,21 @@ function App() {
         const websocketDate: Date = new Date(dataFeed.t);
 
         const lastCandlestick  = stateDataRef.current[stateDataRef.current.length - 1];
-        // console.log({lastCandlestick})
-
         // const lastCandleDate = new Date(lastCandlestick.date);
-
         // const lastCandleDate = stateRef?.current
 
         const newCandlestick = {
             open: lastCandlestick.open,
             high: Math.max(lastCandlestick.high, dataFeed.p),
             low: Math.min(lastCandlestick.low, dataFeed.p),
-            close: lastCandlestick.close,
+            close: dataFeed.p,
             volume: dataFeed.v,
             date: new Date(dataFeed.t)
         };
 
 
-        let timestampDiff;
-        if (timeFrame === TimeFrame.M1) {
-            timestampDiff = 60000; // 1 minute
-        } else if (timeFrame === TimeFrame.D) {
-            timestampDiff = 86400000; // 1 day
-        }
-
         // @ts-ignore
-        if (newCandlestick.date.getTime() - lastCandlestick.date.getTime() >= timestampDiff) {
+        if (!isWithinOneMinute(newCandlestick.date, lastCandlestick.date)) {
             // New time period, create a new candlestick
             setData([...stateDataRef.current , newCandlestick]);
         } else {
@@ -162,6 +152,26 @@ function App() {
     const stateDataRef: React.MutableRefObject<any> = useRef();
     stateDataRef.current = data;
 
+    function isWithinOneMinute(websocketCandleDate: any, lastCandleDate: any) {
+        // let lastTimeMinute = stateRef?.lastCandleDate.getMinutes().toString();
+        console.log({lastCandleDate})
+        let lastTimeMinute = lastCandleDate.getMinutes().toString();
+        let websocketCandleDateMinute = websocketCandleDate.getMinutes().toString();
+        if (websocketCandleDateMinute.length === 1) websocketCandleDateMinute = '0' + websocketCandleDateMinute // if less than 10 ( 2 => 02)
+
+        // generate current second for websocket data (ex: 12 or 05)
+        let second = websocketCandleDate.getSeconds().toString();
+        if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)\
+
+        // console.log(`lastTimeMinute: ${lastTimeMinute} - websocketCandleDateMinute: ${websocketCandleDateMinute}`)
+        // console.log("lastTimeMinute == +websocketCandleDateMinute", lastTimeMinute == +websocketCandleDateMinute)
+
+        if (lastTimeMinute == +websocketCandleDateMinute) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     function convert_to_datetime(dateStr:string) : Date{
         return new Date(dateStr);
