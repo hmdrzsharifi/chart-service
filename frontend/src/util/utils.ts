@@ -150,3 +150,24 @@ export const changeIndicatorsColor =
     })
     setRetracements(tempRetracements)
 }
+
+function isWithinOneMinute(websocketCandleDate: any, lastCandleDate: any) {
+    let lastTimeMinute = lastCandleDate.getMinutes().toString();
+    let websocketCandleDateMinute = websocketCandleDate.getMinutes().toString();
+    if (websocketCandleDateMinute.length === 1) websocketCandleDateMinute = '0' + websocketCandleDateMinute // if less than 10 ( 2 => 02)
+
+    // generate current second for websocket data (ex: 12 or 05)
+    let second = websocketCandleDate.getSeconds().toString();
+    if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)\
+
+    if (lastTimeMinute == +websocketCandleDateMinute) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function convert_to_datetime(dateStr: string): Date {
+    return new Date(dateStr);
+}
+
