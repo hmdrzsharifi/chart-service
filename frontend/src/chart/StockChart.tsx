@@ -368,6 +368,10 @@ export const StockChart = (props: StockChartProps) => {
             const xScaleProvider = discontinuousTimeScaleProviderBuilder().withIndex(index);
             const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
             setData(linearData)
+            const max = xAccessor(data[data.length - 1]);
+            const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
+            setXExtents([min, max])
+
 
             // setXScale(xScale)
             // setXAccessor(xAccessor)
@@ -388,9 +392,7 @@ export const StockChart = (props: StockChartProps) => {
                 // Force update to re-render the chart with the new domain
                 // this.forceUpdate();
 
-            // const max = xAccessor(data[data.length - 1]);
-            // const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
-            // setXExtents([min, max + 10])
+
             // setLoadingMoreData(false);
 
             // Update the state with the combined data
