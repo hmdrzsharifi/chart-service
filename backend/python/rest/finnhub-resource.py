@@ -18,13 +18,17 @@ def fetch_candle_data():
     to_time = request_data.get('to')
 
     if time_frame == '1M': time_frame = '1'
+    if time_frame == '5M': time_frame = '5'
+    if time_frame == '15M': time_frame = '15'
+    if time_frame == '30M': time_frame = '30'
+    if time_frame == '1H': time_frame = '60'
 
     finnhub_client = finnhub.Client(api_key=SECRET)
 
     # Stock candles
     res = finnhub_client.stock_candles(symbol, time_frame, from_time, to_time)
 
-    if res.get('s') == "ok" :
+    if res.get('s') == "ok":
         df = pd.DataFrame(res)
         # Convert to JSON
         json_data = df.to_json(orient='records')
@@ -35,5 +39,4 @@ def fetch_candle_data():
 
 if __name__ == '__main__':
     SECRET = "co60qgpr01qmuouob0cgco60qgpr01qmuouob0d0"
-    # api = APIClient("62c547eb00d445.30059582")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
