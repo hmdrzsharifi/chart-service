@@ -70,7 +70,161 @@ function App() {
             }
         });
 
+        // CEX
+        socket.on('symbolUpdate', (message:any) => {
+            // console.log(message)
+            const convertedMessage = {...message, ask: new Decimal(message.ask).toNumber()}
+            if (message.symbol === symbol) {
+                handleRealTimeCandleCex(convertedMessage)
+            }
+        });
+
     };
+
+    const handleRealTimeCandleCex = (dataFeed: any) => {
+        const lastCandlestick = stateDataRef.current[stateDataRef.current.length - 1];
+
+        let resolution
+
+        switch (timeFrame) {
+            case "1M":
+                resolution = 1
+                break;
+            case "5M":
+                resolution = 5
+                break;
+            case "15M":
+                resolution = 15
+                break;
+            case "30M":
+                resolution = 30
+                break;
+            case "1H":
+                resolution = 60
+                break;
+            case "D":
+                // 1 day in minutes === 1440
+                resolution = 1440
+                break;
+            case "W":
+                // 1 week in minutes === 10080
+                resolution = 10080
+                break;
+            case "M":
+                // 1 month (31 days) in minutes === 44640
+                //todo for month 30 and 31 days
+                resolution = 44640
+                break;
+
+            default:
+                // 1 day in minutes === 1440
+                resolution = 1440
+        }
+
+        /*if (timeFrame.includes('1M')) {
+            resolution = 1
+        }
+        if (timeFrame.includes('D')) {
+            // 1 day in minutes === 1440
+            resolution = 1440
+        } else if (timeFrame.includes('W')) {
+            // 1 week in minutes === 10080
+            resolution = 10080
+        }*/
+
+        // @ts-ignore
+        let coeff = resolution * 60
+        // Round the time to the nearest minute, Change as per your resolution
+        // @ts-ignore
+        let rounded = Math.floor((dataFeed.timestamp / 1000) / coeff) * coeff
+        let lastBarSec = lastCandlestick.date.getTime() / 1000
+        let _lastBar
+
+        if (rounded > lastBarSec) {
+            // create a new candle, use last close as open
+            _lastBar = {
+                date: new Date (rounded * 1000),
+                open: dataFeed.ask,
+                high: dataFeed.ask,
+                low: dataFeed.ask,
+                close: dataFeed.ask,
+                volume: dataFeed.volume
+            }
+            setData([...stateDataRef.current, _lastBar]);
+
+        } else {
+            // update last candle! candle still open just modify it
+            lastCandlestick.high = dataFeed.ask > lastCandlestick.high ? dataFeed.ask : lastCandlestick.high;
+            lastCandlestick.low = dataFeed.ask < lastCandlestick.low ? dataFeed.ask : lastCandlestick.low;
+            lastCandlestick.volume += dataFeed.volume
+            lastCandlestick.close = dataFeed.ask
+            _lastBar = lastCandlestick
+
+            setData([...stateDataRef.current.slice(0, -1), _lastBar]);
+
+        }
+
+
+        /* const websocketDate: Date = new Date(dataFeed.t);
+
+         const newCandlestick = {
+             open: lastCandlestick.open,
+             high: Math.max(lastCandlestick.high, dataFeed.p),
+             low: Math.min(lastCandlestick.low, dataFeed.p),
+             close: dataFeed.p,
+             volume: dataFeed.v,
+             date: new Date(dataFeed.t)
+         };
+
+         // @ts-ignore
+         if (!isWithinOneMinute(newCandlestick.date, lastCandlestick.date)) {
+             // New time period, create a new candlestick
+             const newCandlestick = {
+                 open: dataFeed.p,
+                 high: dataFeed.p,
+                 low: dataFeed.p,
+                 close: dataFeed.p,
+                 volume: dataFeed.v,
+                 date: websocketDate,
+             };
+             setData([...stateDataRef.current, newCandlestick]);
+         } else {
+             // Update the last candlestick
+             setData([...stateDataRef.current.slice(0, -1), newCandlestick]);
+         }
+ */
+        /*   if (timeFrame === TimeFrame.M1) {
+               if (lastCandleDate && isWithinOneMinute(websocketDate, lastCandleDate)) {
+                   setData((prevData: any[]) => {
+                       const updatedData = [...prevData];
+                       if (updatedData.length > 0) {
+                           const lastCandle = updatedData[updatedData.length - 1];
+                           if (lastCandle) {
+                               if (lastCandle.close > lastCandle.open) {
+                                   lastCandle.close = dataFeed.p;
+                               } else {
+                                   lastCandle.open = dataFeed.p;
+                               }
+
+                               if (dataFeed.p > lastCandle.high) {
+                                   lastCandle.high = dataFeed.p;
+                               }
+
+                               if (dataFeed.p < lastCandle.low) {
+                                   lastCandle.low = dataFeed.p;
+                               }
+                           }
+                       }
+                       return updatedData;
+                   });
+               } else {
+                   fetchLastData()
+               }
+           }
+   */
+        /*   if (timeFrame === TimeFrame.D) {
+           }*/
+    }
 
     const handleRealTimeCandle = (dataFeed: any) => {
         const lastCandlestick = stateDataRef.current[stateDataRef.current.length - 1];
@@ -235,7 +389,8 @@ function App() {
                     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
             }
 
-            const candleData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
+            const candleData = await fetchCandleData("BINANCE:BTCUSDT", timeFrame, from, Math.floor(new Date().getTime() / 1000));
+            // const candleData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
             // console.log(candleData)
 

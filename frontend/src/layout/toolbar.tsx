@@ -249,15 +249,16 @@ const Toolbar = (props: any) => {
 
                 <Select
                     labelId="demo-select-small-label"
-                    defaultValue='AAPL'
+                    defaultValue='BTC_USD'
                     classes={{root: 'toolbar-select'}}
                     IconComponent={ExpandMore}
                     // @ts-ignore
                     onChange={(event) => setSymbol(event?.target?.value)}
                 >
-                    <MenuItem value='AAPL'>Apple</MenuItem>
-                    <MenuItem value='BINANCE:BTCUSDT'>Bitcoin</MenuItem>
-                    <MenuItem value='AMZN'>Amazon</MenuItem>
+                    {/*<MenuItem value='AAPL'>Apple</MenuItem>*/}
+                    {/*<MenuItem value='BINANCE:BTCUSDT'>Bitcoin</MenuItem>*/}
+                    <MenuItem value='BTC_USD'>Bitcoin</MenuItem>
+                    {/*<MenuItem value='AMZN'>Amazon</MenuItem>*/}
                 </Select>
 
                 <Select
