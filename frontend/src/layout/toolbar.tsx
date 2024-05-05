@@ -11,8 +11,7 @@ import {
     Tab,
     List,
     ListItem,
-    ListItemText,
-    Autocomplete, Grid, Avatar, Menu, Checkbox
+    Autocomplete, Grid, Avatar, Menu, Checkbox, ToggleButton
 } from "@mui/material";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -67,9 +66,6 @@ const Toolbar = (props: any) => {
         setOpen(true)
     };
 
-    const handleInfoModalOpen = () =>{
-        setOpenInfoModal(true)
-    };
     const handleClose = () => setOpen(false);
     const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue)
@@ -101,57 +97,14 @@ const Toolbar = (props: any) => {
                         <EditNoteIcon sx={{ width: 30, height: 30 }} />
                     </IconButton>
                 </Tooltip>
-                {/*sx={{ bgcolor: 'grey', '&:hover': { bgcolor: 'grey' } }}*/}
-                {/*<Button variant="outlined" onClick={handleOpen} color={'primary'}>*/}
-                {/*    Open Popup*/}
-                {/*</Button>*/}
                 <Tooltip title="Info" placement="bottom" arrow>
-                <IconButton onClick={handleInfoModalOpen}>
-                    <Message />
-                </IconButton>
+                  <ToggleButton value="left" size="small" aria-label="Small sizes" selected={disableHoverTooltip}
+                                onChange={() => {
+                                    setDisableHoverTooltip(!disableHoverTooltip);
+                                }}>
+                      <Message />
+                  </ToggleButton>
                 </Tooltip>
-                <Modal
-                    open={openInfoModal}
-                    onClose={() => setOpenInfoModal(false)}
-                    sx={{maxHeight: '95%'}}
-                    aria-labelledby="modal-modal-title"
-                    aria-describedby="modal-modal-description"
-                >
-                    <Box
-                        sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: 400,
-                            bgcolor: 'background.paper',
-                            boxShadow: 24,
-                            p: 4,
-                            borderRadius: 8, // شکل گرد بخش‌های گوشه ای با رادیوس بزرگتر
-                            border: '2px solid #ccc', // حاشیه دور کادر با ضخامت بیشتر
-                            '& .MuiButton-root': {
-                                marginBottom: '10px', // فاصله بین دکمه‌ها
-                                width: '100%', // دکمه‌ها را به پهنای 100٪ از کادر Modal کنید
-                            },
-                            '& .MuiTypography-root': {
-                                textAlign: 'center', // متن عنوان به وسط
-                                marginBottom: '20px', // فاصله بین عنوان و دکمه‌ها
-                            },
-                        }}
-                    >
-                        <Typography id="modal-modal-title" variant="h6" component="h2">
-                            Info
-                        </Typography>
-                        <Button color='success' title='Enable Info' onClick={() => {
-                            setDisableHoverTooltip(false)
-                            setOpenInfoModal(false)
-                        }}>Enable Info</Button>
-                        <Button color='error' title='Disable Info' onClick={() => {
-                            setDisableHoverTooltip(true)
-                            setOpenInfoModal(false)
-                        }}>Disable Info</Button>
-                    </Box>
-                </Modal>
                 <Tooltip title="Search Symbol" placement="bottom" arrow>
                 <IconButton onClick={handleOpen}>
                     <Search />
