@@ -72,6 +72,9 @@ export async function fetchSymbolData(symbol:string) {
 
 }
 
+export async function fetchCexSymbols(){
+    // http://185.148.147.219:3333/api/v1/services/all/symbols
+}
 
 function mapObject(originalObject:any) {
     return {
