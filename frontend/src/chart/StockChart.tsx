@@ -77,6 +77,7 @@ export const StockChart = (props: StockChartProps) => {
     const {timeFrame, setTimeFrame} = useStore();
     const {seriesType} = useStore();
     const {symbol, setSymbol} = useStore();
+    const {disableCrossHair} = useStore();
     const {themeMode} = useDesignStore();
     const {enableTrendLine, setEnableTrendLine} = useDesignStore();
     const {enableFib, setEnableFib} = useDesignStore();
@@ -657,6 +658,7 @@ export const StockChart = (props: StockChartProps) => {
             zoomAnchor={lastVisibleItemBasedZoomAnchor}
             onLoadAfter={handleDataLoadAfter}
             onLoadBefore={handleDataLoadBefore}
+            useCrossHairStyleCursor={!disableCrossHair}
         >
             /*##### Main Chart #####*/
             <Chart
@@ -1096,7 +1098,9 @@ export const StockChart = (props: StockChartProps) => {
             )}
 */}
 
+            {!disableCrossHair && (
             <CrossHairCursor/>
+            )}
             {/*
             <DrawingObjectSelector
                 enabled={!enableTrendLine}

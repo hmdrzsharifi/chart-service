@@ -29,11 +29,12 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
-import {Close, Info, Message, Search, SmartButton} from "@mui/icons-material";
+import {Add, Close, DomainAdd, Info, Message, PlusOne, Search, SmartButton, TextIncrease} from "@mui/icons-material";
 import {SymbolList, SymbolType} from "../type/SymbolType";
 import {fetchCandleData, fetchCexSymbols, fetchSymbolData} from "../util/utils";
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {CrossHairCursor} from "../../../base-project/react-financial-charts-main/packages/coordinates/src";
 
 const Toolbar = (props: any) => {
 
@@ -54,6 +55,7 @@ const Toolbar = (props: any) => {
     const {disableElderRay,setDisableElderRay} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
+    const {disableCrossHair, setDisableCrossHair} = useStore();
     const {disableMACD, setDisableMACD} = useStore();
 
 
@@ -99,8 +101,16 @@ const Toolbar = (props: any) => {
                         <EditNoteIcon sx={{ width: 30, height: 30 }} />
                     </IconButton>
                 </Tooltip>
+                <Tooltip title="Crosshair" placement="bottom" arrow>
+                    <ToggleButton value="left" size="small" aria-label="Small sizes" selected={disableCrossHair} className="small-toggle-button"
+                                  onChange={() => {
+                                      setDisableCrossHair(!disableCrossHair);
+                                  }}>
+                        <Add />
+                    </ToggleButton>
+                </Tooltip>
                 <Tooltip title="Info" placement="bottom" arrow>
-                  <ToggleButton value="left" size="small" aria-label="Small sizes" selected={disableHoverTooltip}
+                  <ToggleButton value="left" size="small" aria-label="Small sizes" selected={disableHoverTooltip} className="small-toggle-button"
                                 onChange={() => {
                                     setDisableHoverTooltip(!disableHoverTooltip);
                                 }}>
@@ -113,7 +123,7 @@ const Toolbar = (props: any) => {
                 </IconButton>
                 </Tooltip>
                 <span onClick={handleOpen} style={{cursor:'pointer' , fontWeight:'bolder'}}>
-                {selectedSymbol?.displaySymbol}
+                {selectedSymbol?.symbol}
                 </span>
                 <Modal
                     open={open}
