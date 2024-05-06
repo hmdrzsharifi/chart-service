@@ -1,6 +1,7 @@
 import {DATA_ADDRESS} from "../config/constants";
 import {useEffect, useRef} from "react";
 import {TrendLineType} from "../type/TrendLineType";
+import {SymbolList} from "../type/SymbolType";
 
 const url = DATA_ADDRESS;
 export async function fetchCandleData(symbol:any, tf:any, from:any, to:any) {
@@ -74,6 +75,33 @@ export async function fetchSymbolData(symbol:string) {
 
 export async function fetchCexSymbols(){
     // http://185.148.147.219:3333/api/v1/services/all/symbols
+    const resultData:SymbolList[] = [];
+    try {
+        const response = await fetch('http://185.148.147.219:3333/api/v1/services/all/symbols', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+        }
+            // body: JSON.stringify(requestBody),
+        })
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const json = await response.json();
+        console.log({json})
+
+        // const jsonData = JSON.parse(json);
+        json.forEach((entry:any) => {
+            resultData.push(<SymbolList>mapSymbolResult(entry));
+        });
+        console.log({resultData})
+        return resultData;
+    } catch (error) {
+        console.error('There was an error fetching the candle data:', error);
+        throw error; // Re-throw the error for the calling code to handle
+    }
+
 }
 
 function mapObject(originalObject:any) {
@@ -103,6 +131,13 @@ function mapObjectFinnhub(originalObject:any) {
         dividend: "",
         absoluteChange: "",
         percentChange:""
+    };
+}
+
+function mapSymbolResult(originalObject:any) {
+    return {
+        categoryName:originalObject.categoryName,
+        symbol:originalObject.symbol
     };
 }
 

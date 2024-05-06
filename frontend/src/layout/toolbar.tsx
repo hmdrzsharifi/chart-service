@@ -30,8 +30,8 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
 import {Close, Info, Message, Search, SmartButton} from "@mui/icons-material";
-import {SymbolType} from "../type/SymbolType";
-import {fetchCandleData, fetchSymbolData} from "../util/utils";
+import {SymbolList, SymbolType} from "../type/SymbolType";
+import {fetchCandleData, fetchCexSymbols, fetchSymbolData} from "../util/utils";
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
@@ -46,7 +46,7 @@ const Toolbar = (props: any) => {
     const [tabValue, setTabValue] = useState<number>(0);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [options, setOptions] = useState<number[]>([]);
-    const [symbolList, setSymbolList] = useState<SymbolType[]>([]);
+    const [symbolList, setSymbolList] = useState<SymbolList[]>([]);
     const {selectedSymbol , setSelectedSymbol} = useStore();
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
@@ -62,8 +62,10 @@ const Toolbar = (props: any) => {
         setAnchorEl(event.currentTarget);
     };
 
-    const handleOpen = () =>{
+    const handleOpen = async () => {
         setOpen(true)
+        const symboleData = await fetchCexSymbols()
+        setSymbolList(symboleData)
     };
 
     const handleClose = () => setOpen(false);
@@ -135,26 +137,14 @@ const Toolbar = (props: any) => {
                         />
                         <Tabs value={tabValue} onChange={handleChangeTab} sx={{ mt: 2 }}>
                             <Tab label="all" />
-                            <Tab label="stock" />
+                            <Tab label="crypto" />
                         </Tabs>
                         <Scrollbar style={{ height: 300 }}>
                         {tabValue === 0 && (
                             <List>
-                                {
-                                    [{
-                                    displaySymbol: 'Btc',
-                                    description: 'main crypto coin',
-                                    symbol: 'BIT',
-                                }, {
-                                    displaySymbol: 'Theter',
-                                    description: 'main stable coin',
-                                    symbol: 'TTR'
-                                }]
-                                //     symbolList
-                                        .filter(item => item.displaySymbol.toString().toLowerCase().includes(searchTerm)).map((item) => (
+                                {symbolList.filter((item : SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
                                     <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.displaySymbol}</span>
-                                        <span>{item.description}</span>
+                                        <span>{item.categoryName}</span>
                                         <span>{item.symbol}</span>
                                     </ListItem>
                                 ))}
@@ -162,26 +152,12 @@ const Toolbar = (props: any) => {
                         )}
                         {tabValue === 1 && (
                             <List sx={{ mt: 2 }}>
-                                {
-                                    [{
-                                        displaySymbol: 'Btc',
-                                        description: 'main crypto coin',
-                                        symbol: 'BIT',
-                                        type: ''
-                                    }, {
-                                        displaySymbol: 'Theter',
-                                        description: 'main stable coin',
-                                        symbol: 'TTR',
-                                        type: ''
-                                    }]
-                                        //     symbolList
-                                        .filter(item => item.displaySymbol.toString().toLowerCase().includes(searchTerm)).map((item) => (
-                                        <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <span>{item.displaySymbol}</span>
-                                            <span>{item.description}</span>
-                                            <span>{item.symbol}</span>
-                                        </ListItem>
-                                    ))}
+                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('CRT') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
+                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>{item.categoryName}</span>
+                                        <span>{item.symbol}</span>
+                                    </ListItem>
+                                ))}
                             </List>
                         )}
                         </Scrollbar>
