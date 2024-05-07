@@ -1,21 +1,25 @@
-import React , {useState} from 'react';
+import React, {useState} from 'react';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import useStore from "../util/store";
 import {
-    Tooltip,
+    Autocomplete,
+    CircularProgress,
     IconButton,
-    Switch,
-    TextField,
-    Tabs,
-    Tab,
     List,
     ListItem,
-    Autocomplete, Grid, Avatar, Menu, Checkbox, ToggleButton
+    Menu,
+    Switch,
+    Tab,
+    Tabs,
+    TextField,
+    ToggleButton,
+    Tooltip
 } from "@mui/material";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import ExpandMore from "@mui/icons-material/ExpandMore";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CandleIcon from "../icons/CandleIcon";
 import BarIcon from "../icons/BarIcon";
 import LineIcon from "../icons/LineIcon";
@@ -29,11 +33,10 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
-import {Add, Close, DomainAdd, Info, Message, PlusOne, Search, SmartButton, TextIncrease} from "@mui/icons-material";
-import {SymbolList, SymbolType} from "../type/SymbolType";
-import {fetchCandleData, fetchCexSymbols, fetchSymbolData} from "../util/utils";
-import { CircularProgress } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {Add, CameraEnhance, Close, Message, Search} from "@mui/icons-material";
+import {SymbolList} from "../type/SymbolType";
+import {fetchCexSymbols} from "../util/utils";
+import html2canvas from 'html2canvas';
 
 const Toolbar = (props: any) => {
 
@@ -47,11 +50,11 @@ const Toolbar = (props: any) => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [options, setOptions] = useState<number[]>([]);
     const [symbolList, setSymbolList] = useState<SymbolList[]>([]);
-    const {selectedSymbol , setSelectedSymbol} = useStore();
+    const {selectedSymbol, setSelectedSymbol} = useStore();
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
-    const {disableMovingAverage,setDisableMovingAverage} = useStore();
-    const {disableElderRay,setDisableElderRay} = useStore();
+    const {disableMovingAverage, setDisableMovingAverage} = useStore();
+    const {disableElderRay, setDisableElderRay} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
@@ -96,174 +99,242 @@ const Toolbar = (props: any) => {
         handleClose()
     }
 
+    const captureScreenshot = () => {
+        const element = document.getElementById("chartId");
+        const elementToolbar = document.getElementById("toolbarId");
+        const yOffset = elementToolbar ? elementToolbar.offsetHeight - 40 : 0;
+        const width = document.body.scrollWidth;
+        const height = element ? element.offsetHeight - yOffset : 0;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        if(element) {
+            html2canvas(element, {
+                canvas: canvas,
+                y: yOffset,
+                height: height
+            }).then(canvas => {
+                const image = canvas.toDataURL('image/png');
+                const downloadLink = document.createElement('a');
+                downloadLink.href = image;
+                downloadLink.download = 'screenshot.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            });
+        }
+    };
 
     return (
-        <div className="toolbar" style={props.style}>
+        <div className="toolbar" style={props.style} id={"toolbarId"}>
 
             <div className="toolbar-left-box">
                 <Tooltip title="Draw line" placement="bottom" arrow>
                     <IconButton
-                        sx={{ padding: '5px' }}
+                        sx={{padding: '5px'}}
                         onClick={() => setOpenSideBar(!openSideBar)}
                     >
-                        <EditNoteIcon sx={{ width: 30, height: 30 }} />
+                        <EditNoteIcon sx={{width: 30, height: 30}}/>
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Screenshot" placement="bottom" arrow>
+                    <IconButton onClick={captureScreenshot}>
+                        <CameraEnhance/>
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Crosshair" placement="bottom" arrow>
-                    <ToggleButton value="left" size="small" aria-label="Small sizes" selected={disableCrossHair} className="small-toggle-button"
+                    <ToggleButton value="left" size="small" aria-label="Small sizes" selected={disableCrossHair}
+                                  className="small-toggle-button"
                                   onChange={() => {
                                       setDisableCrossHair(!disableCrossHair);
                                   }}>
-                        <Add />
+                        <Add/>
                     </ToggleButton>
                 </Tooltip>
                 <Tooltip title="Info" placement="bottom" arrow>
-                  <ToggleButton value="left" size="small" aria-label="Small sizes" selected={disableHoverTooltip} className="small-toggle-button"
-                                onChange={() => {
-                                    setDisableHoverTooltip(!disableHoverTooltip);
-                                }}>
-                      <Message />
-                  </ToggleButton>
+                    <ToggleButton value="left" size="small" aria-label="Small sizes" selected={disableHoverTooltip}
+                                  className="small-toggle-button"
+                                  onChange={() => {
+                                      setDisableHoverTooltip(!disableHoverTooltip);
+                                  }}>
+                        <Message/>
+                    </ToggleButton>
                 </Tooltip>
                 <Tooltip title="Search Symbol" placement="bottom" arrow>
-                <IconButton onClick={handleOpen}>
-                    <Search />
-                </IconButton>
+                    <IconButton onClick={handleOpen}>
+                        <Search/>
+                    </IconButton>
                 </Tooltip>
-                <span onClick={handleOpen} style={{cursor:'pointer' , fontWeight:'bolder'}}>
+                <span onClick={handleOpen} style={{cursor: 'pointer', fontWeight: 'bolder'}}>
                 {selectedSymbol?.symbol}
                 </span>
                 <Modal
                     open={open}
                     onClose={handleClose}
-                    sx={{ maxHeight: '95%' }}
+                    sx={{maxHeight: '95%'}}
                     aria-labelledby="modal-modal-title"
                     aria-describedby="modal-modal-description"
                 >
                     {loading ? (
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            minHeight: '100vh'
+                        }}>
                             <CircularProgress/>
                             <p>Loading...</p>
                         </div>
                     ) : (
-                    <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
-                        <Typography id="modal-modal-title" variant="h6" component="h2">
-                            Select Symbol
-                        </Typography>
-                        <IconButton aria-label='close' onClick={handleClose} style={{position:'absolute' , top:'10px' , right:'10px'}}>
-                            <Close />
-                        </IconButton>
-                        <Autocomplete
-                            freeSolo
-                            options={options}
-                            renderInput={(params) => <TextField {...params} label="Search" variant="outlined" />}
-                            onInputChange={(event, value) => handleSearch(event , value)}
-                        />
-                        <Tabs value={tabValue} onChange={handleChangeTab} sx={{ mt: 2 }} variant="scrollable" scrollButtons="auto" >
-                            <Tab label="ALL" />
-                            <Tab label="CRYPTO" />
-                            <Tab label="FX" />
-                            <Tab label="ETF" />
-                            <Tab label="CMD" />
-                            <Tab label="CRT" />
-                            <Tab label="IND" />
-                            <Tab label="STC" />
-                            <Tab label="FUND" />
-                        </Tabs>
-                        <Scrollbar style={{ height: 300 }}>
-                        {tabValue === 0 && (
-                            <List>
-                                {symbolList.filter((item : SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
-                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.categoryName}</span>
-                                        <span>{item.symbol}</span>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                        {tabValue === 1 && (
-                            <List sx={{ mt: 2 }}>
-                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('CRT') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
-                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.categoryName}</span>
-                                        <span>{item.symbol}</span>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                        {tabValue === 2 && (
-                            <List sx={{ mt: 2 }}>
-                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('FX') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
-                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.categoryName}</span>
-                                        <span>{item.symbol}</span>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                        {tabValue === 3 && (
-                            <List sx={{ mt: 2 }}>
-                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('ETF') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
-                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.categoryName}</span>
-                                        <span>{item.symbol}</span>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                        {tabValue === 4 && (
-                            <List sx={{ mt: 2 }}>
-                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('CMD') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
-                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.categoryName}</span>
-                                        <span>{item.symbol}</span>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                        {tabValue === 5 && (
-                            <List sx={{ mt: 2 }}>
-                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('CRT') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
-                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.categoryName}</span>
-                                        <span>{item.symbol}</span>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                        {tabValue === 6 && (
-                            <List sx={{ mt: 2 }}>
-                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('IND') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
-                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.categoryName}</span>
-                                        <span>{item.symbol}</span>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                        {tabValue === 7 && (
-                            <List sx={{ mt: 2 }}>
-                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('STC') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
-                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.categoryName}</span>
-                                        <span>{item.symbol}</span>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                        {tabValue === 8 && (
-                            <List sx={{ mt: 2 }}>
-                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('Fund') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
-                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{item.categoryName}</span>
-                                        <span>{item.symbol}</span>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                        </Scrollbar>
-                        <Button onClick={handleClose} sx={{ mt: 2 }}>Close</Button>
-                    </Box>
+                        <Box sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 400,
+                            bgcolor: 'background.paper',
+                            boxShadow: 24,
+                            p: 4
+                        }}>
+                            <Typography id="modal-modal-title" variant="h6" component="h2">
+                                Select Symbol
+                            </Typography>
+                            <IconButton aria-label='close' onClick={handleClose}
+                                        style={{position: 'absolute', top: '10px', right: '10px'}}>
+                                <Close/>
+                            </IconButton>
+                            <Autocomplete
+                                freeSolo
+                                options={options}
+                                renderInput={(params) => <TextField {...params} label="Search" variant="outlined"/>}
+                                onInputChange={(event, value) => handleSearch(event, value)}
+                            />
+                            <Tabs value={tabValue} onChange={handleChangeTab} sx={{mt: 2}} variant="scrollable"
+                                  scrollButtons="auto">
+                                <Tab label="ALL"/>
+                                <Tab label="CRYPTO"/>
+                                <Tab label="FX"/>
+                                <Tab label="ETF"/>
+                                <Tab label="CMD"/>
+                                <Tab label="CRT"/>
+                                <Tab label="IND"/>
+                                <Tab label="STC"/>
+                                <Tab label="FUND"/>
+                            </Tabs>
+                            <Scrollbar style={{height: 300}}>
+                                {tabValue === 0 && (
+                                    <List>
+                                        {symbolList.filter((item: SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                            <ListItem className='element' key={item.symbol}
+                                                      onClick={(e) => sendToApp(item)}
+                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                <span>{item.categoryName}</span>
+                                                <span>{item.symbol}</span>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabValue === 1 && (
+                                    <List sx={{mt: 2}}>
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('CRT') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                            <ListItem className='element' key={item.symbol}
+                                                      onClick={(e) => sendToApp(item)}
+                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                <span>{item.categoryName}</span>
+                                                <span>{item.symbol}</span>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabValue === 2 && (
+                                    <List sx={{mt: 2}}>
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('FX') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                            <ListItem className='element' key={item.symbol}
+                                                      onClick={(e) => sendToApp(item)}
+                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                <span>{item.categoryName}</span>
+                                                <span>{item.symbol}</span>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabValue === 3 && (
+                                    <List sx={{mt: 2}}>
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('ETF') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                            <ListItem className='element' key={item.symbol}
+                                                      onClick={(e) => sendToApp(item)}
+                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                <span>{item.categoryName}</span>
+                                                <span>{item.symbol}</span>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabValue === 4 && (
+                                    <List sx={{mt: 2}}>
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('CMD') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                            <ListItem className='element' key={item.symbol}
+                                                      onClick={(e) => sendToApp(item)}
+                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                <span>{item.categoryName}</span>
+                                                <span>{item.symbol}</span>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabValue === 5 && (
+                                    <List sx={{mt: 2}}>
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('CRT') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                            <ListItem className='element' key={item.symbol}
+                                                      onClick={(e) => sendToApp(item)}
+                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                <span>{item.categoryName}</span>
+                                                <span>{item.symbol}</span>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabValue === 6 && (
+                                    <List sx={{mt: 2}}>
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('IND') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                            <ListItem className='element' key={item.symbol}
+                                                      onClick={(e) => sendToApp(item)}
+                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                <span>{item.categoryName}</span>
+                                                <span>{item.symbol}</span>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabValue === 7 && (
+                                    <List sx={{mt: 2}}>
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('STC') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                            <ListItem className='element' key={item.symbol}
+                                                      onClick={(e) => sendToApp(item)}
+                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                <span>{item.categoryName}</span>
+                                                <span>{item.symbol}</span>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabValue === 8 && (
+                                    <List sx={{mt: 2}}>
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('Fund') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                            <ListItem className='element' key={item.symbol}
+                                                      onClick={(e) => sendToApp(item)}
+                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                <span>{item.categoryName}</span>
+                                                <span>{item.symbol}</span>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                )}
+                            </Scrollbar>
+                            <Button onClick={handleClose} sx={{mt: 2}}>Close</Button>
+                        </Box>
                     )}
                 </Modal>
             </div>
@@ -273,8 +344,8 @@ const Toolbar = (props: any) => {
                     setThemeMode(themeMode === 'dark' ? 'light' : 'dark')
                 }
                 }
-                        icon={<LightModeIcon />}
-                        checkedIcon={<DarkModeIcon />}
+                        icon={<LightModeIcon/>}
+                        checkedIcon={<DarkModeIcon/>}
                         classes={{root: 'change-theme-switch', checked: 'change-theme-switch-checked'}}
                 />
 
@@ -300,11 +371,15 @@ const Toolbar = (props: any) => {
                     // @ts-ignore
                     onChange={(event) => setSeriesType(event?.target?.value)}
                 >
-                    <MenuItem value={Series.CANDLE}><CandleIcon/> <span className='toolbar-chart-item'>Candle</span></MenuItem>
+                    <MenuItem value={Series.CANDLE}><CandleIcon/> <span
+                        className='toolbar-chart-item'>Candle</span></MenuItem>
                     <MenuItem value={Series.BAR}><BarIcon/> <span className='toolbar-chart-item'>Bar</span></MenuItem>
-                    <MenuItem value={Series.LINE}><LineIcon/> <span className='toolbar-chart-item'>Line</span></MenuItem>
-                    <MenuItem value={Series.AREA}><AreaIcon/> <span className='toolbar-chart-item'>Area</span></MenuItem>
-                    <MenuItem value={Series.BASE_LINE}><BaseLineIcon/> <span className='toolbar-chart-item'>Base Line</span></MenuItem>
+                    <MenuItem value={Series.LINE}><LineIcon/> <span
+                        className='toolbar-chart-item'>Line</span></MenuItem>
+                    <MenuItem value={Series.AREA}><AreaIcon/> <span
+                        className='toolbar-chart-item'>Area</span></MenuItem>
+                    <MenuItem value={Series.BASE_LINE}><BaseLineIcon/> <span
+                        className='toolbar-chart-item'>Base Line</span></MenuItem>
                 </Select>
 
                 <Select
@@ -332,25 +407,27 @@ const Toolbar = (props: any) => {
                     onClick={handleMenuToggle}
                     color="inherit"
                 >
-                    <Typography variant="caption" sx={{ mr: 1 }}  classes={{root: 'toolbar-select'}}>
+                    <Typography variant="caption" sx={{mr: 1}} classes={{root: 'toolbar-select'}}>
                         Studies
                     </Typography>
-                    <ExpandMoreIcon />
+                    <ExpandMoreIcon/>
                 </IconButton>
                 <Menu
                     anchorEl={anchorEl}
                     open={menuOpen}
                     onClose={() => setMenuOpen(false)}
                 >
-                    <MenuItem value='MOVING_AVERAGE' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setDisableMovingAverage(!disableMovingAverage)}>
+                    <MenuItem value='MOVING_AVERAGE' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setDisableMovingAverage(!disableMovingAverage)}>
                         <span>Moving Average</span>
                         <Switch checked={!disableMovingAverage}
-                        onClick={() => setDisableMovingAverage(!disableMovingAverage)}
-                        name="enableDisableMovingAverage"
-                        color="primary"
+                                onClick={() => setDisableMovingAverage(!disableMovingAverage)}
+                                name="enableDisableMovingAverage"
+                                color="primary"
                         />
                     </MenuItem>
-                    <MenuItem value='ELDERRAY' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setDisableElderRay(!disableElderRay)}>
+                    <MenuItem value='ELDERRAY' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setDisableElderRay(!disableElderRay)}>
                         <span>Elderray</span>
                         <Switch
                             checked={!disableElderRay}
@@ -358,7 +435,8 @@ const Toolbar = (props: any) => {
                             name="enableDisableElderRay"
                             color="primary"
                         /></MenuItem>
-                    <MenuItem value='MACD' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setDisableMACD(!disableMACD)}>
+                    <MenuItem value='MACD' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setDisableMACD(!disableMACD)}>
                         <span>Macd</span>
                         <Switch
                             checked={!disableMACD}
@@ -366,77 +444,87 @@ const Toolbar = (props: any) => {
                             name="enableDisableMACD"
                             color="primary"
                         /></MenuItem>
-                    <MenuItem value='BOLLINGER_BAND' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='BOLLINGER_BAND' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setMenuOpen(false)}>
                         <span>Bollinger Band</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
-                                name="enableDisableMovingAverage"
-                                color="primary"
+                            name="enableDisableMovingAverage"
+                            color="primary"
                         /></MenuItem>
-                    <MenuItem value='COMPARE' style={{display:'flex' , justifyContent:'space-between'}}  onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='COMPARE' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setMenuOpen(false)}>
                         <span>Compare</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
-                                name="enableDisableMovingAverage"
-                                color="primary"
+                            name="enableDisableMovingAverage"
+                            color="primary"
                         /></MenuItem>
-                    <MenuItem value='RSI_AND_ATR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='RSI_AND_ATR' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setMenuOpen(false)}>
                         <span>Rsi_and_Atr</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
-                                name="enableDisableMovingAverage"
-                                color="primary"
+                            name="enableDisableMovingAverage"
+                            color="primary"
                         /></MenuItem>
-                    <MenuItem value='STOCHASTIC_OSCILLATOR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='STOCHASTIC_OSCILLATOR' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setMenuOpen(false)}>
                         <span>Stochastic Oscillator</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
-                                name="enableDisableMovingAverage"
-                                color="primary"
+                            name="enableDisableMovingAverage"
+                            color="primary"
                         /></MenuItem>
-                    <MenuItem value='FORCEINDEX' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='FORCEINDEX' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setMenuOpen(false)}>
                         <span>ForceIndex</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
-                                name="enableDisableMovingAverage"
-                                color="primary"
+                            name="enableDisableMovingAverage"
+                            color="primary"
                         /></MenuItem>
-                    <MenuItem value='ELDER_IMPULSE' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='ELDER_IMPULSE' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setMenuOpen(false)}>
                         <span>Elder_Impulse</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
-                                name="enableDisableMovingAverage"
-                                color="primary"
+                            name="enableDisableMovingAverage"
+                            color="primary"
                         /></MenuItem>
-                    <MenuItem value='SAR' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='SAR' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setMenuOpen(false)}>
                         <span>SAR</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
-                                name="enableDisableMovingAverage"
-                                color="primary"
+                            name="enableDisableMovingAverage"
+                            color="primary"
                         /></MenuItem>
-                    <MenuItem value='VOLUME_PROFILE' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='VOLUME_PROFILE' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setMenuOpen(false)}>
                         <span>Volume Profile</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
-                                name="enableDisableMovingAverage"
-                                color="primary"
+                            name="enableDisableMovingAverage"
+                            color="primary"
                         /></MenuItem>
-                    <MenuItem value='VOLUME_PROFILE_BY_SESSION' style={{display:'flex' , justifyContent:'space-between'}} onClick={() => setMenuOpen(false)}>
+                    <MenuItem value='VOLUME_PROFILE_BY_SESSION'
+                              style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setMenuOpen(false)}>
                         <span>Volume profile py Session</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
-                                name="enableDisableMovingAverage"
-                                color="primary"
+                            name="enableDisableMovingAverage"
+                            color="primary"
                         /></MenuItem>
                 </Menu>
 

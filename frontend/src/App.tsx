@@ -550,7 +550,7 @@ function App() {
                             background: getDesignTokens(themeMode).palette.backgroundBar,
                             borderColor: getDesignTokens(themeMode).palette.borderBar
                         }}/>
-                        <div className="chart" style={{
+                        <div className="chart" id="chartId" style={{
                             width: '100%',
                             background: getDesignTokens(themeMode).palette.chartBackground
                         }}>
