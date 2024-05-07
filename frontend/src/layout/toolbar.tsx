@@ -32,9 +32,8 @@ import Scrollbar from 'react-scrollbars-custom';
 import {Add, Close, DomainAdd, Info, Message, PlusOne, Search, SmartButton, TextIncrease} from "@mui/icons-material";
 import {SymbolList, SymbolType} from "../type/SymbolType";
 import {fetchCandleData, fetchCexSymbols, fetchSymbolData} from "../util/utils";
-
+import { CircularProgress } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {CrossHairCursor} from "../../../base-project/react-financial-charts-main/packages/coordinates/src";
 
 const Toolbar = (props: any) => {
 
@@ -57,6 +56,7 @@ const Toolbar = (props: any) => {
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
     const {disableMACD, setDisableMACD} = useStore();
+    const [loading, setLoading] = useState(false);
 
 
     const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -66,8 +66,15 @@ const Toolbar = (props: any) => {
 
     const handleOpen = async () => {
         setOpen(true)
-        const symboleData = await fetchCexSymbols()
-        setSymbolList(symboleData)
+        setLoading(true);
+        try {
+            const symboleData = await fetchCexSymbols()
+            setSymbolList(symboleData)
+        } catch (error) {
+            console.error('Error fetching symbols:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleClose = () => setOpen(false);
@@ -132,6 +139,11 @@ const Toolbar = (props: any) => {
                     aria-labelledby="modal-modal-title"
                     aria-describedby="modal-modal-description"
                 >
+                    {loading ? (
+                        <div style={{ textAlign: 'center' }}>
+                            <CircularProgress />
+                        </div>
+                    ) : (
                     <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
                         <Typography id="modal-modal-title" variant="h6" component="h2">
                             Select Symbol
@@ -173,6 +185,7 @@ const Toolbar = (props: any) => {
                         </Scrollbar>
                         <Button onClick={handleClose} sx={{ mt: 2 }}>Close</Button>
                     </Box>
+                    )}
                 </Modal>
             </div>
             <div className="toolbar-right-box">
