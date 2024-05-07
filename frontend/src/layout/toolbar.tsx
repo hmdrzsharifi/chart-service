@@ -91,7 +91,8 @@ const Toolbar = (props: any) => {
         console.log({item})
         // const symbolData = await fetchSymbolData(item.symbol);
         // setSymbolList(candleData);
-        setSelectedSymbol(item)
+        // setSelectedSymbol(item)
+        setSymbol(item)
         handleClose()
     }
 
@@ -140,8 +141,9 @@ const Toolbar = (props: any) => {
                     aria-describedby="modal-modal-description"
                 >
                     {loading ? (
-                        <div style={{ textAlign: 'center' }}>
-                            <CircularProgress />
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                            <CircularProgress/>
+                            <p>Loading...</p>
                         </div>
                     ) : (
                     <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
@@ -157,9 +159,16 @@ const Toolbar = (props: any) => {
                             renderInput={(params) => <TextField {...params} label="Search" variant="outlined" />}
                             onInputChange={(event, value) => handleSearch(event , value)}
                         />
-                        <Tabs value={tabValue} onChange={handleChangeTab} sx={{ mt: 2 }}>
-                            <Tab label="all" />
-                            <Tab label="crypto" />
+                        <Tabs value={tabValue} onChange={handleChangeTab} sx={{ mt: 2 }} variant="scrollable" scrollButtons="auto" >
+                            <Tab label="ALL" />
+                            <Tab label="CRYPTO" />
+                            <Tab label="FX" />
+                            <Tab label="ETF" />
+                            <Tab label="CMD" />
+                            <Tab label="CRT" />
+                            <Tab label="IND" />
+                            <Tab label="STC" />
+                            <Tab label="FUND" />
                         </Tabs>
                         <Scrollbar style={{ height: 300 }}>
                         {tabValue === 0 && (
@@ -175,6 +184,76 @@ const Toolbar = (props: any) => {
                         {tabValue === 1 && (
                             <List sx={{ mt: 2 }}>
                                 {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('CRT') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
+                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>{item.categoryName}</span>
+                                        <span>{item.symbol}</span>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                        {tabValue === 2 && (
+                            <List sx={{ mt: 2 }}>
+                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('FX') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
+                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>{item.categoryName}</span>
+                                        <span>{item.symbol}</span>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                        {tabValue === 3 && (
+                            <List sx={{ mt: 2 }}>
+                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('ETF') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
+                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>{item.categoryName}</span>
+                                        <span>{item.symbol}</span>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                        {tabValue === 4 && (
+                            <List sx={{ mt: 2 }}>
+                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('CMD') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
+                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>{item.categoryName}</span>
+                                        <span>{item.symbol}</span>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                        {tabValue === 5 && (
+                            <List sx={{ mt: 2 }}>
+                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('CRT') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
+                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>{item.categoryName}</span>
+                                        <span>{item.symbol}</span>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                        {tabValue === 6 && (
+                            <List sx={{ mt: 2 }}>
+                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('IND') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
+                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>{item.categoryName}</span>
+                                        <span>{item.symbol}</span>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                        {tabValue === 7 && (
+                            <List sx={{ mt: 2 }}>
+                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('STC') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
+                                    <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>{item.categoryName}</span>
+                                        <span>{item.symbol}</span>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                        {tabValue === 8 && (
+                            <List sx={{ mt: 2 }}>
+                                {symbolList.filter((item : SymbolList) => item.categoryName.startsWith('Fund') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item:SymbolList) => (
                                     <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span>{item.categoryName}</span>
                                         <span>{item.symbol}</span>
