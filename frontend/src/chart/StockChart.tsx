@@ -25,6 +25,9 @@ import {
     forceIndex,
     ema,
     change,
+    StochasticSeries,
+    StochasticTooltip,
+    stochasticOscillator,
     AlternatingFillAreaSeries,
     StraightLine,
     AreaSeries,
@@ -66,7 +69,7 @@ import {Button} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import getDesignTokens from "../config/theme";
 
-import {macdAppearance, mouseEdgeAppearance} from '../indicator/indicatorSettings'
+import {macdAppearance, mouseEdgeAppearance, stoAppearance} from '../indicator/indicatorSettings'
 
 interface StockChartProps {
     readonly data: IOHLCData[];
@@ -653,6 +656,28 @@ export const StockChart = (props: StockChartProps) => {
     const changeCalculator = change();
     const calculatedData6 = changeCalculator(elder(initialData));
 
+
+    const slowSTO = stochasticOscillator()
+        .options({ windowSize: 14, kWindowSize: 3  , dWindowSize: 4})
+        .merge((d:any, c:any) => {d.slowSTO = c;})
+        .accessor((d:any) => d.slowSTO);
+    const calculatedData7 = slowSTO(elder(initialData));
+
+    const fastSTO = stochasticOscillator()
+        .options({ windowSize: 14, kWindowSize: 1  , dWindowSize: 4})
+        .merge((d:any, c:any) => {d.fastSTO = c;})
+        .accessor((d:any) => d.fastSTO);
+    const calculatedData8 = fastSTO(elder(initialData));
+
+    const fullSTO = stochasticOscillator()
+        .options({ windowSize: 14, kWindowSize: 3, dWindowSize: 4 })
+        .merge((d:any, c:any) => {d.fullSTO = c;})
+        .accessor((d:any) => d.fullSTO);
+    const calculatedData9 = fullSTO(elder(initialData));
+
+    const showGrid = false;
+    const xGrid = showGrid ? { innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1 } : {};
+
     const elderRayHeight = NO_OF_CANDLES;
     const elderRayOrigin = (_: number, h: number) => [0, h - elderRayHeight];
     const barChartHeight = gridHeight / 4;
@@ -665,6 +690,7 @@ export const StockChart = (props: StockChartProps) => {
     const {disableSAR} = useStore();
     const {disableRSIAndATR} = useStore();
     const {disableForceIndex} = useStore();
+    const {disableStochasticOscillator} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
@@ -1164,6 +1190,86 @@ export const StockChart = (props: StockChartProps) => {
                     yDisplayFormat={format(".4s")}
                     origin={[8, 36]}
                 />
+            </Chart>
+            )}
+            {!disableStochasticOscillator && (
+            <Chart id={9}
+                   yExtents={[0, 100]}
+                   height={125} origin={(w, h) => [0, h - 150]} padding={{ top: 10, bottom: 10 }}
+            >
+                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} />
+                <YAxis axisAt="right" orient="right"
+                       tickValues={[20, 50, 80]} />
+                <MouseCoordinateY
+                    at="right"
+                    orient="right"
+                    displayFormat={format(".2f")} />
+
+                <StochasticSeries
+                    yAccessor={d => d.fastSTO}
+                    {...stoAppearance} />
+                <StochasticTooltip
+                    origin={[-38, 15]}
+                    yAccessor={d => d.slowSTO}
+                    options={slowSTO.options()}
+                    appearance={stoAppearance}
+                    label="Slow STO" />
+
+            </Chart>
+            )}
+            {!disableStochasticOscillator && (
+            <Chart id={10}
+                   yExtents={[0, 100]}
+                   height={125} origin={(w, h) => [0, h - 100]} padding={{ top: 10, bottom: 10 }}
+            >
+                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} />
+                <YAxis axisAt="right" orient="right"
+                       tickValues={[20, 50, 80]} />
+
+                <MouseCoordinateY
+                    at="right"
+                    orient="right"
+                    displayFormat={format(".2f")} />
+
+                <StochasticSeries
+                    yAccessor={d => d.slowSTO}
+                    {...stoAppearance} />
+
+                <StochasticTooltip
+                    origin={[-38, 15]}
+                    yAccessor={d => d.fastSTO}
+                    options={fastSTO.options()}
+                    appearance={stoAppearance}
+                    label="Fast STO" />
+            </Chart>
+            )}
+            {!disableStochasticOscillator && (
+            <Chart id={11}
+                   yExtents={[0, 100]}
+                   height={125} origin={(w, h) => [0, h - 50]} padding={{ top: 10, bottom: 10 }}
+            >
+                <XAxis axisAt="bottom" orient="bottom" {...xGrid} />
+                <YAxis axisAt="right" orient="right"
+                       tickValues={[20, 50, 80]} />
+
+                <MouseCoordinateX
+                    at="bottom"
+                    orient="bottom"
+                    displayFormat={timeFormat("%Y-%m-%d")} />
+                <MouseCoordinateY
+                    at="right"
+                    orient="right"
+                    displayFormat={format(".2f")} />
+                <StochasticSeries
+                    yAccessor={d => d.fullSTO}
+                    {...stoAppearance} />
+
+                <StochasticTooltip
+                    origin={[-38, 15]}
+                    yAccessor={d => d.fullSTO}
+                    options={fullSTO.options()}
+                    appearance={stoAppearance}
+                    label="Full STO" />
             </Chart>
             )}
 
