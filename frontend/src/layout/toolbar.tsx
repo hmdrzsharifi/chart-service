@@ -57,6 +57,7 @@ const Toolbar = (props: any) => {
     const {disableElderRay, setDisableElderRay} = useStore();
     const {disableSAR , setDisableSAR} = useStore();
     const {disableRSIAndATR , setDisableRSIAndATR} = useStore();
+    const {disableForceIndex , setDisableForceIndex} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
@@ -464,6 +465,15 @@ const Toolbar = (props: any) => {
                             name="enableDisableRSIAndATR"
                             color="primary"
                         /></MenuItem>
+                    <MenuItem value='FORCEINDEX' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setDisableForceIndex(!disableForceIndex)}>
+                        <span>ForceIndex</span>
+                        <Switch
+                            checked={!disableForceIndex}
+                            onClick={() => setDisableForceIndex(!disableForceIndex)}
+                            name="enableDisableForceIndex"
+                            color="primary"
+                        /></MenuItem>
                     <MenuItem value='BOLLINGER_BAND' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
                         <span>Bollinger Band</span>
@@ -485,15 +495,6 @@ const Toolbar = (props: any) => {
                     <MenuItem value='STOCHASTIC_OSCILLATOR' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
                         <span>Stochastic Oscillator</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>
-                    <MenuItem value='FORCEINDEX' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>ForceIndex</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}

@@ -22,6 +22,11 @@ import {
     sar,
     rsi,
     atr,
+    forceIndex,
+    ema,
+    AlternatingFillAreaSeries,
+    StraightLine,
+    AreaSeries,
     lastVisibleItemBasedZoomAnchor,
     LineSeries,
     MACDSeries,
@@ -632,6 +637,19 @@ export const StockChart = (props: StockChartProps) => {
         .accessor((d:any) => d.atr14);
     const calculatedData3 = atr14(initialData);
 
+    const fi = forceIndex()
+        .merge((d:any, c:any) => {d.fi = c;})
+        .accessor((d:any) => d.fi);
+    const calculatedData4 = fi(initialData);
+
+    const fiEMA13 = ema()
+        .id(1)
+        .options({ windowSize: 13, sourcePath: "fi" })
+        .merge((d:any, c:any) => {d.fiEMA13 = c;})
+        .accessor((d:any) => d.fiEMA13);
+    const calculatedData5 = fiEMA13(initialData);
+
+
     const elderRayHeight = NO_OF_CANDLES;
     const elderRayOrigin = (_: number, h: number) => [0, h - elderRayHeight];
     const barChartHeight = gridHeight / 4;
@@ -643,6 +661,7 @@ export const StockChart = (props: StockChartProps) => {
     const {disableHoverTooltip} = useStore();
     const {disableSAR} = useStore();
     const {disableRSIAndATR} = useStore();
+    const {disableForceIndex} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
@@ -1082,6 +1101,65 @@ export const StockChart = (props: StockChartProps) => {
                     /* valueStroke={atr14.stroke()} - optional prop */
                     /* labelStroke="#4682B4" - optional prop */
                     origin={[8, 80]}/>
+            </Chart>
+            )}
+            {!disableForceIndex && (
+            <Chart id={7} height={100}
+                   yExtents={fi.accessor()}
+                   origin={(w, h) => [0, h - 150]}
+                   padding={{ top: 10, bottom: 10}}
+            >
+                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} />
+                <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")}/>
+                <MouseCoordinateY
+                    at="right"
+                    orient="right"
+                    displayFormat={format(".4s")} />
+
+                <AreaSeries baseAt={(scale) => scale(0)} yAccessor={fi.accessor()} />
+                <StraightLine yValue={0} />
+
+                <SingleValueTooltip
+                    yAccessor={fi.accessor()}
+                    valueFill={getDesignTokens(themeMode).palette.text.primary}
+                    yLabel="ForceIndex (1)"
+                    yDisplayFormat={format(".4s")}
+                    origin={[8, 80]}
+                />
+            </Chart>
+            )}
+            {!disableForceIndex && (
+                <Chart id={8} height={100}
+                   yExtents={fiEMA13.accessor()}
+                   origin={(w, h) => [0, h - 50]}
+                   padding={{ top: 10, bottom: 10 }}
+            >
+                <XAxis axisAt="bottom" orient="bottom" />
+                <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")}/>
+
+                <MouseCoordinateX
+                    at="bottom"
+                    orient="bottom"
+                    displayFormat={timeFormat("%Y-%m-%d")} />
+                <MouseCoordinateY
+                    at="right"
+                    orient="right"
+                    displayFormat={format(".4s")} />
+
+                {/* <AreaSeries baseAt={scale => scale(0)} yAccessor={fiEMA13.accessor()} /> */}
+                <AlternatingFillAreaSeries
+                    baseAt={0}
+                    yAccessor={fiEMA13.accessor()}
+                />
+                <StraightLine yValue={0} />
+
+                <SingleValueTooltip
+                    yAccessor={fiEMA13.accessor()}
+                    valueFill={getDesignTokens(themeMode).palette.text.primary}
+                    yLabel={`ForceIndex (${fiEMA13.options().windowSize})`}
+                    yDisplayFormat={format(".4s")}
+                    origin={[8, 36]}
+                />
             </Chart>
             )}
 
