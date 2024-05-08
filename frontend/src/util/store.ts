@@ -35,6 +35,9 @@ type Store = {
 
     disableSAR : boolean
     setDisableSAR : (disableSAR: boolean) => void
+
+    disableRSIAndATR: boolean
+    setDisableRSIAndATR : (disableRSIAndATR: boolean) => void
     // selectedSymbol : string
     // setSelectedSymbol : (symbolType: string) => void
 };
@@ -77,7 +80,10 @@ const useStore = create<Store>((set) => ({
     setDisableCrossHair : (disableCrossHair: boolean) => set((state) => ({disableCrossHair:disableCrossHair})),
 
     disableSAR : true,
-    setDisableSAR : (disableSAR: boolean) => set((state) => ({disableSAR:disableSAR}))
+    setDisableSAR : (disableSAR: boolean) => set((state) => ({disableSAR:disableSAR})),
+
+    disableRSIAndATR : true,
+    setDisableRSIAndATR : (disableRSIAndATR: boolean) => set((state) => ({disableRSIAndATR:disableRSIAndATR}))
 }));
 
 export default useStore;

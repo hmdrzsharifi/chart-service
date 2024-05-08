@@ -8,6 +8,8 @@ import {
     Chart,
     ChartCanvas,
     CrossHairCursor,
+    RSISeries,
+    RSITooltip,
     CurrentCoordinate,
     discontinuousTimeScaleProviderBuilder,
     EdgeIndicator,
@@ -18,6 +20,8 @@ import {
     HoverTooltip,
     SARSeries,
     sar,
+    rsi,
+    atr,
     lastVisibleItemBasedZoomAnchor,
     LineSeries,
     MACDSeries,
@@ -39,7 +43,7 @@ import {
     ema12,
     ema26,
     macdCalculator,
-    maxAccelerationFactor,
+    maxAccelerationFactor, rsiCalculator,
     smaVolume50,
 } from "../indicator/indicators";
 import useStore from "../util/store";
@@ -615,6 +619,19 @@ export const StockChart = (props: StockChartProps) => {
         .accessor((d:any) => d.sar);
     const calculatedData1 = defaultSar(initialData);
 
+
+    const rsiCalculator = rsi()
+        .options({ windowSize: 14 })
+        .merge((d:any, c:any) => {d.rsi = c;})
+        .accessor((d:any) => d.rsi);
+    const calculatedData2 = rsiCalculator(initialData);
+
+    const atr14 = atr()
+        .options({ windowSize: 14 })
+        .merge((d:any, c:any) => {d.atr14 = c;})
+        .accessor((d:any) => d.atr14);
+    const calculatedData3 = atr14(initialData);
+
     const elderRayHeight = NO_OF_CANDLES;
     const elderRayOrigin = (_: number, h: number) => [0, h - elderRayHeight];
     const barChartHeight = gridHeight / 4;
@@ -625,6 +642,7 @@ export const StockChart = (props: StockChartProps) => {
     const {disableMACD} = useStore();
     const {disableHoverTooltip} = useStore();
     const {disableSAR} = useStore();
+    const {disableRSIAndATR} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
@@ -1013,6 +1031,58 @@ export const StockChart = (props: StockChartProps) => {
                         appearance={macdAppearance}
                     />
                 </Chart>
+            )}
+            {!disableRSIAndATR && (
+            <Chart id={5}
+                   yExtents={rsiCalculator.accessor()}
+                   height={150}
+                   origin={(w, h) => [0, h - 150]} padding={{top: 10, bottom: 10}}
+
+            >
+                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} />
+                <YAxis axisAt="right"
+                       orient="right"
+                       tickValues={[30, 50, 70]}/>
+                <MouseCoordinateY
+                    at="right"
+                    orient="right"
+                    displayFormat={format(".2f")} />
+
+                <RSISeries yAccessor={d => d.rsi} />
+
+                <RSITooltip origin={[8, 36]}
+                            textFill={getDesignTokens(themeMode).palette.text.primary}
+                            yAccessor={d => d.rsi}
+                            options={rsiCalculator.options()} />
+            </Chart>
+            )}
+            {!disableRSIAndATR && (
+            <Chart id={6}
+                   yExtents={atr14.accessor()}
+                   height={150} origin={(w, h) => [0, h - 150]} padding={{top: 10, bottom: 10}}
+            >
+                <XAxis axisAt="bottom" orient="bottom" />
+                <YAxis axisAt="right" orient="right" ticks={2}/>
+
+                <MouseCoordinateX
+                    at="bottom"
+                    orient="bottom"
+                    displayFormat={timeFormat("%Y-%m-%d")} />
+                <MouseCoordinateY
+                    at="right"
+                    orient="right"
+                    displayFormat={format(".2f")} />
+
+                <LineSeries yAccessor={atr14.accessor()} strokeStyle={atr14.stroke()}/>
+                <SingleValueTooltip
+                    valueFill={getDesignTokens(themeMode).palette.text.primary}
+                    yAccessor={atr14.accessor()}
+                    yLabel={`ATR (${atr14.options().windowSize})`}
+                    yDisplayFormat={format(".2f")}
+                    /* valueStroke={atr14.stroke()} - optional prop */
+                    /* labelStroke="#4682B4" - optional prop */
+                    origin={[8, 80]}/>
+            </Chart>
             )}
 
            {/* {rsi.active && (

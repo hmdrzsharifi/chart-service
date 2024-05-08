@@ -56,6 +56,7 @@ const Toolbar = (props: any) => {
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
     const {disableElderRay, setDisableElderRay} = useStore();
     const {disableSAR , setDisableSAR} = useStore();
+    const {disableRSIAndATR , setDisableRSIAndATR} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
@@ -454,6 +455,15 @@ const Toolbar = (props: any) => {
                             name="enableDisableSAR"
                             color="primary"
                         /></MenuItem>
+                    <MenuItem value='RSI_AND_ATR' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setDisableRSIAndATR(!disableRSIAndATR)}>
+                        <span>Rsi_and_Atr</span>
+                        <Switch
+                            checked={!disableRSIAndATR}
+                            onClick={() => setDisableRSIAndATR(!disableRSIAndATR)}
+                            name="enableDisableRSIAndATR"
+                            color="primary"
+                        /></MenuItem>
                     <MenuItem value='BOLLINGER_BAND' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
                         <span>Bollinger Band</span>
@@ -466,15 +476,6 @@ const Toolbar = (props: any) => {
                     <MenuItem value='COMPARE' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
                         <span>Compare</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>
-                    <MenuItem value='RSI_AND_ATR' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>Rsi_and_Atr</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
