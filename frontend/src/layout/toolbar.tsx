@@ -55,6 +55,7 @@ const Toolbar = (props: any) => {
     const [anchorEl, setAnchorEl] = useState<any>(null);
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
     const {disableElderRay, setDisableElderRay} = useStore();
+    const {disableSAR , setDisableSAR} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
@@ -444,6 +445,15 @@ const Toolbar = (props: any) => {
                             name="enableDisableMACD"
                             color="primary"
                         /></MenuItem>
+                    <MenuItem value='SAR' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setDisableSAR(!disableSAR)}>
+                        <span>SAR</span>
+                        <Switch
+                            checked={!disableSAR}
+                            onClick={() => setDisableSAR(!disableSAR)}
+                            name="enableDisableSAR"
+                            color="primary"
+                        /></MenuItem>
                     <MenuItem value='BOLLINGER_BAND' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
                         <span>Bollinger Band</span>
@@ -492,15 +502,6 @@ const Toolbar = (props: any) => {
                     <MenuItem value='ELDER_IMPULSE' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
                         <span>Elder_Impulse</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>
-                    <MenuItem value='SAR' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>SAR</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}

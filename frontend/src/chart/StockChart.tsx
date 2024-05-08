@@ -16,6 +16,8 @@ import {
     EquidistantChannel,
     FibonacciRetracement,
     HoverTooltip,
+    SARSeries,
+    sar,
     lastVisibleItemBasedZoomAnchor,
     LineSeries,
     MACDSeries,
@@ -32,7 +34,14 @@ import {
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
 
-import {ema12, ema26, macdCalculator, smaVolume50,} from "../indicator/indicators";
+import {
+    accelerationFactor,
+    ema12,
+    ema26,
+    macdCalculator,
+    maxAccelerationFactor,
+    smaVolume50,
+} from "../indicator/indicators";
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
@@ -598,6 +607,14 @@ export const StockChart = (props: StockChartProps) => {
 
     const gridHeight = height - margin.top - margin.bottom;
 
+    const defaultSar = sar()
+        .options({
+            accelerationFactor, maxAccelerationFactor
+        })
+        .merge((d:any, c:any) => {d.sar = c;})
+        .accessor((d:any) => d.sar);
+    const calculatedData1 = defaultSar(initialData);
+
     const elderRayHeight = NO_OF_CANDLES;
     const elderRayOrigin = (_: number, h: number) => [0, h - elderRayHeight];
     const barChartHeight = gridHeight / 4;
@@ -605,8 +622,9 @@ export const StockChart = (props: StockChartProps) => {
     const chartHeight = gridHeight - elderRayHeight;
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
     const {disableElderRay, setDisableElderRay} = useStore();
-    const {disableMACD, setDisableMACD} = useStore();
-    const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
+    const {disableMACD} = useStore();
+    const {disableHoverTooltip} = useStore();
+    const {disableSAR} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
@@ -874,6 +892,19 @@ export const StockChart = (props: StockChartProps) => {
                     }}
                 />
                     )}
+
+
+                {!disableSAR && (
+                <SARSeries yAccessor={d => d.sar} highlightOnHover/>
+                )}
+                {!disableSAR && (
+                <SingleValueTooltip
+                    valueFill={getDesignTokens(themeMode).palette.text.primary}
+                    yLabel={`SAR (${accelerationFactor}, ${maxAccelerationFactor})`}
+                    yAccessor={d => d.sar}
+                    origin={[8, 36]}/>
+                )}
+
 
             </Chart>
 

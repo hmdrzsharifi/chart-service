@@ -32,6 +32,9 @@ type Store = {
 
     disableCrossHair : boolean
     setDisableCrossHair : (disableCrossHair: boolean) => void
+
+    disableSAR : boolean
+    setDisableSAR : (disableSAR: boolean) => void
     // selectedSymbol : string
     // setSelectedSymbol : (symbolType: string) => void
 };
@@ -71,7 +74,10 @@ const useStore = create<Store>((set) => ({
     setDisableHoverTooltip : (disableHoverTooltip: boolean) => set((state) => ({disableHoverTooltip:disableHoverTooltip})),
 
     disableCrossHair : true,
-    setDisableCrossHair : (disableCrossHair: boolean) => set((state) => ({disableCrossHair:disableCrossHair}))
+    setDisableCrossHair : (disableCrossHair: boolean) => set((state) => ({disableCrossHair:disableCrossHair})),
+
+    disableSAR : true,
+    setDisableSAR : (disableSAR: boolean) => set((state) => ({disableSAR:disableSAR}))
 }));
 
 export default useStore;
