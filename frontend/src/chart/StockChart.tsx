@@ -24,6 +24,7 @@ import {
     atr,
     forceIndex,
     ema,
+    change,
     AlternatingFillAreaSeries,
     StraightLine,
     AreaSeries,
@@ -567,8 +568,6 @@ export const StockChart = (props: StockChartProps) => {
             // }
         }
     }*/
-
-    const elder = elderRay();
     // const calculatedData = elder(ema26(ema12(initialData)));
     // const calculatedData = macdCalculator(ema12(ema26(initialData)));
     // const calculatedData = smaVolume50(macdCalculator(ema12(ema26(initialData))));
@@ -649,6 +648,10 @@ export const StockChart = (props: StockChartProps) => {
         .accessor((d:any) => d.fiEMA13);
     const calculatedData5 = fiEMA13(initialData);
 
+    const elder = elderRay();
+
+    const changeCalculator = change();
+    const calculatedData6 = changeCalculator(elder(initialData));
 
     const elderRayHeight = NO_OF_CANDLES;
     const elderRayOrigin = (_: number, h: number) => [0, h - elderRayHeight];
@@ -979,6 +982,7 @@ export const StockChart = (props: StockChartProps) => {
                     <ElderRaySeries yAccessor={elder.accessor()}/>
                     <SingleValueTooltip
                         // origin={[10,50]}
+                        valueFill={getDesignTokens(themeMode).palette.text.primary}
                         className='elderChart'
                         xInitDisplay='200px'
                         onClick={() => setOpenElderRayModal(true)}
