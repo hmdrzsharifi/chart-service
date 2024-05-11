@@ -43,6 +43,8 @@ import {
     TrendLine,
     XAxis,
     YAxis,
+    InteractiveText,
+    saveNodeType,
     ZoomButtons
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
@@ -107,6 +109,7 @@ export const StockChart = (props: StockChartProps) => {
     const {enableBrush, setEnableBrush} = useDesignStore();
     const {enableInteractiveObject, setEnableInteractiveObject} = useDesignStore();
     const [retracements, setRetracements] = useState<any[]>([]);
+    const [text, setText] = useState<any[]>([]);
     const [textList_1, textList_3] = useState<any[]>([]);
     const [hover, setHover] = useState<boolean>();
     const [selected, setSelected] = useState<boolean>(false);
@@ -141,6 +144,17 @@ export const StockChart = (props: StockChartProps) => {
         onHover: handleHover,
         onUnHover: handleHover,
     };
+
+    const onDrawComplete = (textList:any, moreProps:any) => {
+        // this gets called on
+        // 1. draw complete of drawing object
+        // 2. drag complete of drawing object
+        console.log({textList})
+        const { id: chartId } = moreProps.chartConfig;
+
+        setEnableInteractiveObject(false)
+        setText([...text,textList])
+    }
 
     const handleDragStart = (_: React.MouseEvent, moreProps: any) => {
         // const { position } = this.props;
@@ -717,12 +731,11 @@ export const StockChart = (props: StockChartProps) => {
         setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
         setEnableBrush(false)
         console.log(enableBrush)
-        // this.setState({
-        //     xExtents: [left, right],
-        //     yExtents1: BRUSH_TYPE === "2D" ? [low, high] : this.state.yExtents1,
-        //     brushEnabled: false,
-        // });
+        setXExtents([left, right])
+        setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
+        setEnableBrush(false)
     }
+
 
 
     // @ts-ignore
@@ -906,29 +919,17 @@ export const StockChart = (props: StockChartProps) => {
                     type={BRUSH_TYPE}
                     onBrush={handleBrush1}/>
 
-                {/*<InteractiveText*/}
-                {/*    onChoosePosition={(e: React.MouseEvent, newText: any, moreProps: any) =>{*/}
-
-                {/*    } }*/}
-                {/*    ref={saveNodeType("text")}*/}
-                {/*    // selected={selected || hover}*/}
-                {/*    // interactiveCursorClass="react-financial-charts-move-cursor"*/}
-                {/*    {...hoverHandler}*/}
-                {/*    enabled={enableInteractiveObject}*/}
-                {/*    onDragStart={handleDragStart}*/}
-                {/*    onDrag={handleDrag}*/}
-                {/*    onDragComplete={onDragComplete}*/}
-                {/*    position={position}*/}
-                {/*    bgFillStyle={getDesignTokens(themeMode).palette.lineColor}*/}
-                {/*    bgStroke={getDesignTokens(themeMode).palette.edgeStroke}*/}
-                {/*    bgStrokeWidth={1}*/}
-                {/*    textFill={getDesignTokens(themeMode).palette.text.primary}*/}
-                {/*    fontFamily={fontFamily}*/}
-                {/*    fontStyle={fontStyle}*/}
-                {/*    fontWeight={fontWeight}*/}
-                {/*    fontSize={fontSize}*/}
-                {/*    text={text}*/}
-                {/*/>*/}
+                <InteractiveText
+                    onChoosePosition={(e: React.MouseEvent, newText: any, moreProps: any) =>{
+                        onDrawComplete(newText , moreProps)
+                    } }
+                    // ref={saveNodeType("text")}
+                    enabled={enableInteractiveObject}
+                    onDragComplete={(e: React.MouseEvent, newText: any, moreProps: any) =>{
+                        onDrawComplete(newText , moreProps)
+                    } }
+                    textList={text}
+                />
 
                 {!disableHoverTooltip && (
                 <HoverTooltip
