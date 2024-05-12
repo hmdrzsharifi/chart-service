@@ -221,7 +221,9 @@ const Toolbar = (props: any) => {
                             <p>Loading...</p>
                         </div>
                     ) : (
-                        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', maxWidth: 600, maxHeight: '80%', bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+                        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', maxWidth: 600, maxHeight: '80%', bgcolor: 'background.paper', boxShadow: 24, p: 4 ,
+                            border: '2px solid #000',
+                            borderRadius: '8px'}}>
 
                         <Typography id="modal-modal-title" variant="h6" component="h2">
                                 Select Symbol
@@ -433,7 +435,10 @@ const Toolbar = (props: any) => {
                                     </List>
                                 )}
                             </Scrollbar>
-                            <Button onClick={handleClose} color='error' sx={{mt: 2}}>Close</Button>
+                            <Button onClick={handleClose} color='error' sx={{
+                                alignSelf: 'flex-end', // قرار دادن دکمه "بستن" در انتهای باکس
+                            }}
+                            >Close</Button>
                         </Box>
                     )}
                 </Modal>
@@ -449,19 +454,19 @@ const Toolbar = (props: any) => {
                         classes={{root: 'change-theme-switch', checked: 'change-theme-switch-checked'}}
                 />
 
-                <Select
-                    labelId="demo-select-small-label"
-                    defaultValue='BTC_USD'
-                    classes={{root: 'toolbar-select'}}
-                    IconComponent={ExpandMore}
-                    // @ts-ignore
-                    onChange={(event) => setSymbol(event?.target?.value)}
-                >
-                    {/*<MenuItem value='AAPL'>Apple</MenuItem>*/}
-                    {/*<MenuItem value='BINANCE:BTCUSDT'>Bitcoin</MenuItem>*/}
-                    <MenuItem value='BTC_USD'>Bitcoin</MenuItem>
-                    {/*<MenuItem value='AMZN'>Amazon</MenuItem>*/}
-                </Select>
+                {/*<Select*/}
+                {/*    labelId="demo-select-small-label"*/}
+                {/*    defaultValue='BTC_USD'*/}
+                {/*    classes={{root: 'toolbar-select'}}*/}
+                {/*    IconComponent={ExpandMore}*/}
+                {/*    // @ts-ignore*/}
+                {/*    onChange={(event) => setSymbol(event?.target?.value)}*/}
+                {/*>*/}
+                {/*    /!*<MenuItem value='AAPL'>Apple</MenuItem>*!/*/}
+                {/*    /!*<MenuItem value='BINANCE:BTCUSDT'>Bitcoin</MenuItem>*!/*/}
+                {/*    <MenuItem value='BTC_USD'>Bitcoin</MenuItem>*/}
+                {/*    /!*<MenuItem value='AMZN'>Amazon</MenuItem>*!/*/}
+                {/*</Select>*/}
 
                 <Select
                     labelId="demo-select-small-label"
