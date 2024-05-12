@@ -15,8 +15,8 @@ type Store = {
     seriesType: Series
     setSeriesType: (series: Series) => void
 
-    selectedSymbol : SymbolType
-    setSelectedSymbol : (symbolType: SymbolType) => void
+    selectedSymbol : string
+    setSelectedSymbol : (symbolType: string) => void
 
     disableMovingAverage : boolean
     setDisableMovingAverage : (isDisableMovingAverage: boolean) => void
@@ -62,13 +62,8 @@ const useStore = create<Store>((set) => ({
     seriesType: Series.CANDLE,
     setSeriesType: (seriesType: Series) => set((state) => ({ seriesType: seriesType })),
 
-    selectedSymbol: {
-        description: '',
-        displaySymbol: '',
-        symbol: '',
-        type: ''
-    },
-    setSelectedSymbol: (selectedSymbol: SymbolType) => set((state) => ({ selectedSymbol: selectedSymbol })),
+    selectedSymbol: '',
+    setSelectedSymbol: (selectedSymbol: string) => set((state) => ({ selectedSymbol: selectedSymbol })),
 
     disableMovingAverage : true,
     setDisableMovingAverage : (disableMovingAverage: boolean) => set((state) => ({disableMovingAverage:disableMovingAverage})),

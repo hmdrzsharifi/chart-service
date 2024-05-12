@@ -84,8 +84,13 @@ const Toolbar = (props: any) => {
         }
     };
 
-    const handleClose = () => setOpen(false);
+    const handleClose = () => {
+        setOpen(false);
+        setTabValue(0);
+        setSearchTerm('');
+    }
     const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+        console.log({newValue})
         setTabValue(newValue)
     };
     const handleSearch = (event: React.ChangeEvent<{}>, value: string) => {
@@ -96,10 +101,18 @@ const Toolbar = (props: any) => {
 
     const sendToApp = async (item: any) => {
         console.log({item})
+        let selectedText = '';
+        var name = item.symbol;
+        if (item.categoryName === 'CRT') {
+            name = name.replace('_USD', 'USDT');
+            selectedText = `BINANCE:${name}`;
+        }
+        console.log({selectedText})
         // const symbolData = await fetchSymbolData(item.symbol);
         // setSymbolList(candleData);
         // setSelectedSymbol(item)
-        setSymbol(item)
+        setSymbol(selectedText)
+        setSelectedSymbol(item.symbol)
         handleClose()
     }
 
@@ -172,7 +185,7 @@ const Toolbar = (props: any) => {
                     </IconButton>
                 </Tooltip>
                 <span onClick={handleOpen} style={{cursor: 'pointer', fontWeight: 'bolder'}}>
-                {selectedSymbol?.symbol}
+                {selectedSymbol}
                 </span>
                 <Modal
                     open={open}
@@ -192,17 +205,9 @@ const Toolbar = (props: any) => {
                             <p>Loading...</p>
                         </div>
                     ) : (
-                        <Box sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: 400,
-                            bgcolor: 'background.paper',
-                            boxShadow: 24,
-                            p: 4
-                        }}>
-                            <Typography id="modal-modal-title" variant="h6" component="h2">
+                        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', maxWidth: 600, maxHeight: '80%', bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+
+                        <Typography id="modal-modal-title" variant="h6" component="h2">
                                 Select Symbol
                             </Typography>
                             <IconButton aria-label='close' onClick={handleClose}
@@ -337,7 +342,7 @@ const Toolbar = (props: any) => {
                                     </List>
                                 )}
                             </Scrollbar>
-                            <Button onClick={handleClose} sx={{mt: 2}}>Close</Button>
+                            <Button onClick={handleClose} color='error' sx={{mt: 2}}>Close</Button>
                         </Box>
                     )}
                 </Modal>
