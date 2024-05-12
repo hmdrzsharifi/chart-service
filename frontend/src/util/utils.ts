@@ -137,7 +137,8 @@ function mapObjectFinnhub(originalObject:any) {
 function mapSymbolResult(originalObject:any) {
     return {
         categoryName:originalObject.categoryName,
-        symbol:originalObject.symbol
+        symbol:originalObject.symbol,
+        icon:originalObject.icon
     };
 }
 

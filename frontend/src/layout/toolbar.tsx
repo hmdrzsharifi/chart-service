@@ -107,10 +107,26 @@ const Toolbar = (props: any) => {
             name = name.replace('_USD', 'USDT');
             selectedText = `BINANCE:${name}`;
         }
+        if(item.categoryName == "FX"){
+            name = `OANDA:${name}`;
+        }
+        if(item.categoryName == "STC"){
+            name = `${name}`;
+            selectedText = name
+        }
+        if(item.categoryName == "ETF"){
+            name = `${name}`;
+            selectedText = name
+        }
+        if(item.categoryName == "CMD"){
+            name = `OANDA:${name}`;
+            selectedText = name
+        }
+        if(item.categoryName == "IND"){
+            name = `OANDA:${name}`;
+            selectedText = name
+        }
         console.log({selectedText})
-        // const symbolData = await fetchSymbolData(item.symbol);
-        // setSymbolList(candleData);
-        // setSelectedSymbol(item)
         setSymbol(selectedText)
         setSelectedSymbol(item.symbol)
         handleClose()
@@ -236,11 +252,14 @@ const Toolbar = (props: any) => {
                                 {tabValue === 0 && (
                                     <List>
                                         {symbolList.filter((item: SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
-                                            <ListItem className='element' key={item.symbol}
-                                                      onClick={(e) => sendToApp(item)}
-                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <span>{item.categoryName}</span>
-                                                <span>{item.symbol}</span>
+                                            <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    {item.icon && <img src={item.icon} alt="icon" style={{ marginRight: '8px', width: '24px', height: '24px' }} />}
+                                                    <span>{item.categoryName}</span>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <span>{item.symbol}</span>
+                                                </div>
                                             </ListItem>
                                         ))}
                                     </List>
@@ -251,8 +270,17 @@ const Toolbar = (props: any) => {
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <span>{item.categoryName}</span>
-                                                <span>{item.symbol}</span>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    {item.icon && <img src={item.icon} alt="icon" style={{
+                                                        marginRight: '8px',
+                                                        width: '24px',
+                                                        height: '24px'
+                                                    }}/>}
+                                                    <span>{item.categoryName}</span>
+                                                </div>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    <span>{item.symbol}</span>
+                                                </div>
                                             </ListItem>
                                         ))}
                                     </List>
@@ -263,8 +291,17 @@ const Toolbar = (props: any) => {
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <span>{item.categoryName}</span>
-                                                <span>{item.symbol}</span>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    {item.icon && <img src={item.icon} alt="icon" style={{
+                                                        marginRight: '8px',
+                                                        width: '24px',
+                                                        height: '24px'
+                                                    }}/>}
+                                                    <span>{item.categoryName}</span>
+                                                </div>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    <span>{item.symbol}</span>
+                                                </div>
                                             </ListItem>
                                         ))}
                                     </List>
@@ -275,8 +312,17 @@ const Toolbar = (props: any) => {
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <span>{item.categoryName}</span>
-                                                <span>{item.symbol}</span>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    {item.icon && <img src={item.icon} alt="icon" style={{
+                                                        marginRight: '8px',
+                                                        width: '24px',
+                                                        height: '24px'
+                                                    }}/>}
+                                                    <span>{item.categoryName}</span>
+                                                </div>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    <span>{item.symbol}</span>
+                                                </div>
                                             </ListItem>
                                         ))}
                                     </List>
@@ -287,8 +333,17 @@ const Toolbar = (props: any) => {
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <span>{item.categoryName}</span>
-                                                <span>{item.symbol}</span>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    {item.icon && <img src={item.icon} alt="icon" style={{
+                                                        marginRight: '8px',
+                                                        width: '24px',
+                                                        height: '24px'
+                                                    }}/>}
+                                                    <span>{item.categoryName}</span>
+                                                </div>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    <span>{item.symbol}</span>
+                                                </div>
                                             </ListItem>
                                         ))}
                                     </List>
@@ -299,8 +354,17 @@ const Toolbar = (props: any) => {
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <span>{item.categoryName}</span>
-                                                <span>{item.symbol}</span>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    {item.icon && <img src={item.icon} alt="icon" style={{
+                                                        marginRight: '8px',
+                                                        width: '24px',
+                                                        height: '24px'
+                                                    }}/>}
+                                                    <span>{item.categoryName}</span>
+                                                </div>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    <span>{item.symbol}</span>
+                                                </div>
                                             </ListItem>
                                         ))}
                                     </List>
@@ -311,8 +375,17 @@ const Toolbar = (props: any) => {
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <span>{item.categoryName}</span>
-                                                <span>{item.symbol}</span>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    {item.icon && <img src={item.icon} alt="icon" style={{
+                                                        marginRight: '8px',
+                                                        width: '24px',
+                                                        height: '24px'
+                                                    }}/>}
+                                                    <span>{item.categoryName}</span>
+                                                </div>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    <span>{item.symbol}</span>
+                                                </div>
                                             </ListItem>
                                         ))}
                                     </List>
@@ -323,8 +396,17 @@ const Toolbar = (props: any) => {
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <span>{item.categoryName}</span>
-                                                <span>{item.symbol}</span>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    {item.icon && <img src={item.icon} alt="icon" style={{
+                                                        marginRight: '8px',
+                                                        width: '24px',
+                                                        height: '24px'
+                                                    }}/>}
+                                                    <span>{item.categoryName}</span>
+                                                </div>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    <span>{item.symbol}</span>
+                                                </div>
                                             </ListItem>
                                         ))}
                                     </List>
@@ -335,8 +417,17 @@ const Toolbar = (props: any) => {
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <span>{item.categoryName}</span>
-                                                <span>{item.symbol}</span>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    {item.icon && <img src={item.icon} alt="icon" style={{
+                                                        marginRight: '8px',
+                                                        width: '24px',
+                                                        height: '24px'
+                                                    }}/>}
+                                                    <span>{item.categoryName}</span>
+                                                </div>
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    <span>{item.symbol}</span>
+                                                </div>
                                             </ListItem>
                                         ))}
                                     </List>

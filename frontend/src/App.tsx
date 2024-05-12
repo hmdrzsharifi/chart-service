@@ -389,7 +389,8 @@ function App() {
                     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
             }
 
-            const candleData = await fetchCandleData("BINANCE:BTCUSDT", timeFrame, from, Math.floor(new Date().getTime() / 1000));
+            console.log({symbol})
+            const candleData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // const candleData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // const candleData = await fetchCandleData(symbol, "d", "2023-08-20", "2024-02-03");
             // console.log(candleData)

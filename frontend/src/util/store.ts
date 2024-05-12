@@ -53,7 +53,7 @@ const useStore = create<Store>((set) => ({
     timeFrame: TimeFrame.D,
     setTimeFrame: (duration: TimeFrame) => set((state) => ({ timeFrame: duration })),
 
-    symbol: 'AAPL',
+    symbol: 'BINANCE:BTCUSDT',
     setSymbol: (symbol: string) => set((state) => ({ symbol: symbol })),
 
     loadingMoreData: false,
@@ -62,7 +62,7 @@ const useStore = create<Store>((set) => ({
     seriesType: Series.CANDLE,
     setSeriesType: (seriesType: Series) => set((state) => ({ seriesType: seriesType })),
 
-    selectedSymbol: '',
+    selectedSymbol: 'BTC_USD',
     setSelectedSymbol: (selectedSymbol: string) => set((state) => ({ selectedSymbol: selectedSymbol })),
 
     disableMovingAverage : true,

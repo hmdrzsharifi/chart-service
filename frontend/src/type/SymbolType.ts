@@ -7,5 +7,6 @@ export type SymbolType = {
 
 export type SymbolList ={
     categoryName:string,
-    symbol:string
+    symbol:string,
+    icon: string
 }
