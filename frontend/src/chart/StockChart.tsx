@@ -84,7 +84,7 @@ interface StockChartProps {
 }
 
 export const StockChart = (props: StockChartProps) => {
-    const margin = {left: 0, right: 48, top: 0, bottom: 24};
+    const margin = {left: 0, right: 58, top: 0, bottom: 24};
     const pricesDisplayFormat = format(".2f");
     const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
         (d: IOHLCData) => d.date,
@@ -292,63 +292,29 @@ export const StockChart = (props: StockChartProps) => {
     };
 
     const handleDataLoadBefore = async (start: number, end: number) => {
-        const rowsToDownload = end - Math.ceil(start);
-
-        console.log({rowsToDownload})
-
-        // onLoadData?.(rowsToDownload, -Math.ceil(start));
-
-        // setXExtents([e, e + LENGTH_TO_SHOW])
-        // setFixedPosition(true);
         console.log("My Data Before")
-        // console.log({start})
-        // console.log({end})
-
         if (Math.ceil(start) === end) return;
 
-        // const rowsToDownload = end - Math.ceil(start);
+        const rowsToDownload = end - Math.ceil(start);
+        console.log({rowsToDownload})
+        if (rowsToDownload <= 1) return;
 
-       /* const maxWindowSize = getMaxUndefined([ema26,
+        // onLoadData?.(rowsToDownload, -Math.ceil(start));
+        // setXExtents([e, e + LENGTH_TO_SHOW])
+        // setFixedPosition(true);
+
+        const maxWindowSize = getMaxUndefined([ema26,
             ema12,
             macdCalculator,
             smaVolume50
+        ]);
 
-        ]);*/
-
-        /* SERVER - START */
-       /* const dataToCalculate = data
-            .slice(-rowsToDownload - maxWindowSize - data.length, -data.length);
-
-        console.log({dataToCalculate})
-        const calculatedData = ema26(ema12(macdCalculator(smaVolume50(dataToCalculate))));
-        const indexCalculator = discontinuousTimeScaleProviderBuilder()
-            .initialIndex(Math.ceil(start))
-            .indexCalculator();
-        const {index} = indexCalculator(
-            calculatedData
-                .slice(-rowsToDownload)
-                .concat(data));*/
-        /* SERVER - END */
-
-      /*  const xScaleProvider = discontinuousTimeScaleProviderBuilder()
-            .initialIndex(Math.ceil(start))
-            .withIndex(index);
-
-        const {data: linearData, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(data));*/
-
-
-        // console.log({rowsToDownload})
-        // console.log({loadingMoreData})
-        //
-        // if (loadingMoreData) {
+         // if (loadingMoreData) {
         //     // Exit early if we are already loading data
         //     return;
         // }
         //
         // setLoadingMoreData(true);
-
-        // const {data: linearData, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(data));
-
 
         try {
             // Find the earliest date in the current dataset
@@ -387,27 +353,49 @@ export const StockChart = (props: StockChartProps) => {
             console.log({moreData})
             // Combine new data with existing data
             const combinedData = moreData.concat(data);
-
             console.log({combinedData})
-            setData(combinedData)
 
+            setData(combinedData)
             setFixedPosition(true)
+
+            /* SERVER - START */
+         /*   const dataToCalculate = data
+                .slice(-rowsToDownload - maxWindowSize - data.length, -data.length);*/
+
+            // console.log({dataToCalculate})
+
+            // Recalculate the scale with the new combined data
+            const calculatedData = ema26(ema12(macdCalculator(smaVolume50(moreData))));
+            const indexCalculator = discontinuousTimeScaleProviderBuilder()
+                .initialIndex(Math.ceil(start))
+                .indexCalculator();
+            const {index} = indexCalculator(
+                calculatedData
+                    .slice(-rowsToDownload)
+                    .concat(data));
+            /* SERVER - END */
+
+            const xScaleProvider = discontinuousTimeScaleProviderBuilder()
+                .initialIndex(Math.ceil(start))
+                .withIndex(index);
+
+            const {data: linearData, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(data));
+            const max = xAccessor(data[data.length - 1]);
+            const min =xAccessor(data[0]);
+            setXExtents([min, max])
 
             // Update the state with the combined data
             // const { ema26, ema12, macdCalculator, smaVolume50 } = this.state;
-
-            // Recalculate the scale with the new combined data
-            const calculatedData = ema26(ema12(macdCalculator(smaVolume50(combinedData))));
-            const indexCalculator = discontinuousTimeScaleProviderBuilder().indexCalculator();
+            // const indexCalculator = discontinuousTimeScaleProviderBuilder().indexCalculator();
 
             // Recalculate the index with the newly combined data
-            const { index } = indexCalculator(calculatedData);
-            const xScaleProvider = discontinuousTimeScaleProviderBuilder().withIndex(index);
-            const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
-            setData(linearData)
-            const max = xAccessor(data[data.length - 1]);
+            // const { index } = indexCalculator(calculatedData);
+            // const xScaleProvider = discontinuousTimeScaleProviderBuilder().withIndex(index);
+            // const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
+            // setData(linearData)
+          /*  const max = xAccessor(data[data.length - 1]);
             const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
-            setXExtents([min, max])
+            setXExtents([min, max])*/
 
 
             // setXScale(xScale)
@@ -695,8 +683,10 @@ export const StockChart = (props: StockChartProps) => {
     const elderRayHeight = NO_OF_CANDLES;
     const elderRayOrigin = (_: number, h: number) => [0, h - elderRayHeight];
     const barChartHeight = gridHeight / 4;
-    const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight - elderRayHeight];
-    const chartHeight = gridHeight - elderRayHeight;
+    // const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight - elderRayHeight];
+    const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight];
+    // const chartHeight = gridHeight - elderRayHeight;
+    const chartHeight = gridHeight;
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
     const {disableElderRay, setDisableElderRay} = useStore();
     const {disableMACD} = useStore();

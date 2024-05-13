@@ -33,7 +33,7 @@ body {
 
 .sidebar {
   overflow: hidden;
-  transition: all 0.5s;
+  /*transition: all 0.5s;*/
 }
 
 .chart-container {

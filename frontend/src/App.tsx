@@ -71,7 +71,7 @@ function App() {
         });
 
         // CEX
-        socket.on('symbolUpdate', (message:any) => {
+        socket.on('symbolUpdate', (message: any) => {
             // console.log(message)
             const convertedMessage = {...message, ask: new Decimal(message.ask).toNumber()}
             if (message.symbol === symbol) {
@@ -143,7 +143,7 @@ function App() {
         if (rounded > lastBarSec) {
             // create a new candle, use last close as open
             _lastBar = {
-                date: new Date (rounded * 1000),
+                date: new Date(rounded * 1000),
                 open: dataFeed.ask,
                 high: dataFeed.ask,
                 low: dataFeed.ask,
@@ -288,7 +288,7 @@ function App() {
         if (rounded > lastBarSec) {
             // create a new candle, use last close as open
             _lastBar = {
-                date: new Date (rounded * 1000),
+                date: new Date(rounded * 1000),
                 open: dataFeed.p,
                 high: dataFeed.p,
                 low: dataFeed.p,
@@ -532,6 +532,11 @@ function App() {
         return <div>Loading...</div>;
     }
 
+    const getWidth = () => {
+        const width = openSideBar ? 45 : 10
+        return window.innerWidth - width
+    }
+
     return (
         <>
             <ThemeProvider theme={theme}>
@@ -558,7 +563,7 @@ function App() {
                             <StockChart data={stateDataRef.current} setData={setData} theme={theme}
                                         height={window.innerHeight - 100}
                                         ratio={3}
-                                        width={window.innerWidth - 45}/>
+                                        width={getWidth()}/>
                         </div>
                     </div>
                     <Footer style={{

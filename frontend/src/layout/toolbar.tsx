@@ -164,7 +164,7 @@ const Toolbar = (props: any) => {
         <div className="toolbar" style={props.style} id={"toolbarId"}>
 
             <div className="toolbar-left-box">
-                <Tooltip title="Draw line" placement="bottom" arrow>
+                <Tooltip title="Draw" placement="bottom" arrow>
                     <IconButton
                         sx={{padding: '5px'}}
                         onClick={() => setOpenSideBar(!openSideBar)}
