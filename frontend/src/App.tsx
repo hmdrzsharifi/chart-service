@@ -74,7 +74,18 @@ function App() {
         socket.on('symbolUpdate', (message: any) => {
             // console.log(message)
             const convertedMessage = {...message, ask: new Decimal(message.ask).toNumber()}
-            if (message.symbol === symbol) {
+            console.log({symbol})
+            console.log("###########", message.symbol)
+
+            let rawData = symbol.split(':')
+            let rawSymbol
+            if (rawData[0] == 'BINANCE') {
+                rawSymbol = rawData[1].replace('USDT','_USD')
+            }
+            if (rawData[0] == 'OANDA') {
+                rawSymbol = rawData[1]
+            }
+            if (message.symbol === rawSymbol) {
                 handleRealTimeCandleCex(convertedMessage)
             }
         });

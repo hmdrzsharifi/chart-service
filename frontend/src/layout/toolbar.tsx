@@ -111,6 +111,7 @@ const Toolbar = (props: any) => {
         }
         if(item.categoryName == "FX"){
             name = `OANDA:${name}`;
+            selectedText = name;
         }
         if(item.categoryName == "STC"){
             name = `${name}`;
