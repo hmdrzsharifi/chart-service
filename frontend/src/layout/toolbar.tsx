@@ -60,6 +60,7 @@ const Toolbar = (props: any) => {
     const {disableRSIAndATR , setDisableRSIAndATR} = useStore();
     const {disableForceIndex , setDisableForceIndex} = useStore();
     const {disableStochasticOscillator , setDisableStochasticOscillator} = useStore();
+    const {disableOHLCSeries , setDisableOHLCSeries} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
@@ -595,6 +596,21 @@ const Toolbar = (props: any) => {
                             name="enableDisableStochasticOscillator"
                             color="primary"
                         /></MenuItem>
+                    <MenuItem value='ELDER_IMPULSE' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() =>{ setDisableOHLCSeries(!disableOHLCSeries)
+                              setDisableVolume(!disableVolume)
+                              setDisableMACD(!disableMACD)
+                    }}>
+                        <span>Elder_Impulse</span>
+                        <Switch
+                            checked={!disableOHLCSeries}
+                            onClick={() =>{ setDisableOHLCSeries(!disableOHLCSeries)
+                                setDisableVolume(!disableVolume)
+                                setDisableMACD(!disableMACD)
+                            }}
+                            name="enableDisableOHLCSeries"
+                            color="primary"
+                        /></MenuItem>
                     <MenuItem value='BOLLINGER_BAND' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
                         <span>Bollinger Band</span>
@@ -607,15 +623,6 @@ const Toolbar = (props: any) => {
                     <MenuItem value='COMPARE' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
                         <span>Compare</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>
-                    <MenuItem value='ELDER_IMPULSE' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>Elder_Impulse</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}

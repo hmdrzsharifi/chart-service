@@ -9,7 +9,7 @@ import {
     sar,
     macd,
     forceIndex,
-    stochasticOscillator
+    stochasticOscillator, elderImpulse
 } from "react-financial-charts";
 
 
@@ -110,6 +110,10 @@ export const macdCalculator = macd()
         d.macd = c;
     })
     .accessor((d: any) => d.macd);
+
+// export const elderImpulseCalculator = elderImpulse()
+//     .macdSource(macdCalculator.accessor())
+//     .emaSource(ema12.accessor());
 
 export const rsiCalculator = rsi()
     .options({ windowSize: 14 })

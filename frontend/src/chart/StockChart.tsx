@@ -45,7 +45,8 @@ import {
     YAxis,
     InteractiveText,
     saveNodeType,
-    ZoomButtons
+    ZoomButtons,
+    OHLCSeries,
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
 
@@ -309,7 +310,7 @@ export const StockChart = (props: StockChartProps) => {
             smaVolume50
         ]);
 
-         // if (loadingMoreData) {
+        // if (loadingMoreData) {
         //     // Exit early if we are already loading data
         //     return;
         // }
@@ -677,6 +678,8 @@ export const StockChart = (props: StockChartProps) => {
         .accessor((d:any) => d.fullSTO);
     const calculatedData9 = fullSTO(elder(initialData));
 
+    // const calculatedData10 = elderImpulseCalculator(macdCalculator(ema12(changeCalculator(initialData))));
+
     const showGrid = false;
     const xGrid = showGrid ? { innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1 } : {};
 
@@ -696,6 +699,7 @@ export const StockChart = (props: StockChartProps) => {
     const {disableRSIAndATR} = useStore();
     const {disableForceIndex} = useStore();
     const {disableStochasticOscillator} = useStore();
+    const {disableOHLCSeries} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
@@ -727,8 +731,6 @@ export const StockChart = (props: StockChartProps) => {
         setEnableBrush(false)
     }
 
-
-
     // @ts-ignore
     return (
         <ChartCanvas
@@ -754,6 +756,10 @@ export const StockChart = (props: StockChartProps) => {
                 height={chartHeight}
                 yExtents={candleChartExtents}
             >
+                {/*<OHLCSeries strokeWidth={3}  stroke={d => elderImpulseCalculator.stroke()[d.elderImpulse]} yAccessor={(d) => ({ open: d.open, high: d.high, low: d.low, close: d.close })} />*/}
+                {!disableOHLCSeries && (
+                <OHLCSeries strokeWidth={3} />
+                )}
                 <XAxis showGridLines showTicks={false} showTickLabel={false} {...xAndYColors} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} {...xAndYColors} />
 
@@ -767,6 +773,28 @@ export const StockChart = (props: StockChartProps) => {
                         <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
                     </div>
                 )}
+
+                {!disableOHLCSeries && (
+                    <div>
+                    <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
+                    <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
+                    </div>
+            )}
+                {!disableOHLCSeries && (
+                <MovingAverageTooltip
+                    textFill={getDesignTokens(themeMode).palette.text.primary}
+                    onClick={() => setOpenMovingAverageModal(true)}
+                    origin={[8, 24]}
+                    options={[
+                        {
+                            yAccessor: ema12.accessor(),
+                            type: "EMA",
+                            stroke: ema12.stroke(),
+                            windowSize: ema12.options().windowSize,
+                        },
+                    ]}
+                />
+                    )}
 
                 <MouseCoordinateX at="bottom" orient="bottom" displayFormat={timeFrame == TimeFrame.M1 ? timeFormat("%H-%M-%S") : timeFrame == TimeFrame.D ? timeFormat("%Y-%m-%d") : timeFormat("%Y-%m-%d")} />
                 <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10}/>

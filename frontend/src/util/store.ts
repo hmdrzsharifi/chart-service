@@ -47,6 +47,9 @@ type Store = {
 
     disableStochasticOscillator: boolean
     setDisableStochasticOscillator : (disableStochasticOscillator: boolean) => void
+
+    disableOHLCSeries:boolean
+    setDisableOHLCSeries : (disableOHLCSeries: boolean) => void
     // selectedSymbol : string
     // setSelectedSymbol : (symbolType: string) => void
 };
@@ -96,7 +99,10 @@ const useStore = create<Store>((set) => ({
     setDisableForceIndex : (disableForceIndex: boolean) => set((state) => ({disableForceIndex:disableForceIndex})),
 
     disableStochasticOscillator : true,
-    setDisableStochasticOscillator : (disableStochasticOscillator: boolean) => set((state) => ({disableStochasticOscillator:disableStochasticOscillator}))
+    setDisableStochasticOscillator : (disableStochasticOscillator: boolean) => set((state) => ({disableStochasticOscillator:disableStochasticOscillator})),
+
+    disableOHLCSeries : true,
+    setDisableOHLCSeries : (disableOHLCSeries: boolean) => set((state) => ({disableOHLCSeries:disableOHLCSeries}))
 }));
 
 export default useStore;
