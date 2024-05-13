@@ -688,6 +688,7 @@ export const StockChart = (props: StockChartProps) => {
     // const chartHeight = gridHeight - elderRayHeight;
     const chartHeight = gridHeight;
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
+    const {disableVolume, setDisableVolume} = useStore();
     const {disableElderRay, setDisableElderRay} = useStore();
     const {disableMACD} = useStore();
     const {disableHoverTooltip} = useStore();
@@ -967,6 +968,7 @@ export const StockChart = (props: StockChartProps) => {
 
             /*##### Volume Chart #####*/
             {/*{volume.active && (*/}
+            {!disableVolume && (
             <Chart
                 id={2}
                 height={barChartHeight}
@@ -979,6 +981,7 @@ export const StockChart = (props: StockChartProps) => {
                 <BarSeries fillStyle={volumeColor} yAccessor={d => d.volume}/>
                 {/*<AreaSeries yAccessor={smaVolume50.accessor()} {...volumeAppearance} />*/}
             </Chart>
+            )}
             {/*)}*/}
 
             /*##### ElderRay Chart #####*/

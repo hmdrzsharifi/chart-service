@@ -54,6 +54,7 @@ const Toolbar = (props: any) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
+    const {disableVolume, setDisableVolume} = useStore();
     const {disableElderRay, setDisableElderRay} = useStore();
     const {disableSAR , setDisableSAR} = useStore();
     const {disableRSIAndATR , setDisableRSIAndATR} = useStore();
@@ -528,6 +529,15 @@ const Toolbar = (props: any) => {
                         <Switch checked={!disableMovingAverage}
                                 onClick={() => setDisableMovingAverage(!disableMovingAverage)}
                                 name="enableDisableMovingAverage"
+                                color="primary"
+                        />
+                    </MenuItem>
+                    <MenuItem value='VOLUME' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setDisableVolume(!disableVolume)}>
+                        <span>Volume</span>
+                        <Switch checked={!disableVolume}
+                                onClick={() => setDisableVolume(!disableVolume)}
+                                name="enableDisableVolume"
                                 color="primary"
                         />
                     </MenuItem>

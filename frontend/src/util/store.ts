@@ -21,6 +21,9 @@ type Store = {
     disableMovingAverage : boolean
     setDisableMovingAverage : (isDisableMovingAverage: boolean) => void
 
+    disableVolume : boolean
+    setDisableVolume : (disableVolume: boolean) => void
+
     disableElderRay : boolean
     setDisableElderRay : (isDisableMovingAverage: boolean) => void
 
@@ -67,6 +70,9 @@ const useStore = create<Store>((set) => ({
 
     disableMovingAverage : true,
     setDisableMovingAverage : (disableMovingAverage: boolean) => set((state) => ({disableMovingAverage:disableMovingAverage})),
+
+    disableVolume : true,
+    setDisableVolume : (disableVolume: boolean) => set((state) => ({disableVolume:disableVolume})),
 
     disableElderRay : true,
     setDisableElderRay : (disableElderRay: boolean) => set((state) => ({disableElderRay:disableElderRay})),
