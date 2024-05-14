@@ -111,10 +111,6 @@ export const macdCalculator = macd()
     })
     .accessor((d: any) => d.macd);
 
-// export const elderImpulseCalculator = elderImpulse()
-//     .macdSource(macdCalculator.accessor())
-//     .emaSource(ema12.accessor());
-
 export const rsiCalculator = rsi()
     .options({ windowSize: 14 })
     .merge((d: any, c: any) => {

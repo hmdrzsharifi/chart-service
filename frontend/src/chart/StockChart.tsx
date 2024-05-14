@@ -757,13 +757,17 @@ export const StockChart = (props: StockChartProps) => {
                 yExtents={candleChartExtents}
             >
                 {/*<OHLCSeries strokeWidth={3}  stroke={d => elderImpulseCalculator.stroke()[d.elderImpulse]} yAccessor={(d) => ({ open: d.open, high: d.high, low: d.low, close: d.close })} />*/}
-                {!disableOHLCSeries && (
-                <OHLCSeries strokeWidth={3} />
+                {(!disableOHLCSeries || !disableElderRay) && (
+                <OHLCSeries strokeWidth={5} />
                 )}
                 <XAxis showGridLines showTicks={false} showTickLabel={false} {...xAndYColors} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} {...xAndYColors} />
 
+                {(disableElderRay && disableOHLCSeries) && (
                 <SelectedSeries series={seriesType} data={data}/>
+                )}
+
+
 
                 {!disableMovingAverage && (
                     <div>
