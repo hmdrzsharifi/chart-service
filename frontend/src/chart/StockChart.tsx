@@ -760,7 +760,7 @@ export const StockChart = (props: StockChartProps) => {
                 {(!disableOHLCSeries || !disableElderRay) && (
                 <OHLCSeries strokeWidth={5} />
                 )}
-                <XAxis showGridLines showTicks={false} showTickLabel={false} {...xAndYColors} />
+                <XAxis showGridLines {...xAndYColors} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} {...xAndYColors} />
 
                 {(disableElderRay && disableOHLCSeries) && (
@@ -994,8 +994,7 @@ export const StockChart = (props: StockChartProps) => {
                     yAccessor={d => d.sar}
                     origin={[8, 36]}/>
                 )}
-                <XAxis {...xAndYColors} />
-                <YAxis {...xAndYColors} />
+
 
             </Chart>
 
