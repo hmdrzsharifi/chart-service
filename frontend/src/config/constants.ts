@@ -10,3 +10,4 @@ export const WEBSOCKET_ADDRESS = 'http://91.92.108.4:5555';
 
 
 export const NO_OF_CANDLES = 150;
+export const STUDIES_CHART_HEIGHT = 150;

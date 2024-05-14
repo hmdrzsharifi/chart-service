@@ -134,7 +134,7 @@ body {
   cursor: pointer;
   fill: rgba(0, 0, 0, 0);
   stroke: #d9d9d9;
-  transition: all 0.5s;
+  /*transition: all 0.5s;*/
 }
 .react-financial-charts-enable-interaction:hover {
   fill: rgba(144, 202, 249, 0.35);
