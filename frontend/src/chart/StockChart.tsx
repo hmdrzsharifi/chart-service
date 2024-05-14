@@ -994,7 +994,8 @@ export const StockChart = (props: StockChartProps) => {
                     yAccessor={d => d.sar}
                     origin={[8, 36]}/>
                 )}
-
+                <XAxis {...xAndYColors} />
+                <YAxis {...xAndYColors} />
 
             </Chart>
 
@@ -1008,8 +1009,6 @@ export const StockChart = (props: StockChartProps) => {
                 yExtents={barChartExtents}
                 // yExtents={[d => d.volume, smaVolume50.accessor()]}
             >
-                <XAxis {...xAndYColors} />
-                <YAxis {...xAndYColors} />
                 <BarSeries fillStyle={volumeColor} yAccessor={d => d.volume}/>
                 {/*<AreaSeries yAccessor={smaVolume50.accessor()} {...volumeAppearance} />*/}
             </Chart>
