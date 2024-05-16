@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {TimeFrame, Series} from "../type/Enum";
+import {TimeFrame, Series, StudiesChart} from "../type/Enum";
 import {SymbolType} from "../type/SymbolType";
 
 type Store = {
@@ -24,11 +24,14 @@ type Store = {
     disableVolume : boolean
     setDisableVolume : (disableVolume: boolean) => void
 
-    disableElderRay : boolean
-    setDisableElderRay : (isDisableMovingAverage: boolean) => void
+    studiesCharts : StudiesChart[]
+    setStudiesCharts : (charts: StudiesChart[]) => void
 
-    disableMACD : boolean
-    setDisableMACD : (isDisableMACD: boolean) => void
+    // disableElderRay : boolean
+    // setDisableElderRay : (isDisableMovingAverage: boolean) => void
+
+    // disableMACD : boolean
+    // setDisableMACD : (isDisableMACD: boolean) => void
 
     disableHoverTooltip : boolean
     setDisableHoverTooltip : (disableHoverTooltip: boolean) => void
@@ -39,14 +42,14 @@ type Store = {
     disableSAR : boolean
     setDisableSAR : (disableSAR: boolean) => void
 
-    disableRSIAndATR: boolean
-    setDisableRSIAndATR : (disableRSIAndATR: boolean) => void
+    // disableRSIAndATR: boolean
+    // setDisableRSIAndATR : (disableRSIAndATR: boolean) => void
 
-    disableForceIndex: boolean
-    setDisableForceIndex : (disableForceIndex: boolean) => void
+    // disableForceIndex: boolean
+    // setDisableForceIndex : (disableForceIndex: boolean) => void
 
-    disableStochasticOscillator: boolean
-    setDisableStochasticOscillator : (disableStochasticOscillator: boolean) => void
+    // disableStochasticOscillator: boolean
+    // setDisableStochasticOscillator : (disableStochasticOscillator: boolean) => void
 
     disableOHLCSeries:boolean
     setDisableOHLCSeries : (disableOHLCSeries: boolean) => void
@@ -77,11 +80,14 @@ const useStore = create<Store>((set) => ({
     disableVolume : true,
     setDisableVolume : (disableVolume: boolean) => set((state) => ({disableVolume:disableVolume})),
 
-    disableElderRay : true,
-    setDisableElderRay : (disableElderRay: boolean) => set((state) => ({disableElderRay:disableElderRay})),
+    studiesCharts : [],
+    setStudiesCharts : (charts: StudiesChart[]) => set((state) => ({studiesCharts: charts})),
 
-    disableMACD : true,
-    setDisableMACD : (disableMACD: boolean) => set((state) => ({disableMACD:disableMACD})),
+    // disableElderRay : true,
+    // setDisableElderRay : (disableElderRay: boolean) => set((state) => ({disableElderRay:disableElderRay})),
+
+    // disableMACD : true,
+    // setDisableMACD : (disableMACD: boolean) => set((state) => ({disableMACD:disableMACD})),
 
     disableHoverTooltip : true,
     setDisableHoverTooltip : (disableHoverTooltip: boolean) => set((state) => ({disableHoverTooltip:disableHoverTooltip})),
@@ -92,14 +98,14 @@ const useStore = create<Store>((set) => ({
     disableSAR : true,
     setDisableSAR : (disableSAR: boolean) => set((state) => ({disableSAR:disableSAR})),
 
-    disableRSIAndATR : true,
-    setDisableRSIAndATR : (disableRSIAndATR: boolean) => set((state) => ({disableRSIAndATR:disableRSIAndATR})),
+    // disableRSIAndATR : true,
+    // setDisableRSIAndATR : (disableRSIAndATR: boolean) => set((state) => ({disableRSIAndATR:disableRSIAndATR})),
 
-    disableForceIndex : true,
-    setDisableForceIndex : (disableForceIndex: boolean) => set((state) => ({disableForceIndex:disableForceIndex})),
+    // disableForceIndex : true,
+    // setDisableForceIndex : (disableForceIndex: boolean) => set((state) => ({disableForceIndex:disableForceIndex})),
 
-    disableStochasticOscillator : true,
-    setDisableStochasticOscillator : (disableStochasticOscillator: boolean) => set((state) => ({disableStochasticOscillator:disableStochasticOscillator})),
+    // disableStochasticOscillator : true,
+    // setDisableStochasticOscillator : (disableStochasticOscillator: boolean) => set((state) => ({disableStochasticOscillator:disableStochasticOscillator})),
 
     disableOHLCSeries : true,
     setDisableOHLCSeries : (disableOHLCSeries: boolean) => set((state) => ({disableOHLCSeries:disableOHLCSeries}))

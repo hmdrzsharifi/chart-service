@@ -25,7 +25,7 @@ import BarIcon from "../icons/BarIcon";
 import LineIcon from "../icons/LineIcon";
 import useDesignStore from "../util/designStore";
 import EditNoteIcon from '@mui/icons-material/EditNote';
-import {Series, TimeFrame} from "../type/Enum";
+import {Series, StudiesChart, TimeFrame} from "../type/Enum";
 import BaseLineIcon from "../icons/BaseLineIcon";
 import AreaIcon from "../icons/AreaIcon";
 import Modal from "@mui/material/Modal";
@@ -55,16 +55,16 @@ const Toolbar = (props: any) => {
     const [anchorEl, setAnchorEl] = useState<any>(null);
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
     const {disableVolume, setDisableVolume} = useStore();
-    const {disableElderRay, setDisableElderRay} = useStore();
+    const {studiesCharts, setStudiesCharts} = useStore();
     const {disableSAR , setDisableSAR} = useStore();
-    const {disableRSIAndATR , setDisableRSIAndATR} = useStore();
-    const {disableForceIndex , setDisableForceIndex} = useStore();
-    const {disableStochasticOscillator , setDisableStochasticOscillator} = useStore();
+    // const {disableRSIAndATR , setDisableRSIAndATR} = useStore();
+    // const {disableForceIndex , setDisableForceIndex} = useStore();
+    // const {disableStochasticOscillator , setDisableStochasticOscillator} = useStore();
     const {disableOHLCSeries , setDisableOHLCSeries} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
-    const {disableMACD, setDisableMACD} = useStore();
+    // const {disableMACD, setDisableMACD} = useStore();
     const [loading, setLoading] = useState(false);
 
 
@@ -162,6 +162,16 @@ const Toolbar = (props: any) => {
             });
         }
     };
+
+    const handleChangeStudiesChart = (chart: StudiesChart) => {
+        setStudiesCharts(
+            studiesCharts.includes(chart) ? studiesCharts.filter(item => item !== chart) : [chart, ...studiesCharts]
+        )
+    }
+
+    const isStudiesChartInclude = (chart: StudiesChart): boolean => {
+        return studiesCharts.includes(chart)
+    }
 
     return (
         <div className="toolbar" style={props.style} id={"toolbarId"}>
@@ -544,20 +554,21 @@ const Toolbar = (props: any) => {
                         />
                     </MenuItem>
                     <MenuItem value='ELDERRAY' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setDisableElderRay(!disableElderRay)}>
+                              onClick={() => handleChangeStudiesChart(StudiesChart.ELDER_RAY)}
+                    >
                         <span>Elderray</span>
                         <Switch
-                            checked={!disableElderRay}
-                            onClick={() => setDisableElderRay(!disableElderRay)}
+                            checked={isStudiesChartInclude(StudiesChart.ELDER_RAY)}
+                            onClick={() => handleChangeStudiesChart(StudiesChart.ELDER_RAY)}
                             name="enableDisableElderRay"
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='MACD' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setDisableMACD(!disableMACD)}>
+                              onClick={() => handleChangeStudiesChart(StudiesChart.MACD)}>
                         <span>Macd</span>
                         <Switch
-                            checked={!disableMACD}
-                            onClick={() => setDisableMACD(!disableMACD)}
+                            checked={isStudiesChartInclude(StudiesChart.MACD)}
+                            onClick={() => handleChangeStudiesChart(StudiesChart.MACD)}
                             name="enableDisableMACD"
                             color="primary"
                         /></MenuItem>
@@ -571,43 +582,45 @@ const Toolbar = (props: any) => {
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='RSI_AND_ATR' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setDisableRSIAndATR(!disableRSIAndATR)}>
+                              onClick={() => handleChangeStudiesChart(StudiesChart.RSI_AND_ATR)}>
                         <span>Rsi_and_Atr</span>
                         <Switch
-                            checked={!disableRSIAndATR}
-                            onClick={() => setDisableRSIAndATR(!disableRSIAndATR)}
+                            checked={isStudiesChartInclude(StudiesChart.RSI_AND_ATR)}
+                            onClick={() => handleChangeStudiesChart(StudiesChart.RSI_AND_ATR)}
                             name="enableDisableRSIAndATR"
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='FORCEINDEX' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setDisableForceIndex(!disableForceIndex)}>
+                              onClick={() => handleChangeStudiesChart(StudiesChart.FORCE_INDEX)}>
                         <span>ForceIndex</span>
                         <Switch
-                            checked={!disableForceIndex}
-                            onClick={() => setDisableForceIndex(!disableForceIndex)}
+                            checked={isStudiesChartInclude(StudiesChart.FORCE_INDEX)}
+                            onClick={() => handleChangeStudiesChart(StudiesChart.FORCE_INDEX)}
                             name="enableDisableForceIndex"
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='STOCHASTIC_OSCILLATOR' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setDisableStochasticOscillator(!disableStochasticOscillator)}>
+                              onClick={() => handleChangeStudiesChart(StudiesChart.STOCHASTIC_OSCILLATOR)}>
                         <span>Stochastic Oscillator</span>
                         <Switch
-                            checked={!disableStochasticOscillator}
-                            onClick={() => setDisableStochasticOscillator(!disableStochasticOscillator)}
+                            checked={isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR)}
+                            onClick={() => handleChangeStudiesChart(StudiesChart.STOCHASTIC_OSCILLATOR)}
                             name="enableDisableStochasticOscillator"
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='ELDER_IMPULSE' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() =>{ setDisableOHLCSeries(!disableOHLCSeries)
                               setDisableVolume(!disableVolume)
-                              setDisableMACD(!disableMACD)
+                              handleChangeStudiesChart(StudiesChart.MACD)
+                              // setDisableMACD(!disableMACD)
                     }}>
                         <span>Elder_Impulse</span>
                         <Switch
                             checked={!disableOHLCSeries}
                             onClick={() =>{ setDisableOHLCSeries(!disableOHLCSeries)
                                 setDisableVolume(!disableVolume)
-                                setDisableMACD(!disableMACD)
+                                handleChangeStudiesChart(StudiesChart.MACD)
+                                // setDisableMACD(!disableMACD)
                             }}
                             name="enableDisableOHLCSeries"
                             color="primary"

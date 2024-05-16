@@ -44,3 +44,18 @@ export const SeriesValues: Series[] = [
     Series.AREA,
 ]
 
+export enum StudiesChart {
+    ELDER_RAY = 'ElderRay',
+    MACD = 'Macd',
+    RSI_AND_ATR = 'RSIAndATR',
+    FORCE_INDEX = 'ForceIndex',
+    STOCHASTIC_OSCILLATOR = 'stochasticOscillator',
+}
+
+export const StudiesChartsValues: StudiesChart[] = [
+    StudiesChart.ELDER_RAY,
+    StudiesChart.MACD,
+    StudiesChart.RSI_AND_ATR,
+    StudiesChart.FORCE_INDEX,
+    StudiesChart.STOCHASTIC_OSCILLATOR,
+]
