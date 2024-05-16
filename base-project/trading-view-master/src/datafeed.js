@@ -297,8 +297,8 @@ export default {
 		const requestBody = {
 			"Ticker": 'BINANCE:BTCUSDT',
 			"TimeFrame": reqResolution,
-			"from": Math.floor(new Date().getTime() / 1000) - (2000 * 24 * 3600),
-			"to": Math.floor(new Date().getTime() / 1000)
+			"from": from,
+			"to": to
 		};
 		const resultData = [];
 		try {
