@@ -3,9 +3,12 @@ import {timeFormat} from "d3-time-format";
 import * as React from "react";
 import {useEffect, useRef, useState} from "react";
 import {
-    BollingerSeries,
-    BollingerBandTooltip,
+    AlternatingFillAreaSeries,
+    AreaSeries,
+    atr,
     BarSeries,
+    BollingerBandTooltip,
+    BollingerSeries,
     Brush,
     change,
     Chart,
@@ -16,15 +19,12 @@ import {
     EdgeIndicator,
     elderRay,
     ElderRaySeries,
+    ema,
     EquidistantChannel,
     FibonacciRetracement,
+    forceIndex,
     HoverTooltip,
     InteractiveText,
-    atr,
-    forceIndex,
-    ema,
-    AlternatingFillAreaSeries,
-    AreaSeries,
     lastVisibleItemBasedZoomAnchor,
     LineSeries,
     MACDSeries,
@@ -47,25 +47,31 @@ import {
     TrendLine,
     XAxis,
     YAxis,
-    saveNodeType,
     ZoomButtons,
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
 
 import {
     accelerationFactor,
+    bb,
     ema12,
+    ema20,
     ema26,
+    ema50,
     macdCalculator,
     maxAccelerationFactor,
-    rsiCalculator,
+    sma20,
     smaVolume50,
-    bb, ema20, sma20, ema50, tma20, wma20,
 } from "../indicator/indicators";
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
-import {NO_OF_CANDLES, STUDIES_CHART_HEIGHT} from "../config/constants";
+import {
+    NO_OF_CANDLES,
+    STUDIES_CHART_HEIGHT, TOOLTIP_HEIGHT,
+    TOOLTIP_PADDING_LEFT,
+    TOOLTIP_PADDING_TOP
+} from "../config/constants";
 import {HourAndMinutesTimeFrames, StudiesChart, TimeFrame} from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
@@ -111,6 +117,7 @@ export const StockChart = (props: StockChartProps) => {
     const muiTheme = useTheme();
 
     const {studiesCharts, setStudiesCharts} = useStore();
+    const {studiesChartsWithTooltip, setStudiesChartsWithTooltip} = useStore();
 
     const {loadingMoreData, setLoadingMoreData} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
@@ -509,6 +516,10 @@ export const StockChart = (props: StockChartProps) => {
         return studiesCharts.includes(chart)
     }
 
+    const isStudiesChartWithTooltipInclude = (chart: StudiesChart): boolean => {
+        return studiesChartsWithTooltip.includes(chart)
+    }
+
     const handleSelection = (interactives: any) => {
         /* const state = toObject(interactives, each => {
              return [
@@ -727,6 +738,10 @@ export const StockChart = (props: StockChartProps) => {
         return (studiesCharts.indexOf(chart) + 1) * STUDIES_CHART_HEIGHT
     }
 
+    const getStudiesChartTooltipOrigin = (chart: StudiesChart, yPosition = TOOLTIP_PADDING_LEFT, paddingTop = TOOLTIP_PADDING_TOP, height = TOOLTIP_HEIGHT) => {
+        return [yPosition, studiesChartsWithTooltip.indexOf(chart) * height + paddingTop]
+    }
+
     const showTickLabel = (chart: StudiesChart) => {
         return studiesCharts.indexOf(chart) === 0
     }
@@ -743,17 +758,14 @@ export const StockChart = (props: StockChartProps) => {
     // const chartHeight = gridHeight - elderRayHeight;
     const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
     const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length + 1) * STUDIES_CHART_HEIGHT - 5];
-    const {disableMovingAverage, setDisableMovingAverage} = useStore();
-    const {disableBollingerBand, setDisableBollingerBand} = useStore();
     const {disableVolume, setDisableVolume} = useStore();
     // const {disableElderRay, setDisableElderRay} = useStore();
     // const {disableMACD} = useStore();
     const {disableHoverTooltip} = useStore();
-    const {disableSAR} = useStore();
     // const {disableRSIAndATR} = useStore();
     // const {disableForceIndex} = useStore();
     // const {disableStochasticOscillator} = useStore();
-    const {disableOHLCSeries} = useStore();
+    // const {disableOHLCSeries} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
@@ -813,18 +825,18 @@ export const StockChart = (props: StockChartProps) => {
 
             >
                 {/*<OHLCSeries strokeWidth={3}  stroke={d => elderImpulseCalculator.stroke()[d.elderImpulse]} yAccessor={(d) => ({ open: d.open, high: d.high, low: d.low, close: d.close })} />*/}
-                {(!disableOHLCSeries || isStudiesChartInclude(StudiesChart.ELDER_RAY)) && (
+                {(isStudiesChartWithTooltipInclude(StudiesChart.ELDER_IMPULSE) || isStudiesChartInclude(StudiesChart.ELDER_RAY)) && (
                     <OHLCSeries strokeWidth={5}/>
                 )}
                 <XAxis showGridLines {...xAndYColors} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} {...xAndYColors} />
 
-                {(!isStudiesChartInclude(StudiesChart.ELDER_RAY) && disableOHLCSeries) && (
+                {(!isStudiesChartInclude(StudiesChart.ELDER_RAY) && !isStudiesChartWithTooltipInclude(StudiesChart.ELDER_IMPULSE)) && (
                     <SelectedSeries series={seriesType} data={data}/>
                 )}
 
 
-                {!disableMovingAverage && (
+                {isStudiesChartWithTooltipInclude(StudiesChart.MOVING_AVERAGE) && (
                     <div>
                         <LineSeries yAccessor={ema26.accessor()} strokeStyle={ema26.stroke()}/>
                         <CurrentCoordinate yAccessor={ema26.accessor()} fillStyle={ema26.stroke()}/>
@@ -833,17 +845,16 @@ export const StockChart = (props: StockChartProps) => {
                     </div>
                 )}
 
-                {!disableOHLCSeries && (
+                {isStudiesChartWithTooltipInclude(StudiesChart.ELDER_IMPULSE) && (
+                    <>
                     <div>
                         <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
                         <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
                     </div>
-                )}
-                {!disableOHLCSeries && (
                     <MovingAverageTooltip
                         textFill={getDesignTokens(themeMode).palette.text.primary}
                         onClick={() => setOpenMovingAverageModal(true)}
-                        origin={[8, 24]}
+                        origin={getStudiesChartTooltipOrigin(StudiesChart.ELDER_IMPULSE)}
                         options={[
                             {
                                 yAccessor: ema12.accessor(),
@@ -853,6 +864,7 @@ export const StockChart = (props: StockChartProps) => {
                             },
                         ]}
                     />
+                    </>
                 )}
 
                 <MouseCoordinateX at="bottom" orient="bottom"
@@ -877,11 +889,11 @@ export const StockChart = (props: StockChartProps) => {
                                    arrowWidth={2}
                     />*/}
 
-                {!disableMovingAverage && (
+                {isStudiesChartWithTooltipInclude(StudiesChart.MOVING_AVERAGE) && (
                     <MovingAverageTooltip
                         textFill={getDesignTokens(themeMode).palette.text.primary}
                         onClick={() => setOpenMovingAverageModal(true)}
-                        origin={[8, 24]}
+                        origin={getStudiesChartTooltipOrigin(StudiesChart.MOVING_AVERAGE)}
                         options={[
                             {
                                 yAccessor: ema26.accessor(),
@@ -920,7 +932,7 @@ export const StockChart = (props: StockChartProps) => {
                             changing
                         </Typography>
                         <Button color='error' title='disable MovingAverage' onClick={() => {
-                            setDisableMovingAverage(true)
+                            setStudiesChartsWithTooltip(studiesChartsWithTooltip.filter(item => item !== StudiesChart.MOVING_AVERAGE))
                             setOpenMovingAverageModal(false)
                         }}> disable MovingAverage </Button>
                     </Box>
@@ -929,12 +941,12 @@ export const StockChart = (props: StockChartProps) => {
                 <ZoomButtons onReset={handleReset}/>
                 <OHLCTooltip origin={[8, 16]} textFill={getDesignTokens(themeMode).palette.text.primary}/>
 
-                {!disableBollingerBand && (
+                {isStudiesChartWithTooltipInclude(StudiesChart.BOLLINGER_BAND) && (
                     <>
                     <MovingAverageTooltip
                         textFill={getDesignTokens(themeMode).palette.text.primary}
                         onClick={e => console.log(e)}
-                        origin={[6, 17]}
+                        origin={getStudiesChartTooltipOrigin(StudiesChart.BOLLINGER_BAND)}
                         options={[
                             {
                                 yAccessor: sma20.accessor(),
@@ -957,18 +969,14 @@ export const StockChart = (props: StockChartProps) => {
                         ]}
                     />
                         <BollingerBandTooltip
-                            origin={[6, 60]}
+                            // @ts-ignore
+                            origin={getStudiesChartTooltipOrigin(StudiesChart.BOLLINGER_BAND, 200, 34)}
                             yAccessor={d => d.bb}
                             options={bb.options()}
                             textFill={getDesignTokens(themeMode).palette.text.primary}/>
 
-                    </>
-                )};
-
-            {!disableBollingerBand && (
-                <>
-                <LineSeries yAccessor={sma20.accessor()} strokeStyle={sma20.stroke()}/>
-                <LineSeries yAccessor={ema20.accessor()} strokeStyle={ema20.stroke()}/>
+            <LineSeries yAccessor={sma20.accessor()} strokeStyle={sma20.stroke()}/>
+            <LineSeries yAccessor={ema20.accessor()} strokeStyle={ema20.stroke()}/>
             <LineSeries yAccessor={ema50.accessor()} strokeStyle={ema50.stroke()}/>
             <CurrentCoordinate yAccessor={sma20.accessor()} fillStyle={sma20.stroke()} />
             <CurrentCoordinate yAccessor={ema20.accessor()} fillStyle={ema20.stroke()} />
@@ -1028,14 +1036,14 @@ export const StockChart = (props: StockChartProps) => {
                     onComplete={onDrawCompleteEquidistantChannel}
                     channels={equidistantChannels}
                     appearance={{
-                        stroke: "#000000",
+                        stroke: getDesignTokens(themeMode).palette.lineColor,
                         strokeOpacity: 1,
                         strokeWidth: 1,
                         fill: "rgba(112, 176, 217, 0.4)",
                         fillOpacity: 0.1,
-                        edgeStroke: "#000000",
-                        edgeFill: "#FFFFFF",
-                        edgeFill2: "#070707",
+                        edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
+                        edgeFill: getDesignTokens(themeMode).palette.lineColor,
+                        edgeFill2: getDesignTokens(themeMode).palette.lineColor,
                         edgeStrokeWidth: 1,
                         r: 5,
                     }}
@@ -1091,15 +1099,23 @@ export const StockChart = (props: StockChartProps) => {
                 )}
 
 
-                {!disableSAR && (
+                {isStudiesChartWithTooltipInclude(StudiesChart.SAR) && (
+                    <>
                     <SARSeries yAccessor={d => d.sar} highlightOnHover/>
-                )}
-                {!disableSAR && (
-                    <SingleValueTooltip
-                        valueFill={getDesignTokens(themeMode).palette.text.primary}
-                        yLabel={`SAR (${accelerationFactor}, ${maxAccelerationFactor})`}
-                        yAccessor={d => d.sar}
-                        origin={[8, 36]}/>
+                    <MovingAverageTooltip
+                        textFill={getDesignTokens(themeMode).palette.text.primary}
+                        onClick={() => setOpenMovingAverageModal(true)}
+                        origin={getStudiesChartTooltipOrigin(StudiesChart.SAR, 2)}
+                        options={[
+                            {
+                                yAccessor: (d) => d.sar,
+                                type: `SAR (${accelerationFactor}, ${maxAccelerationFactor})`,
+                                stroke: '',
+                                windowSize: 0,
+                            },
+                        ]}
+                    />
+                    </>
                 )}
 
 
