@@ -21,6 +21,9 @@ type Store = {
     disableMovingAverage : boolean
     setDisableMovingAverage : (isDisableMovingAverage: boolean) => void
 
+    disableBollingerBand: boolean
+    setDisableBollingerBand : (isDisableBollingerBand: boolean) => void
+
     disableVolume : boolean
     setDisableVolume : (disableVolume: boolean) => void
 
@@ -76,6 +79,9 @@ const useStore = create<Store>((set) => ({
 
     disableMovingAverage : true,
     setDisableMovingAverage : (disableMovingAverage: boolean) => set((state) => ({disableMovingAverage:disableMovingAverage})),
+
+    disableBollingerBand: true,
+    setDisableBollingerBand : (isDisableBollingerBand: boolean) => set((state) => ({disableBollingerBand:isDisableBollingerBand})),
 
     disableVolume : true,
     setDisableVolume : (disableVolume: boolean) => set((state) => ({disableVolume:disableVolume})),

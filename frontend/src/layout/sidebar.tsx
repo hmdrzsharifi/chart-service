@@ -21,7 +21,7 @@ const Sidebar = (props: any) => {
     return (
         <div className="sidebar" style={props.style}>
 
-            <Tooltip title="Trend line" placement="right" arrow>
+            <Tooltip title="Trendline" placement="right" arrow>
                 <IconButton
                     onClick={() => {
                         setEnableTrendLine(!enableTrendLine)
@@ -35,7 +35,7 @@ const Sidebar = (props: any) => {
                 </IconButton>
             </Tooltip>
 
-            <Tooltip title="Fibonacci" placement="right" arrow>
+            <Tooltip title="Fibonacci Retracement" placement="right" arrow>
                 <IconButton
                     onClick={() => {
                         setEnableFib(!enableFib)

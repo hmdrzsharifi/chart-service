@@ -54,6 +54,7 @@ const Toolbar = (props: any) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
+    const {disableBollingerBand, setDisableBollingerBand} = useStore();
     const {disableVolume, setDisableVolume} = useStore();
     const {studiesCharts, setStudiesCharts} = useStore();
     const {disableSAR , setDisableSAR} = useStore();
@@ -556,7 +557,7 @@ const Toolbar = (props: any) => {
                     <MenuItem value='ELDERRAY' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => handleChangeStudiesChart(StudiesChart.ELDER_RAY)}
                     >
-                        <span>Elderray</span>
+                        <span>ElderRay</span>
                         <Switch
                             checked={isStudiesChartInclude(StudiesChart.ELDER_RAY)}
                             onClick={() => handleChangeStudiesChart(StudiesChart.ELDER_RAY)}
@@ -565,7 +566,7 @@ const Toolbar = (props: any) => {
                         /></MenuItem>
                     <MenuItem value='MACD' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => handleChangeStudiesChart(StudiesChart.MACD)}>
-                        <span>Macd</span>
+                        <span>MACD</span>
                         <Switch
                             checked={isStudiesChartInclude(StudiesChart.MACD)}
                             onClick={() => handleChangeStudiesChart(StudiesChart.MACD)}
@@ -583,7 +584,7 @@ const Toolbar = (props: any) => {
                         /></MenuItem>
                     <MenuItem value='RSI_AND_ATR' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => handleChangeStudiesChart(StudiesChart.RSI_AND_ATR)}>
-                        <span>Rsi_and_Atr</span>
+                        <span>RSI and ATR</span>
                         <Switch
                             checked={isStudiesChartInclude(StudiesChart.RSI_AND_ATR)}
                             onClick={() => handleChangeStudiesChart(StudiesChart.RSI_AND_ATR)}
@@ -614,7 +615,7 @@ const Toolbar = (props: any) => {
                               handleChangeStudiesChart(StudiesChart.MACD)
                               // setDisableMACD(!disableMACD)
                     }}>
-                        <span>Elder_Impulse</span>
+                        <span>Elder Impulse</span>
                         <Switch
                             checked={!disableOHLCSeries}
                             onClick={() =>{ setDisableOHLCSeries(!disableOHLCSeries)
@@ -626,15 +627,15 @@ const Toolbar = (props: any) => {
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='BOLLINGER_BAND' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
+                              onClick={() => setDisableBollingerBand(!disableBollingerBand)}>
                         <span>Bollinger Band</span>
                         <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
+                            checked={!disableBollingerBand}
+                            onClick={() => setDisableBollingerBand(!disableBollingerBand)}
                             name="enableDisableMovingAverage"
                             color="primary"
                         /></MenuItem>
-                    <MenuItem value='COMPARE' style={{display: 'flex', justifyContent: 'space-between'}}
+                    {/*<MenuItem value='COMPARE' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
                         <span>Compare</span>
                         <Switch
@@ -645,7 +646,7 @@ const Toolbar = (props: any) => {
                         /></MenuItem>
                     <MenuItem value='VOLUME_PROFILE' style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
-                        <span>Volume Profile</span>
+                        <span>Volume profile</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
@@ -655,13 +656,13 @@ const Toolbar = (props: any) => {
                     <MenuItem value='VOLUME_PROFILE_BY_SESSION'
                               style={{display: 'flex', justifyContent: 'space-between'}}
                               onClick={() => setMenuOpen(false)}>
-                        <span>Volume profile py Session</span>
+                        <span>Volume profile by Session</span>
                         <Switch
                             // checked={!isDisableMovingAverage}
                             // onClick={() => setDisableElderRay(!disableElderRay)}
                             name="enableDisableMovingAverage"
                             color="primary"
-                        /></MenuItem>
+                        /></MenuItem>*/}
                 </Menu>
 
             </div>

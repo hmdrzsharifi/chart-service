@@ -3,6 +3,8 @@ import {timeFormat} from "d3-time-format";
 import * as React from "react";
 import {useEffect, useRef, useState} from "react";
 import {
+    BollingerSeries,
+    BollingerBandTooltip,
     BarSeries,
     Brush,
     change,
@@ -55,8 +57,10 @@ import {
     ema12,
     ema26,
     macdCalculator,
-    maxAccelerationFactor, rsiCalculator,
+    maxAccelerationFactor,
+    rsiCalculator,
     smaVolume50,
+    bb, ema20, sma20, ema50, tma20, wma20,
 } from "../indicator/indicators";
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
@@ -83,6 +87,14 @@ interface StockChartProps {
     readonly ratio: number;
     readonly theme?: any;
 }
+
+const bbStroke = {
+    top: "#964B00",
+    middle: "#000000",
+    bottom: "#964B00",
+};
+
+const bbFill = "rgba(70,130,180,0.24)";
 
 export const StockChart = (props: StockChartProps) => {
     const margin = {left: 0, right: 58, top: 0, bottom: 24};
@@ -148,22 +160,22 @@ export const StockChart = (props: StockChartProps) => {
         onUnHover: handleHover,
     };
 
-    const onDrawComplete = (textList:any, moreProps:any) => {
+    const onDrawComplete = (textList: any, moreProps: any) => {
         // this gets called on
         // 1. draw complete of drawing object
         // 2. drag complete of drawing object
         console.log({textList})
-        const { id: chartId } = moreProps.chartConfig;
+        const {id: chartId} = moreProps.chartConfig;
 
         setEnableInteractiveObject(false)
-        setText([...text,textList])
+        setText([...text, textList])
     }
 
     const handleDragStart = (_: React.MouseEvent, moreProps: any) => {
         // const { position } = this.props;
-        const { mouseXY } = moreProps;
+        const {mouseXY} = moreProps;
         const {
-            chartConfig: { yScale },
+            chartConfig: {yScale},
             xScale,
         } = moreProps;
         const [mouseX, mouseY] = mouseXY;
@@ -195,12 +207,13 @@ export const StockChart = (props: StockChartProps) => {
     function getMaxUndefined(calculators: any) {
         return calculators.map((each: any) => each.undefinedLength()).reduce((a: any, b: any) => Math.max(a, b));
     }
-    const interactiveTextOnDrawComplete = (textList:any, moreProps:any) => {
+
+    const interactiveTextOnDrawComplete = (textList: any, moreProps: any) => {
         // this gets called on
         // 1. draw complete of drawing object
         // 2. drag complete of drawing object
         console.log({textList})
-        const { id: chartId } = moreProps.chartConfig;
+        const {id: chartId} = moreProps.chartConfig;
         setEnableInteractiveObject(false)
         // [`textList_${chartId}`]: textList
 
@@ -362,8 +375,8 @@ export const StockChart = (props: StockChartProps) => {
             setFixedPosition(true)
 
             /* SERVER - START */
-         /*   const dataToCalculate = data
-                .slice(-rowsToDownload - maxWindowSize - data.length, -data.length);*/
+            /*   const dataToCalculate = data
+                   .slice(-rowsToDownload - maxWindowSize - data.length, -data.length);*/
 
             // console.log({dataToCalculate})
 
@@ -382,9 +395,14 @@ export const StockChart = (props: StockChartProps) => {
                 .initialIndex(Math.ceil(start))
                 .withIndex(index);
 
-            const {data: linearData, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(data));
+            const {
+                data: linearData,
+                xScale,
+                xAccessor,
+                displayXAccessor
+            } = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(data));
             const max = xAccessor(data[data.length - 1]);
-            const min =xAccessor(data[0]);
+            const min = xAccessor(data[0]);
             setXExtents([min, max])
 
             // Update the state with the combined data
@@ -396,9 +414,9 @@ export const StockChart = (props: StockChartProps) => {
             // const xScaleProvider = discontinuousTimeScaleProviderBuilder().withIndex(index);
             // const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
             // setData(linearData)
-          /*  const max = xAccessor(data[data.length - 1]);
-            const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
-            setXExtents([min, max])*/
+            /*  const max = xAccessor(data[data.length - 1]);
+              const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
+              setXExtents([min, max])*/
 
 
             // setXScale(xScale)
@@ -406,19 +424,19 @@ export const StockChart = (props: StockChartProps) => {
             // setDisplayXAccessor(xAccessor)
             // Update the state with the new data and the recalculated scale
 
-                // After the state has been updated, adjust the xScale domain to create a buffer
-                // const { xScale, xAccessor, data } = this.state;
-                // this.props.onUpdateData(this.state.data);
-                const totalPoints = data.length;
-                const bufferPoints = 5; // Number of points to leave as a buffer to the right
-                const startPoint = xAccessor(data[Math.max(0, totalPoints - bufferPoints)]);
-                const endPoint = xAccessor(data[totalPoints - 1]);
+            // After the state has been updated, adjust the xScale domain to create a buffer
+            // const { xScale, xAccessor, data } = this.state;
+            // this.props.onUpdateData(this.state.data);
+            const totalPoints = data.length;
+            const bufferPoints = 5; // Number of points to leave as a buffer to the right
+            const startPoint = xAccessor(data[Math.max(0, totalPoints - bufferPoints)]);
+            const endPoint = xAccessor(data[totalPoints - 1]);
 
-                // Set the visible scale domain to show data up to the buffer
-                xScale.domain([startPoint, endPoint]);
+            // Set the visible scale domain to show data up to the buffer
+            xScale.domain([startPoint, endPoint]);
 
-                // Force update to re-render the chart with the new domain
-                // this.forceUpdate();
+            // Force update to re-render the chart with the new domain
+            // this.forceUpdate();
 
 
             // setLoadingMoreData(false);
@@ -603,7 +621,9 @@ export const StockChart = (props: StockChartProps) => {
             )
         )*/
 
-        return macdCalculator(ema12(ema26(initialData)))
+        // return macdCalculator(ema12(ema26(bb(initialData))))
+        return ema20(sma20(ema50(smaVolume50(bb(initialData)))));
+
     }
 
     const {data, xScale, xAccessor, displayXAccessor} = xScaleProvider(calculatedData);
@@ -629,33 +649,43 @@ export const StockChart = (props: StockChartProps) => {
         .options({
             accelerationFactor, maxAccelerationFactor
         })
-        .merge((d:any, c:any) => {d.sar = c;})
-        .accessor((d:any) => d.sar);
+        .merge((d: any, c: any) => {
+            d.sar = c;
+        })
+        .accessor((d: any) => d.sar);
     const calculatedData1 = defaultSar(initialData);
 
 
     const rsiCalculator = rsi()
-        .options({ windowSize: 14 })
-        .merge((d:any, c:any) => {d.rsi = c;})
-        .accessor((d:any) => d.rsi);
+        .options({windowSize: 14})
+        .merge((d: any, c: any) => {
+            d.rsi = c;
+        })
+        .accessor((d: any) => d.rsi);
     const calculatedData2 = rsiCalculator(initialData);
 
     const atr14 = atr()
-        .options({ windowSize: 14 })
-        .merge((d:any, c:any) => {d.atr14 = c;})
-        .accessor((d:any) => d.atr14);
+        .options({windowSize: 14})
+        .merge((d: any, c: any) => {
+            d.atr14 = c;
+        })
+        .accessor((d: any) => d.atr14);
     const calculatedData3 = atr14(initialData);
 
     const fi = forceIndex()
-        .merge((d:any, c:any) => {d.fi = c;})
-        .accessor((d:any) => d.fi);
+        .merge((d: any, c: any) => {
+            d.fi = c;
+        })
+        .accessor((d: any) => d.fi);
     const calculatedData4 = fi(initialData);
 
     const fiEMA13 = ema()
         .id(1)
-        .options({ windowSize: 13, sourcePath: "fi" })
-        .merge((d:any, c:any) => {d.fiEMA13 = c;})
-        .accessor((d:any) => d.fiEMA13);
+        .options({windowSize: 13, sourcePath: "fi"})
+        .merge((d: any, c: any) => {
+            d.fiEMA13 = c;
+        })
+        .accessor((d: any) => d.fiEMA13);
     const calculatedData5 = fiEMA13(initialData);
 
     const elder = elderRay();
@@ -665,27 +695,33 @@ export const StockChart = (props: StockChartProps) => {
 
 
     const slowSTO = stochasticOscillator()
-        .options({ windowSize: 14, kWindowSize: 3  , dWindowSize: 4})
-        .merge((d:any, c:any) => {d.slowSTO = c;})
-        .accessor((d:any) => d.slowSTO);
+        .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
+        .merge((d: any, c: any) => {
+            d.slowSTO = c;
+        })
+        .accessor((d: any) => d.slowSTO);
     const calculatedData7 = slowSTO(elder(initialData));
 
     const fastSTO = stochasticOscillator()
-        .options({ windowSize: 14, kWindowSize: 1  , dWindowSize: 4})
-        .merge((d:any, c:any) => {d.fastSTO = c;})
-        .accessor((d:any) => d.fastSTO);
+        .options({windowSize: 14, kWindowSize: 1, dWindowSize: 4})
+        .merge((d: any, c: any) => {
+            d.fastSTO = c;
+        })
+        .accessor((d: any) => d.fastSTO);
     const calculatedData8 = fastSTO(elder(initialData));
 
     const fullSTO = stochasticOscillator()
-        .options({ windowSize: 14, kWindowSize: 3, dWindowSize: 4 })
-        .merge((d:any, c:any) => {d.fullSTO = c;})
-        .accessor((d:any) => d.fullSTO);
+        .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
+        .merge((d: any, c: any) => {
+            d.fullSTO = c;
+        })
+        .accessor((d: any) => d.fullSTO);
     const calculatedData9 = fullSTO(elder(initialData));
 
     // const calculatedData10 = elderImpulseCalculator(macdCalculator(ema12(changeCalculator(initialData))));
 
     const showGrid = false;
-    const xGrid = showGrid ? { innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1 } : {};
+    const xGrid = showGrid ? {innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1} : {};
 
     const getStudiesChartOrigin = (chart: StudiesChart) => {
         return (studiesCharts.indexOf(chart) + 1) * STUDIES_CHART_HEIGHT
@@ -708,6 +744,7 @@ export const StockChart = (props: StockChartProps) => {
     const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
     const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length + 1) * STUDIES_CHART_HEIGHT - 5];
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
+    const {disableBollingerBand, setDisableBollingerBand} = useStore();
     const {disableVolume, setDisableVolume} = useStore();
     // const {disableElderRay, setDisableElderRay} = useStore();
     // const {disableMACD} = useStore();
@@ -730,8 +767,8 @@ export const StockChart = (props: StockChartProps) => {
         gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
     }
 
-    const handleBrush1 = (brushCoords:any, moreProps:any) => {
-        const { start, end } = brushCoords;
+    const handleBrush1 = (brushCoords: any, moreProps: any) => {
+        const {start, end} = brushCoords;
         const left = Math.min(start.xValue, end.xValue);
         const right = Math.max(start.xValue, end.xValue);
 
@@ -772,18 +809,19 @@ export const StockChart = (props: StockChartProps) => {
                 id={1}
                 height={chartHeight}
                 yExtents={candleChartExtents}
+                // yExtents={[(d:any) => [d.high, d.low], sma20.accessor(), ema20.accessor(), ema50.accessor(), bb.accessor()]}
+
             >
                 {/*<OHLCSeries strokeWidth={3}  stroke={d => elderImpulseCalculator.stroke()[d.elderImpulse]} yAccessor={(d) => ({ open: d.open, high: d.high, low: d.low, close: d.close })} />*/}
                 {(!disableOHLCSeries || isStudiesChartInclude(StudiesChart.ELDER_RAY)) && (
-                <OHLCSeries strokeWidth={5} />
+                    <OHLCSeries strokeWidth={5}/>
                 )}
                 <XAxis showGridLines {...xAndYColors} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} {...xAndYColors} />
 
                 {(!isStudiesChartInclude(StudiesChart.ELDER_RAY) && disableOHLCSeries) && (
-                <SelectedSeries series={seriesType} data={data}/>
+                    <SelectedSeries series={seriesType} data={data}/>
                 )}
-
 
 
                 {!disableMovingAverage && (
@@ -797,27 +835,28 @@ export const StockChart = (props: StockChartProps) => {
 
                 {!disableOHLCSeries && (
                     <div>
-                    <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
-                    <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
+                        <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
+                        <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
                     </div>
-            )}
+                )}
                 {!disableOHLCSeries && (
-                <MovingAverageTooltip
-                    textFill={getDesignTokens(themeMode).palette.text.primary}
-                    onClick={() => setOpenMovingAverageModal(true)}
-                    origin={[8, 24]}
-                    options={[
-                        {
-                            yAccessor: ema12.accessor(),
-                            type: "EMA",
-                            stroke: ema12.stroke(),
-                            windowSize: ema12.options().windowSize,
-                        },
-                    ]}
-                />
-                    )}
+                    <MovingAverageTooltip
+                        textFill={getDesignTokens(themeMode).palette.text.primary}
+                        onClick={() => setOpenMovingAverageModal(true)}
+                        origin={[8, 24]}
+                        options={[
+                            {
+                                yAccessor: ema12.accessor(),
+                                type: "EMA",
+                                stroke: ema12.stroke(),
+                                windowSize: ema12.options().windowSize,
+                            },
+                        ]}
+                    />
+                )}
 
-                <MouseCoordinateX at="bottom" orient="bottom" displayFormat={timeFrame == TimeFrame.M1 ? timeFormat("%H-%M-%S") : timeFrame == TimeFrame.D ? timeFormat("%Y-%m-%d") : timeFormat("%Y-%m-%d")} />
+                <MouseCoordinateX at="bottom" orient="bottom"
+                                  displayFormat={timeFrame == TimeFrame.M1 ? timeFormat("%H-%M-%S") : timeFrame == TimeFrame.D ? timeFormat("%Y-%m-%d") : timeFormat("%Y-%m-%d")}/>
                 <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10}/>
                 <EdgeIndicator
                     itemType="last"
@@ -890,6 +929,57 @@ export const StockChart = (props: StockChartProps) => {
                 <ZoomButtons onReset={handleReset}/>
                 <OHLCTooltip origin={[8, 16]} textFill={getDesignTokens(themeMode).palette.text.primary}/>
 
+                {!disableBollingerBand && (
+                    <>
+                    <MovingAverageTooltip
+                        textFill={getDesignTokens(themeMode).palette.text.primary}
+                        onClick={e => console.log(e)}
+                        origin={[6, 17]}
+                        options={[
+                            {
+                                yAccessor: sma20.accessor(),
+                                type: sma20.type(),
+                                stroke: sma20.stroke(),
+                                windowSize: sma20.options().windowSize,
+                            },
+                            {
+                                yAccessor: ema20.accessor(),
+                                type: ema20.type(),
+                                stroke: ema20.stroke(),
+                                windowSize: ema20.options().windowSize,
+                            },
+                            {
+                                yAccessor: ema50.accessor(),
+                                type: ema50.type(),
+                                stroke: ema50.stroke(),
+                                windowSize: ema50.options().windowSize,
+                            },
+                        ]}
+                    />
+                        <BollingerBandTooltip
+                            origin={[6, 60]}
+                            yAccessor={d => d.bb}
+                            options={bb.options()}
+                            textFill={getDesignTokens(themeMode).palette.text.primary}/>
+
+                    </>
+                )};
+
+            {!disableBollingerBand && (
+                <>
+                <LineSeries yAccessor={sma20.accessor()} strokeStyle={sma20.stroke()}/>
+                <LineSeries yAccessor={ema20.accessor()} strokeStyle={ema20.stroke()}/>
+            <LineSeries yAccessor={ema50.accessor()} strokeStyle={ema50.stroke()}/>
+            <CurrentCoordinate yAccessor={sma20.accessor()} fillStyle={sma20.stroke()} />
+            <CurrentCoordinate yAccessor={ema20.accessor()} fillStyle={ema20.stroke()} />
+            <CurrentCoordinate yAccessor={ema50.accessor()} fillStyle={ema50.stroke()} />
+
+            <BollingerSeries yAccessor={d => d.bb}
+            strokeStyle={bbStroke}
+            fillStyle={bbFill}/>
+                </>
+    )};
+
                 /*##### Interactive #####*/
                 <TrendLine
                     // ref={saveInteractiveNodes("Trendline", 1)}
@@ -942,7 +1032,7 @@ export const StockChart = (props: StockChartProps) => {
                         strokeOpacity: 1,
                         strokeWidth: 1,
                         fill: "rgba(112, 176, 217, 0.4)",
-                        fillOpacity:0.1,
+                        fillOpacity: 0.1,
                         edgeStroke: "#000000",
                         edgeFill: "#FFFFFF",
                         edgeFill2: "#070707",
@@ -960,56 +1050,56 @@ export const StockChart = (props: StockChartProps) => {
                     onBrush={handleBrush1}/>
 
                 <InteractiveText
-                    onChoosePosition={(e: React.MouseEvent, newText: any, moreProps: any) =>{
-                        onDrawComplete(newText , moreProps)
-                    } }
+                    onChoosePosition={(e: React.MouseEvent, newText: any, moreProps: any) => {
+                        onDrawComplete(newText, moreProps)
+                    }}
                     // ref={saveNodeType("text")}
                     enabled={enableInteractiveObject}
-                    onDragComplete={(e: React.MouseEvent, newText: any, moreProps: any) =>{
-                        onDrawComplete(newText , moreProps)
-                    } }
+                    onDragComplete={(e: React.MouseEvent, newText: any, moreProps: any) => {
+                        onDrawComplete(newText, moreProps)
+                    }}
                     textList={text}
                 />
 
                 {!disableHoverTooltip && (
-                <HoverTooltip
-                    yAccessor={ema12.accessor()}
-                    tooltip={{
-                        content: ({ currentItem, xAccessor }) => ({
-                            x: dateFormat(xAccessor(currentItem)),
-                            y: [
-                                {
-                                    label: "open",
-                                    value: currentItem.open && numberFormat(currentItem.open),
-                                },
-                                {
-                                    label: "high",
-                                    value: currentItem.high && numberFormat(currentItem.high),
-                                },
-                                {
-                                    label: "low",
-                                    value: currentItem.low && numberFormat(currentItem.low),
-                                },
-                                {
-                                    label: "close",
-                                    value: currentItem.close && numberFormat(currentItem.close),
-                                },
-                            ],
-                        }),
-                    }}
-                />
-                    )}
+                    <HoverTooltip
+                        yAccessor={ema12.accessor()}
+                        tooltip={{
+                            content: ({currentItem, xAccessor}) => ({
+                                x: dateFormat(xAccessor(currentItem)),
+                                y: [
+                                    {
+                                        label: "open",
+                                        value: currentItem.open && numberFormat(currentItem.open),
+                                    },
+                                    {
+                                        label: "high",
+                                        value: currentItem.high && numberFormat(currentItem.high),
+                                    },
+                                    {
+                                        label: "low",
+                                        value: currentItem.low && numberFormat(currentItem.low),
+                                    },
+                                    {
+                                        label: "close",
+                                        value: currentItem.close && numberFormat(currentItem.close),
+                                    },
+                                ],
+                            }),
+                        }}
+                    />
+                )}
 
 
                 {!disableSAR && (
-                <SARSeries yAccessor={d => d.sar} highlightOnHover/>
+                    <SARSeries yAccessor={d => d.sar} highlightOnHover/>
                 )}
                 {!disableSAR && (
-                <SingleValueTooltip
-                    valueFill={getDesignTokens(themeMode).palette.text.primary}
-                    yLabel={`SAR (${accelerationFactor}, ${maxAccelerationFactor})`}
-                    yAccessor={d => d.sar}
-                    origin={[8, 36]}/>
+                    <SingleValueTooltip
+                        valueFill={getDesignTokens(themeMode).palette.text.primary}
+                        yLabel={`SAR (${accelerationFactor}, ${maxAccelerationFactor})`}
+                        yAccessor={d => d.sar}
+                        origin={[8, 36]}/>
                 )}
 
 
@@ -1018,16 +1108,16 @@ export const StockChart = (props: StockChartProps) => {
             /*##### Volume Chart #####*/
             {/*{volume.active && (*/}
             {!disableVolume && (
-            <Chart
-                id={2}
-                height={barChartHeight}
-                origin={barChartOrigin}
-                yExtents={barChartExtents}
-                // yExtents={[d => d.volume, smaVolume50.accessor()]}
-            >
-                <BarSeries fillStyle={volumeColor} yAccessor={d => d.volume}/>
-                {/*<AreaSeries yAccessor={smaVolume50.accessor()} {...volumeAppearance} />*/}
-            </Chart>
+                <Chart
+                    id={2}
+                    height={barChartHeight}
+                    origin={barChartOrigin}
+                    yExtents={barChartExtents}
+                    // yExtents={[d => d.volume, smaVolume50.accessor()]}
+                >
+                    <BarSeries fillStyle={volumeColor} yAccessor={d => d.volume}/>
+                    {/*<AreaSeries yAccessor={smaVolume50.accessor()} {...volumeAppearance} />*/}
+                </Chart>
             )}
             {/*)}*/}
 
@@ -1044,62 +1134,62 @@ export const StockChart = (props: StockChartProps) => {
                 // />
 
                 (
-                <Chart id={3} height={STUDIES_CHART_HEIGHT} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
-                       padding={{top: 8, bottom: 8}}>
-                    {/*<XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>*/}
-                    <XAxis showGridLines {...xAndYColors}/>
-                    <YAxis ticks={4} tickFormat={pricesDisplayFormat} {...xAndYColors}/>
+                    <Chart id={3} height={STUDIES_CHART_HEIGHT} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
+                           padding={{top: 8, bottom: 8}}>
+                        {/*<XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>*/}
+                        <XAxis showGridLines {...xAndYColors}/>
+                        <YAxis ticks={4} tickFormat={pricesDisplayFormat} {...xAndYColors}/>
 
-                    <MouseCoordinateX displayFormat={timeDisplayFormat}/>
-                    <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat}/>
-                    <MouseCoordinateY
-                        at="right"
-                        orient="right"
-                        displayFormat={pricesDisplayFormat}
-                        {...mouseEdgeAppearance}/>
-                    <ElderRaySeries yAccessor={elder.accessor()}/>
-                    <SingleValueTooltip
-                        // origin={[10,50]}
-                        valueFill={getDesignTokens(themeMode).palette.text.primary}
-                        className='elderChart'
-                        xInitDisplay='200px'
-                        onClick={() => setOpenElderRayModal(true)}
-                        yAccessor={elder.accessor()}
-                        yLabel="Elder Ray"
-                        yDisplayFormat={(d: any) =>
-                            `${pricesDisplayFormat(d.bullPower)}, ${pricesDisplayFormat(d.bearPower)}`
-                        }
-                        origin={[8, 16]}
-                    />
+                        <MouseCoordinateX displayFormat={timeDisplayFormat}/>
+                        <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat}/>
+                        <MouseCoordinateY
+                            at="right"
+                            orient="right"
+                            displayFormat={pricesDisplayFormat}
+                            {...mouseEdgeAppearance}/>
+                        <ElderRaySeries yAccessor={elder.accessor()}/>
+                        <SingleValueTooltip
+                            // origin={[10,50]}
+                            valueFill={getDesignTokens(themeMode).palette.text.primary}
+                            className='elderChart'
+                            xInitDisplay='200px'
+                            onClick={() => setOpenElderRayModal(true)}
+                            yAccessor={elder.accessor()}
+                            yLabel="Elder Ray"
+                            yDisplayFormat={(d: any) =>
+                                `${pricesDisplayFormat(d.bullPower)}, ${pricesDisplayFormat(d.bearPower)}`
+                            }
+                            origin={[8, 16]}
+                        />
 
-                    <Modal
-                        open={openElderRayModal}
-                        onClose={() => setOpenElderRayModal(false)}
-                        sx={{maxHeight: '95%'}}
-                        aria-labelledby="modal-modal-title"
-                        aria-describedby="modal-modal-description"
-                    >
-                        <Box sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: 400,
-                            bgcolor: 'background.paper',
-                            boxShadow: 24,
-                            p: 4
-                        }}>
-                            <Typography id="modal-modal-title" variant="h6" component="h2">
-                                changing
-                            </Typography>
-                            <Button color='error' title='disable ElderRay' onClick={() => {
-                                setStudiesCharts(studiesCharts.filter(item => item !== StudiesChart.ELDER_RAY))
-                                setOpenElderRayModal(false)
-                            }}> disable ElderRay </Button>
-                        </Box>
-                    </Modal>
-                </Chart>
-            )
+                        <Modal
+                            open={openElderRayModal}
+                            onClose={() => setOpenElderRayModal(false)}
+                            sx={{maxHeight: '95%'}}
+                            aria-labelledby="modal-modal-title"
+                            aria-describedby="modal-modal-description"
+                        >
+                            <Box sx={{
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                width: 400,
+                                bgcolor: 'background.paper',
+                                boxShadow: 24,
+                                p: 4
+                            }}>
+                                <Typography id="modal-modal-title" variant="h6" component="h2">
+                                    changing
+                                </Typography>
+                                <Button color='error' title='disable ElderRay' onClick={() => {
+                                    setStudiesCharts(studiesCharts.filter(item => item !== StudiesChart.ELDER_RAY))
+                                    setOpenElderRayModal(false)
+                                }}> disable ElderRay </Button>
+                            </Box>
+                        </Modal>
+                    </Chart>
+                )
             }
 
             /*##### MACD Chart #####*/
@@ -1108,7 +1198,8 @@ export const StockChart = (props: StockChartProps) => {
                        yExtents={macdCalculator.accessor()}
                        origin={macdOrigin} padding={{top: 10, bottom: 10}}
                 >
-                    <XAxis axisAt="bottom" orient="bottom" {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.MACD)} />
+                    <XAxis axisAt="bottom" orient="bottom" {...xAndYColors}
+                           showTickLabel={showTickLabel(StudiesChart.MACD)}/>
                     <YAxis axisAt="right" orient="right" {...xAndYColors} ticks={2}/>
 
                     <MouseCoordinateX
@@ -1135,202 +1226,209 @@ export const StockChart = (props: StockChartProps) => {
                 </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.RSI_AND_ATR) && (
-            <Chart id={5}
-                   yExtents={rsiCalculator.accessor()}
-                   height={STUDIES_CHART_HEIGHT}
-                   origin={rsiAndAtrOrigin} padding={{top: 10, bottom: 10}}
+                <Chart id={5}
+                       yExtents={rsiCalculator.accessor()}
+                       height={STUDIES_CHART_HEIGHT}
+                       origin={rsiAndAtrOrigin} padding={{top: 10, bottom: 10}}
 
-            >
-                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.RSI_AND_ATR)}/>
-                <YAxis axisAt="right"
-                       orient="right"
-                       {...xAndYColors}
-                       tickValues={[30, 50, 70]}/>
-                <MouseCoordinateY
-                    at="right"
-                    orient="right"
-                    displayFormat={format(".2f")} />
+                >
+                    <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
+                           showTickLabel={showTickLabel(StudiesChart.RSI_AND_ATR)}/>
+                    <YAxis axisAt="right"
+                           orient="right"
+                           {...xAndYColors}
+                           tickValues={[30, 50, 70]}/>
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={format(".2f")}/>
 
-                <RSISeries yAccessor={d => d.rsi} />
+                    <RSISeries yAccessor={d => d.rsi}/>
 
-                <RSITooltip origin={[8, 36]}
-                            textFill={getDesignTokens(themeMode).palette.text.primary}
-                            yAccessor={d => d.rsi}
-                            options={rsiCalculator.options()} />
-            </Chart>
+                    <RSITooltip origin={[8, 36]}
+                                textFill={getDesignTokens(themeMode).palette.text.primary}
+                                yAccessor={d => d.rsi}
+                                options={rsiCalculator.options()}/>
+                </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.RSI_AND_ATR) && (
-            <Chart id={6}
-                   yExtents={atr14.accessor()}
-                   height={STUDIES_CHART_HEIGHT} origin={rsiAndAtrOrigin} padding={{top: 10, bottom: 10}}
-            >
-                <XAxis axisAt="bottom" orient="bottom" {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.RSI_AND_ATR)}/>
-                <YAxis axisAt="right" orient="right" {...xAndYColors} ticks={2}/>
+                <Chart id={6}
+                       yExtents={atr14.accessor()}
+                       height={STUDIES_CHART_HEIGHT} origin={rsiAndAtrOrigin} padding={{top: 10, bottom: 10}}
+                >
+                    <XAxis axisAt="bottom" orient="bottom" {...xAndYColors}
+                           showTickLabel={showTickLabel(StudiesChart.RSI_AND_ATR)}/>
+                    <YAxis axisAt="right" orient="right" {...xAndYColors} ticks={2}/>
 
-                <MouseCoordinateX
-                    at="bottom"
-                    orient="bottom"
-                    displayFormat={timeFormat("%Y-%m-%d")} />
-                <MouseCoordinateY
-                    at="right"
-                    orient="right"
-                    displayFormat={format(".2f")} />
+                    <MouseCoordinateX
+                        at="bottom"
+                        orient="bottom"
+                        displayFormat={timeFormat("%Y-%m-%d")}/>
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={format(".2f")}/>
 
-                <LineSeries yAccessor={atr14.accessor()} strokeStyle={atr14.stroke()}/>
-                <SingleValueTooltip
-                    valueFill={getDesignTokens(themeMode).palette.text.primary}
-                    yAccessor={atr14.accessor()}
-                    yLabel={`ATR (${atr14.options().windowSize})`}
-                    yDisplayFormat={format(".2f")}
-                    /* valueStroke={atr14.stroke()} - optional prop */
-                    /* labelStroke="#4682B4" - optional prop */
-                    origin={[8, 80]}/>
-            </Chart>
+                    <LineSeries yAccessor={atr14.accessor()} strokeStyle={atr14.stroke()}/>
+                    <SingleValueTooltip
+                        valueFill={getDesignTokens(themeMode).palette.text.primary}
+                        yAccessor={atr14.accessor()}
+                        yLabel={`ATR (${atr14.options().windowSize})`}
+                        yDisplayFormat={format(".2f")}
+                        /* valueStroke={atr14.stroke()} - optional prop */
+                        /* labelStroke="#4682B4" - optional prop */
+                        origin={[8, 80]}/>
+                </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.FORCE_INDEX) && (
-            <Chart id={7} height={STUDIES_CHART_HEIGHT}
-                   yExtents={fi.accessor()}
-                   origin={forceIndexOrigin}
-                   padding={{ top: 10, bottom: 10}}
-            >
-                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.FORCE_INDEX)}/>
-                <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")} {...xAndYColors}/>
-                <MouseCoordinateY
-                    at="right"
-                    orient="right"
-                    displayFormat={format(".4s")} />
+                <Chart id={7} height={STUDIES_CHART_HEIGHT}
+                       yExtents={fi.accessor()}
+                       origin={forceIndexOrigin}
+                       padding={{top: 10, bottom: 10}}
+                >
+                    <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
+                           showTickLabel={showTickLabel(StudiesChart.FORCE_INDEX)}/>
+                    <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")} {...xAndYColors}/>
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={format(".4s")}/>
 
-                <AreaSeries baseAt={(scale) => scale(0)} yAccessor={fi.accessor()} />
-                <StraightLine yValue={0} />
+                    <AreaSeries baseAt={(scale) => scale(0)} yAccessor={fi.accessor()}/>
+                    <StraightLine yValue={0}/>
 
-                <SingleValueTooltip
-                    yAccessor={fi.accessor()}
-                    valueFill={getDesignTokens(themeMode).palette.text.primary}
-                    yLabel="ForceIndex (1)"
-                    yDisplayFormat={format(".4s")}
-                    origin={[8, 80]}
-                />
-            </Chart>
+                    <SingleValueTooltip
+                        yAccessor={fi.accessor()}
+                        valueFill={getDesignTokens(themeMode).palette.text.primary}
+                        yLabel="ForceIndex (1)"
+                        yDisplayFormat={format(".4s")}
+                        origin={[8, 80]}
+                    />
+                </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.FORCE_INDEX) && (
                 <Chart id={8} height={STUDIES_CHART_HEIGHT}
-                   yExtents={fiEMA13.accessor()}
-                   origin={forceIndexOrigin}
-                   padding={{ top: 10, bottom: 10 }}
-            >
-                <XAxis axisAt="bottom" orient="bottom" {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.FORCE_INDEX)}/>
-                <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")} {...xAndYColors}/>
+                       yExtents={fiEMA13.accessor()}
+                       origin={forceIndexOrigin}
+                       padding={{top: 10, bottom: 10}}
+                >
+                    <XAxis axisAt="bottom" orient="bottom" {...xAndYColors}
+                           showTickLabel={showTickLabel(StudiesChart.FORCE_INDEX)}/>
+                    <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")} {...xAndYColors}/>
 
-                <MouseCoordinateX
-                    at="bottom"
-                    orient="bottom"
-                    displayFormat={timeFormat("%Y-%m-%d")} />
-                <MouseCoordinateY
-                    at="right"
-                    orient="right"
-                    displayFormat={format(".4s")} />
+                    <MouseCoordinateX
+                        at="bottom"
+                        orient="bottom"
+                        displayFormat={timeFormat("%Y-%m-%d")}/>
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={format(".4s")}/>
 
-                {/* <AreaSeries baseAt={scale => scale(0)} yAccessor={fiEMA13.accessor()} /> */}
-                <AlternatingFillAreaSeries
-                    baseAt={0}
-                    yAccessor={fiEMA13.accessor()}
-                />
-                <StraightLine yValue={0} />
+                    {/* <AreaSeries baseAt={scale => scale(0)} yAccessor={fiEMA13.accessor()} /> */}
+                    <AlternatingFillAreaSeries
+                        baseAt={0}
+                        yAccessor={fiEMA13.accessor()}
+                    />
+                    <StraightLine yValue={0}/>
 
-                <SingleValueTooltip
-                    yAccessor={fiEMA13.accessor()}
-                    valueFill={getDesignTokens(themeMode).palette.text.primary}
-                    yLabel={`ForceIndex (${fiEMA13.options().windowSize})`}
-                    yDisplayFormat={format(".4s")}
-                    origin={[8, 36]}
-                />
-            </Chart>
+                    <SingleValueTooltip
+                        yAccessor={fiEMA13.accessor()}
+                        valueFill={getDesignTokens(themeMode).palette.text.primary}
+                        yLabel={`ForceIndex (${fiEMA13.options().windowSize})`}
+                        yDisplayFormat={format(".4s")}
+                        origin={[8, 36]}
+                    />
+                </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
-            <Chart id={9}
-                   yExtents={[0, 100]}
-                   height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{ top: 10, bottom: 10 }}
-            >
-                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
-                <YAxis axisAt="right" orient="right"
-                       {...xAndYColors}
-                       tickValues={[20, 50, 80]} />
-                <MouseCoordinateY
-                    at="right"
-                    orient="right"
-                    displayFormat={format(".2f")} />
+                <Chart id={9}
+                       yExtents={[0, 100]}
+                       height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{top: 10, bottom: 10}}
+                >
+                    <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
+                           showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
+                    <YAxis axisAt="right" orient="right"
+                           {...xAndYColors}
+                           tickValues={[20, 50, 80]}/>
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={format(".2f")}/>
 
-                <StochasticSeries
-                    yAccessor={d => d.fastSTO}
-                    {...stoAppearance} />
-                <StochasticTooltip
-                    origin={[-38, 15]}
-                    yAccessor={d => d.slowSTO}
-                    options={slowSTO.options()}
-                    appearance={stoAppearance}
-                    label="Slow STO" />
+                    <StochasticSeries
+                        yAccessor={d => d.fastSTO}
+                        {...stoAppearance} />
+                    <StochasticTooltip
+                        origin={[-38, 15]}
+                        yAccessor={d => d.slowSTO}
+                        options={slowSTO.options()}
+                        appearance={stoAppearance}
+                        label="Slow STO"/>
 
-            </Chart>
+                </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
-            <Chart id={10}
-                   yExtents={[0, 100]}
-                   height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{ top: 10, bottom: 10 }}
-            >
-                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
-                <YAxis axisAt="right" orient="right"
-                       {...xAndYColors}
-                       tickValues={[20, 50, 80]} />
+                <Chart id={10}
+                       yExtents={[0, 100]}
+                       height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{top: 10, bottom: 10}}
+                >
+                    <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
+                           showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
+                    <YAxis axisAt="right" orient="right"
+                           {...xAndYColors}
+                           tickValues={[20, 50, 80]}/>
 
-                <MouseCoordinateY
-                    at="right"
-                    orient="right"
-                    displayFormat={format(".2f")} />
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={format(".2f")}/>
 
-                <StochasticSeries
-                    yAccessor={d => d.slowSTO}
-                    {...stoAppearance} />
+                    <StochasticSeries
+                        yAccessor={d => d.slowSTO}
+                        {...stoAppearance} />
 
-                <StochasticTooltip
-                    origin={[-38, 15]}
-                    yAccessor={d => d.fastSTO}
-                    options={fastSTO.options()}
-                    appearance={stoAppearance}
-                    label="Fast STO" />
-            </Chart>
+                    <StochasticTooltip
+                        origin={[-38, 15]}
+                        yAccessor={d => d.fastSTO}
+                        options={fastSTO.options()}
+                        appearance={stoAppearance}
+                        label="Fast STO"/>
+                </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
-            <Chart id={11}
-                   yExtents={[0, 100]}
-                   height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{ top: 10, bottom: 10 }}
-            >
-                <XAxis axisAt="bottom" orient="bottom" {...xGrid} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
-                <YAxis axisAt="right" orient="right"
-                       {...xAndYColors}
-                       tickValues={[20, 50, 80]} />
+                <Chart id={11}
+                       yExtents={[0, 100]}
+                       height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{top: 10, bottom: 10}}
+                >
+                    <XAxis axisAt="bottom" orient="bottom" {...xGrid} {...xAndYColors}
+                           showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
+                    <YAxis axisAt="right" orient="right"
+                           {...xAndYColors}
+                           tickValues={[20, 50, 80]}/>
 
-                <MouseCoordinateX
-                    at="bottom"
-                    orient="bottom"
-                    displayFormat={timeFormat("%Y-%m-%d")} />
-                <MouseCoordinateY
-                    at="right"
-                    orient="right"
-                    displayFormat={format(".2f")} />
-                <StochasticSeries
-                    yAccessor={d => d.fullSTO}
-                    {...stoAppearance} />
+                    <MouseCoordinateX
+                        at="bottom"
+                        orient="bottom"
+                        displayFormat={timeFormat("%Y-%m-%d")}/>
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={format(".2f")}/>
+                    <StochasticSeries
+                        yAccessor={d => d.fullSTO}
+                        {...stoAppearance} />
 
-                <StochasticTooltip
-                    origin={[-38, 15]}
-                    yAccessor={d => d.fullSTO}
-                    options={fullSTO.options()}
-                    appearance={stoAppearance}
-                    label="Full STO" />
-            </Chart>
+                    <StochasticTooltip
+                        origin={[-38, 15]}
+                        yAccessor={d => d.fullSTO}
+                        options={fullSTO.options()}
+                        appearance={stoAppearance}
+                        label="Full STO"/>
+                </Chart>
             )}
 
-           {/* {rsi.active && (
+            {/* {rsi.active && (
                 <Chart
                     id={4}
                     yExtents={[0, 100]}
@@ -1368,7 +1466,7 @@ export const StockChart = (props: StockChartProps) => {
                     <RSITooltip origin={[-28, 15]} yAccessor={d => d.rsi} options={rsiCalculator.options()} />
                 </Chart>
             )}*/}
-{/*            {atr.active && (
+            {/*            {atr.active && (
                 <Chart
                     id={5}
                     yExtents={atr14.accessor()}
@@ -1406,7 +1504,7 @@ export const StockChart = (props: StockChartProps) => {
                 </Chart>
             )}*/}
 
-           {/* {forceIndex.active && (
+            {/* {forceIndex.active && (
                 <Chart
                     id={6}
                     height={150}
@@ -1445,7 +1543,7 @@ export const StockChart = (props: StockChartProps) => {
 */}
 
             {!disableCrossHair && (
-            <CrossHairCursor/>
+                <CrossHairCursor/>
             )}
             {/*
             <DrawingObjectSelector
