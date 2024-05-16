@@ -622,7 +622,7 @@ export const StockChart = (props: StockChartProps) => {
         )*/
 
         // return macdCalculator(ema12(ema26(bb(initialData))))
-        return ema20(sma20(ema50(smaVolume50(bb(initialData)))));
+        return macdCalculator(ema20(sma20(ema50(smaVolume50(ema12(ema26(bb(initialData))))))));
 
     }
 
