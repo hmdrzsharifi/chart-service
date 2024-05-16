@@ -3,7 +3,8 @@ from datetime import time
 import websocket
 import redis
 
-redis_client = redis.StrictRedis(host='adi.dev.modernisc.com', port=6379, db=0 , password='mypassword' , decode_responses=True)
+# redis_client = redis.StrictRedis(host='adi.dev.modernisc.com', port=6379, db=0 , password='mypassword' , decode_responses=True)
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0 , password='' , decode_responses=True)
 
 class WebSocketClient:
     def __init__(self, url):

@@ -9,7 +9,8 @@ app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize Redis client for subscription
-redis_client = redis.StrictRedis(host='adi.dev.modernisc.com', port=6379, db=0, password="mypassword", decode_responses=True)
+# redis_client = redis.StrictRedis(host='adi.dev.modernisc.com', port=6379, db=0, password="mypassword", decode_responses=True)
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, password="", decode_responses=True)
 redis_subscriber = redis_client.pubsub()
 
 # Define a thread for subscribing to Redis channels
