@@ -18,23 +18,14 @@ type Store = {
     selectedSymbol : string
     setSelectedSymbol : (symbolType: string) => void
 
-    disableMovingAverage : boolean
-    setDisableMovingAverage : (isDisableMovingAverage: boolean) => void
-
-    disableBollingerBand: boolean
-    setDisableBollingerBand : (isDisableBollingerBand: boolean) => void
-
     disableVolume : boolean
     setDisableVolume : (disableVolume: boolean) => void
 
     studiesCharts : StudiesChart[]
     setStudiesCharts : (charts: StudiesChart[]) => void
 
-    // disableElderRay : boolean
-    // setDisableElderRay : (isDisableMovingAverage: boolean) => void
-
-    // disableMACD : boolean
-    // setDisableMACD : (isDisableMACD: boolean) => void
+    studiesChartsWithTooltip : StudiesChart[]
+    setStudiesChartsWithTooltip : (charts: StudiesChart[]) => void
 
     disableHoverTooltip : boolean
     setDisableHoverTooltip : (disableHoverTooltip: boolean) => void
@@ -42,20 +33,8 @@ type Store = {
     disableCrossHair : boolean
     setDisableCrossHair : (disableCrossHair: boolean) => void
 
-    disableSAR : boolean
-    setDisableSAR : (disableSAR: boolean) => void
-
-    // disableRSIAndATR: boolean
-    // setDisableRSIAndATR : (disableRSIAndATR: boolean) => void
-
-    // disableForceIndex: boolean
-    // setDisableForceIndex : (disableForceIndex: boolean) => void
-
-    // disableStochasticOscillator: boolean
-    // setDisableStochasticOscillator : (disableStochasticOscillator: boolean) => void
-
-    disableOHLCSeries:boolean
-    setDisableOHLCSeries : (disableOHLCSeries: boolean) => void
+    // disableOHLCSeries:boolean
+    // setDisableOHLCSeries : (disableOHLCSeries: boolean) => void
     // selectedSymbol : string
     // setSelectedSymbol : (symbolType: string) => void
 };
@@ -77,23 +56,14 @@ const useStore = create<Store>((set) => ({
     selectedSymbol: 'BTC_USD',
     setSelectedSymbol: (selectedSymbol: string) => set((state) => ({ selectedSymbol: selectedSymbol })),
 
-    disableMovingAverage : true,
-    setDisableMovingAverage : (disableMovingAverage: boolean) => set((state) => ({disableMovingAverage:disableMovingAverage})),
-
-    disableBollingerBand: true,
-    setDisableBollingerBand : (isDisableBollingerBand: boolean) => set((state) => ({disableBollingerBand:isDisableBollingerBand})),
-
     disableVolume : true,
     setDisableVolume : (disableVolume: boolean) => set((state) => ({disableVolume:disableVolume})),
 
     studiesCharts : [],
     setStudiesCharts : (charts: StudiesChart[]) => set((state) => ({studiesCharts: charts})),
 
-    // disableElderRay : true,
-    // setDisableElderRay : (disableElderRay: boolean) => set((state) => ({disableElderRay:disableElderRay})),
-
-    // disableMACD : true,
-    // setDisableMACD : (disableMACD: boolean) => set((state) => ({disableMACD:disableMACD})),
+    studiesChartsWithTooltip : [],
+    setStudiesChartsWithTooltip : (charts: StudiesChart[]) => set((state) => ({studiesChartsWithTooltip: charts})),
 
     disableHoverTooltip : true,
     setDisableHoverTooltip : (disableHoverTooltip: boolean) => set((state) => ({disableHoverTooltip:disableHoverTooltip})),
@@ -101,20 +71,8 @@ const useStore = create<Store>((set) => ({
     disableCrossHair : true,
     setDisableCrossHair : (disableCrossHair: boolean) => set((state) => ({disableCrossHair:disableCrossHair})),
 
-    disableSAR : true,
-    setDisableSAR : (disableSAR: boolean) => set((state) => ({disableSAR:disableSAR})),
-
-    // disableRSIAndATR : true,
-    // setDisableRSIAndATR : (disableRSIAndATR: boolean) => set((state) => ({disableRSIAndATR:disableRSIAndATR})),
-
-    // disableForceIndex : true,
-    // setDisableForceIndex : (disableForceIndex: boolean) => set((state) => ({disableForceIndex:disableForceIndex})),
-
-    // disableStochasticOscillator : true,
-    // setDisableStochasticOscillator : (disableStochasticOscillator: boolean) => set((state) => ({disableStochasticOscillator:disableStochasticOscillator})),
-
-    disableOHLCSeries : true,
-    setDisableOHLCSeries : (disableOHLCSeries: boolean) => set((state) => ({disableOHLCSeries:disableOHLCSeries}))
+    // disableOHLCSeries : true,
+    // setDisableOHLCSeries : (disableOHLCSeries: boolean) => set((state) => ({disableOHLCSeries:disableOHLCSeries}))
 }));
 
 export default useStore;

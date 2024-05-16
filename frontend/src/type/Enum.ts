@@ -45,17 +45,25 @@ export const SeriesValues: Series[] = [
 ]
 
 export enum StudiesChart {
+    MOVING_AVERAGE = 'MovingAverage',
+    SAR = 'sar',
+    ELDER_IMPULSE = 'elderImpulse',
     ELDER_RAY = 'ElderRay',
     MACD = 'Macd',
     RSI_AND_ATR = 'RSIAndATR',
     FORCE_INDEX = 'ForceIndex',
     STOCHASTIC_OSCILLATOR = 'stochasticOscillator',
+    BOLLINGER_BAND = 'BollingerBand',
 }
 
 export const StudiesChartsValues: StudiesChart[] = [
+    StudiesChart.MOVING_AVERAGE,
+    StudiesChart.SAR,
+    StudiesChart.ELDER_IMPULSE,
     StudiesChart.ELDER_RAY,
     StudiesChart.MACD,
     StudiesChart.RSI_AND_ATR,
     StudiesChart.FORCE_INDEX,
     StudiesChart.STOCHASTIC_OSCILLATOR,
+    StudiesChart.BOLLINGER_BAND,
 ]

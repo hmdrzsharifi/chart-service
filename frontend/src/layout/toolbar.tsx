@@ -53,15 +53,9 @@ const Toolbar = (props: any) => {
     const {selectedSymbol, setSelectedSymbol} = useStore();
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
-    const {disableMovingAverage, setDisableMovingAverage} = useStore();
-    const {disableBollingerBand, setDisableBollingerBand} = useStore();
     const {disableVolume, setDisableVolume} = useStore();
     const {studiesCharts, setStudiesCharts} = useStore();
-    const {disableSAR , setDisableSAR} = useStore();
-    // const {disableRSIAndATR , setDisableRSIAndATR} = useStore();
-    // const {disableForceIndex , setDisableForceIndex} = useStore();
-    // const {disableStochasticOscillator , setDisableStochasticOscillator} = useStore();
-    const {disableOHLCSeries , setDisableOHLCSeries} = useStore();
+    const {studiesChartsWithTooltip, setStudiesChartsWithTooltip} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
@@ -170,8 +164,18 @@ const Toolbar = (props: any) => {
         )
     }
 
+    const handleChangeStudiesChartWithTooltip = (chart: StudiesChart) => {
+        setStudiesChartsWithTooltip(
+            studiesChartsWithTooltip.includes(chart) ? studiesChartsWithTooltip.filter(item => item !== chart) : [...studiesChartsWithTooltip, chart]
+        )
+    }
+
     const isStudiesChartInclude = (chart: StudiesChart): boolean => {
         return studiesCharts.includes(chart)
+    }
+
+    const isStudiesChartWithTooltipInclude = (chart: StudiesChart): boolean => {
+        return studiesChartsWithTooltip.includes(chart)
     }
 
     return (
@@ -537,10 +541,10 @@ const Toolbar = (props: any) => {
                     onClose={() => setMenuOpen(false)}
                 >
                     <MenuItem value='MOVING_AVERAGE' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setDisableMovingAverage(!disableMovingAverage)}>
+                              onClick={() => handleChangeStudiesChartWithTooltip(StudiesChart.MOVING_AVERAGE)}>
                         <span>Moving Average</span>
-                        <Switch checked={!disableMovingAverage}
-                                onClick={() => setDisableMovingAverage(!disableMovingAverage)}
+                        <Switch checked={isStudiesChartWithTooltipInclude(StudiesChart.MOVING_AVERAGE)}
+                                onClick={() => handleChangeStudiesChartWithTooltip(StudiesChart.MOVING_AVERAGE)}
                                 name="enableDisableMovingAverage"
                                 color="primary"
                         />
@@ -574,11 +578,11 @@ const Toolbar = (props: any) => {
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='SAR' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setDisableSAR(!disableSAR)}>
+                              onClick={() => handleChangeStudiesChartWithTooltip(StudiesChart.SAR)}>
                         <span>SAR</span>
                         <Switch
-                            checked={!disableSAR}
-                            onClick={() => setDisableSAR(!disableSAR)}
+                            checked={isStudiesChartWithTooltipInclude(StudiesChart.SAR)}
+                            onClick={() => handleChangeStudiesChartWithTooltip(StudiesChart.SAR)}
                             name="enableDisableSAR"
                             color="primary"
                         /></MenuItem>
@@ -610,15 +614,15 @@ const Toolbar = (props: any) => {
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='ELDER_IMPULSE' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() =>{ setDisableOHLCSeries(!disableOHLCSeries)
+                              onClick={() =>{ handleChangeStudiesChartWithTooltip(StudiesChart.ELDER_IMPULSE)
                               setDisableVolume(!disableVolume)
                               handleChangeStudiesChart(StudiesChart.MACD)
                               // setDisableMACD(!disableMACD)
                     }}>
                         <span>Elder Impulse</span>
                         <Switch
-                            checked={!disableOHLCSeries}
-                            onClick={() =>{ setDisableOHLCSeries(!disableOHLCSeries)
+                            checked={isStudiesChartWithTooltipInclude(StudiesChart.ELDER_IMPULSE)}
+                            onClick={() =>{ handleChangeStudiesChartWithTooltip(StudiesChart.ELDER_IMPULSE)
                                 setDisableVolume(!disableVolume)
                                 handleChangeStudiesChart(StudiesChart.MACD)
                                 // setDisableMACD(!disableMACD)
@@ -627,11 +631,11 @@ const Toolbar = (props: any) => {
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='BOLLINGER_BAND' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setDisableBollingerBand(!disableBollingerBand)}>
+                              onClick={() => handleChangeStudiesChartWithTooltip(StudiesChart.BOLLINGER_BAND)}>
                         <span>Bollinger Band</span>
                         <Switch
-                            checked={!disableBollingerBand}
-                            onClick={() => setDisableBollingerBand(!disableBollingerBand)}
+                            checked={isStudiesChartWithTooltipInclude(StudiesChart.BOLLINGER_BAND)}
+                            onClick={() => handleChangeStudiesChartWithTooltip(StudiesChart.BOLLINGER_BAND)}
                             name="enableDisableMovingAverage"
                             color="primary"
                         /></MenuItem>
