@@ -37,7 +37,7 @@ function mapSymbolResult(originalObject) {
 }
 const configurationData = {
 	// Represents the resolutions for bars supported by your datafeed
-	supported_resolutions: ['1', '5', '15', '30', '1H', '1D', '1W', '1M'],
+	supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
 
 	// The `exchanges` arguments are used for the `searchSymbols` method if a user selects the exchange
 	exchanges: [{
@@ -187,7 +187,7 @@ export default {
 			exchange: 'crypto',
 			minmov: 1,
 			pricescale: 100,
-			has_intraday: false,
+			has_intraday: true,
 			has_no_volume: true,
 			has_weekly_and_monthly: false,
 			supported_resolutions: configurationData.supported_resolutions,
@@ -272,9 +272,31 @@ export default {
 		// 		});
 		// 		return;
 		// 	}
+		var reqResolution;
+
+		if (resolution === '1') {
+			reqResolution = '1M';
+		} else if (resolution === '5') {
+			reqResolution = '5M';
+		} else if (resolution === '15') {
+			reqResolution = '15M';
+		} else if (resolution === '30') {
+			reqResolution = '30M';
+		} else if (resolution === '60') {
+			reqResolution = '1H';
+		} else if (resolution === '1D') {
+			reqResolution = 'D';
+		} else if (resolution === '1W') {
+			reqResolution = 'W';
+		} else if (resolution === '1M') {
+			reqResolution = 'M';
+		} else {
+			console.log("Unsupported resolution!");
+		}
+
 		const requestBody = {
 			"Ticker": 'BINANCE:BTCUSDT',
-			"TimeFrame": 'D',
+			"TimeFrame": reqResolution,
 			"from": Math.floor(new Date().getTime() / 1000) - (2000 * 24 * 3600),
 			"to": Math.floor(new Date().getTime() / 1000)
 		};
