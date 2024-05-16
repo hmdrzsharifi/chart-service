@@ -2,6 +2,7 @@ import {DATA_ADDRESS} from "../config/constants";
 import {useEffect, useRef} from "react";
 import {TrendLineType} from "../type/TrendLineType";
 import {SymbolList} from "../type/SymbolType";
+import getDesignTokens from "../config/theme";
 
 const url = DATA_ADDRESS;
 export async function fetchCandleData(symbol:any, tf:any, from:any, to:any) {
@@ -210,3 +211,13 @@ function convert_to_datetime(dateStr: string): Date {
     return new Date(dateStr);
 }
 
+export const xAndYColors = (
+    themeMode: 'dark' | 'light',
+) => {
+    return {
+        tickLabelFill: getDesignTokens(themeMode).palette.lineColor,
+        tickStrokeStyle: getDesignTokens(themeMode).palette.lineColor,
+        strokeStyle: getDesignTokens(themeMode).palette.lineColor,
+        gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
+    }
+}

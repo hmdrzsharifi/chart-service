@@ -5,11 +5,10 @@ import {useEffect, useRef, useState} from "react";
 import {
     BarSeries,
     Brush,
+    change,
     Chart,
     ChartCanvas,
     CrossHairCursor,
-    RSISeries,
-    RSITooltip,
     CurrentCoordinate,
     discontinuousTimeScaleProviderBuilder,
     EdgeIndicator,
@@ -18,18 +17,11 @@ import {
     EquidistantChannel,
     FibonacciRetracement,
     HoverTooltip,
-    SARSeries,
-    sar,
-    rsi,
+    InteractiveText,
     atr,
     forceIndex,
     ema,
-    change,
-    StochasticSeries,
-    StochasticTooltip,
-    stochasticOscillator,
     AlternatingFillAreaSeries,
-    StraightLine,
     AreaSeries,
     lastVisibleItemBasedZoomAnchor,
     LineSeries,
@@ -38,15 +30,23 @@ import {
     MouseCoordinateX,
     MouseCoordinateY,
     MovingAverageTooltip,
+    OHLCSeries,
     OHLCTooltip,
+    rsi,
+    RSISeries,
+    RSITooltip,
+    sar,
+    SARSeries,
     SingleValueTooltip,
+    stochasticOscillator,
+    StochasticSeries,
+    StochasticTooltip,
+    StraightLine,
     TrendLine,
     XAxis,
     YAxis,
-    InteractiveText,
     saveNodeType,
     ZoomButtons,
-    OHLCSeries,
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
 
@@ -61,8 +61,8 @@ import {
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
-import {NO_OF_CANDLES} from "../config/constants";
-import {HourAndMinutesTimeFrames, TimeFrame} from "../type/Enum";
+import {NO_OF_CANDLES, STUDIES_CHART_HEIGHT} from "../config/constants";
+import {HourAndMinutesTimeFrames, StudiesChart, TimeFrame} from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
 import Modal from "@mui/material/Modal";
@@ -97,6 +97,8 @@ export const StockChart = (props: StockChartProps) => {
     // const [xAccessor, setXAccessor] = useState()
     const [yExtents1, setYExtents1] = useState<any>()
     const muiTheme = useTheme();
+
+    const {studiesCharts, setStudiesCharts} = useStore();
 
     const {loadingMoreData, setLoadingMoreData} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
@@ -485,7 +487,9 @@ export const StockChart = (props: StockChartProps) => {
         setEquidistantChannels(equidistantChannels)
     }
 
-
+    const isStudiesChartInclude = (chart: StudiesChart): boolean => {
+        return studiesCharts.includes(chart)
+    }
 
     const handleSelection = (interactives: any) => {
         /* const state = toObject(interactives, each => {
@@ -683,22 +687,35 @@ export const StockChart = (props: StockChartProps) => {
     const showGrid = false;
     const xGrid = showGrid ? { innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1 } : {};
 
-    const elderRayHeight = NO_OF_CANDLES;
-    const elderRayOrigin = (_: number, h: number) => [0, h - elderRayHeight];
+    const getStudiesChartOrigin = (chart: StudiesChart) => {
+        return (studiesCharts.indexOf(chart) + 1) * STUDIES_CHART_HEIGHT
+    }
+
+    const showTickLabel = (chart: StudiesChart) => {
+        return studiesCharts.indexOf(chart) === 0
+    }
+
+    // const elderRayHeight = STUDIES_CHART_HEIGHT;
+    const elderRayOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.ELDER_RAY)];
+    const macdOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.MACD)];
+    const rsiAndAtrOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.RSI_AND_ATR)];
+    const forceIndexOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.FORCE_INDEX)];
+    const stochasticOscillatorOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.STOCHASTIC_OSCILLATOR)];
     const barChartHeight = gridHeight / 4;
     // const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight - elderRayHeight];
-    const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight];
+    // const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight];
     // const chartHeight = gridHeight - elderRayHeight;
-    const chartHeight = gridHeight;
+    const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
+    const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length + 1) * STUDIES_CHART_HEIGHT - 5];
     const {disableMovingAverage, setDisableMovingAverage} = useStore();
     const {disableVolume, setDisableVolume} = useStore();
-    const {disableElderRay, setDisableElderRay} = useStore();
-    const {disableMACD} = useStore();
+    // const {disableElderRay, setDisableElderRay} = useStore();
+    // const {disableMACD} = useStore();
     const {disableHoverTooltip} = useStore();
     const {disableSAR} = useStore();
-    const {disableRSIAndATR} = useStore();
-    const {disableForceIndex} = useStore();
-    const {disableStochasticOscillator} = useStore();
+    // const {disableRSIAndATR} = useStore();
+    // const {disableForceIndex} = useStore();
+    // const {disableStochasticOscillator} = useStore();
     const {disableOHLCSeries} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
@@ -757,13 +774,13 @@ export const StockChart = (props: StockChartProps) => {
                 yExtents={candleChartExtents}
             >
                 {/*<OHLCSeries strokeWidth={3}  stroke={d => elderImpulseCalculator.stroke()[d.elderImpulse]} yAccessor={(d) => ({ open: d.open, high: d.high, low: d.low, close: d.close })} />*/}
-                {(!disableOHLCSeries || !disableElderRay) && (
+                {(!disableOHLCSeries || isStudiesChartInclude(StudiesChart.ELDER_RAY)) && (
                 <OHLCSeries strokeWidth={5} />
                 )}
                 <XAxis showGridLines {...xAndYColors} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} {...xAndYColors} />
 
-                {(disableElderRay && disableOHLCSeries) && (
+                {(!isStudiesChartInclude(StudiesChart.ELDER_RAY) && disableOHLCSeries) && (
                 <SelectedSeries series={seriesType} data={data}/>
                 )}
 
@@ -1015,8 +1032,19 @@ export const StockChart = (props: StockChartProps) => {
             {/*)}*/}
 
             /*##### ElderRay Chart #####*/
-            {!disableElderRay && (
-                <Chart id={3} height={elderRayHeight} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
+            {isStudiesChartInclude(StudiesChart.ELDER_RAY) &&
+
+                // <ElderRayStudiesChart
+                //     yExtents={[0, elder.accessor()]}
+                //     displayFormat={timeDisplayFormat}
+                //     margin={margin}
+                //     pricesDisplayFormat={pricesDisplayFormat}
+                //     elderAccessor={elder.accessor()}
+                //     origin={elderRayOrigin}
+                // />
+
+                (
+                <Chart id={3} height={STUDIES_CHART_HEIGHT} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
                        padding={{top: 8, bottom: 8}}>
                     {/*<XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>*/}
                     <XAxis showGridLines {...xAndYColors}/>
@@ -1065,22 +1093,23 @@ export const StockChart = (props: StockChartProps) => {
                                 changing
                             </Typography>
                             <Button color='error' title='disable ElderRay' onClick={() => {
-                                setDisableElderRay(true)
+                                setStudiesCharts(studiesCharts.filter(item => item !== StudiesChart.ELDER_RAY))
                                 setOpenElderRayModal(false)
                             }}> disable ElderRay </Button>
                         </Box>
                     </Modal>
                 </Chart>
-            )}
+            )
+            }
 
             /*##### MACD Chart #####*/
-            {!disableMACD && (
-                <Chart id={4} height={150}
+            {isStudiesChartInclude(StudiesChart.MACD) && (
+                <Chart id={4} height={STUDIES_CHART_HEIGHT}
                        yExtents={macdCalculator.accessor()}
-                       origin={(w, h) => [0, h - 150]} padding={{top: 10, bottom: 10}}
+                       origin={macdOrigin} padding={{top: 10, bottom: 10}}
                 >
-                    <XAxis axisAt="bottom" orient="bottom"/>
-                    <YAxis axisAt="right" orient="right" ticks={2}/>
+                    <XAxis axisAt="bottom" orient="bottom" {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.MACD)} />
+                    <YAxis axisAt="right" orient="right" {...xAndYColors} ticks={2}/>
 
                     <MouseCoordinateX
                         at="bottom"
@@ -1105,16 +1134,17 @@ export const StockChart = (props: StockChartProps) => {
                     />
                 </Chart>
             )}
-            {!disableRSIAndATR && (
+            {isStudiesChartInclude(StudiesChart.RSI_AND_ATR) && (
             <Chart id={5}
                    yExtents={rsiCalculator.accessor()}
-                   height={150}
-                   origin={(w, h) => [0, h - 150]} padding={{top: 10, bottom: 10}}
+                   height={STUDIES_CHART_HEIGHT}
+                   origin={rsiAndAtrOrigin} padding={{top: 10, bottom: 10}}
 
             >
-                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} />
+                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.RSI_AND_ATR)}/>
                 <YAxis axisAt="right"
                        orient="right"
+                       {...xAndYColors}
                        tickValues={[30, 50, 70]}/>
                 <MouseCoordinateY
                     at="right"
@@ -1129,13 +1159,13 @@ export const StockChart = (props: StockChartProps) => {
                             options={rsiCalculator.options()} />
             </Chart>
             )}
-            {!disableRSIAndATR && (
+            {isStudiesChartInclude(StudiesChart.RSI_AND_ATR) && (
             <Chart id={6}
                    yExtents={atr14.accessor()}
-                   height={150} origin={(w, h) => [0, h - 150]} padding={{top: 10, bottom: 10}}
+                   height={STUDIES_CHART_HEIGHT} origin={rsiAndAtrOrigin} padding={{top: 10, bottom: 10}}
             >
-                <XAxis axisAt="bottom" orient="bottom" />
-                <YAxis axisAt="right" orient="right" ticks={2}/>
+                <XAxis axisAt="bottom" orient="bottom" {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.RSI_AND_ATR)}/>
+                <YAxis axisAt="right" orient="right" {...xAndYColors} ticks={2}/>
 
                 <MouseCoordinateX
                     at="bottom"
@@ -1157,14 +1187,14 @@ export const StockChart = (props: StockChartProps) => {
                     origin={[8, 80]}/>
             </Chart>
             )}
-            {!disableForceIndex && (
-            <Chart id={7} height={100}
+            {isStudiesChartInclude(StudiesChart.FORCE_INDEX) && (
+            <Chart id={7} height={STUDIES_CHART_HEIGHT}
                    yExtents={fi.accessor()}
-                   origin={(w, h) => [0, h - 150]}
+                   origin={forceIndexOrigin}
                    padding={{ top: 10, bottom: 10}}
             >
-                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} />
-                <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")}/>
+                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.FORCE_INDEX)}/>
+                <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")} {...xAndYColors}/>
                 <MouseCoordinateY
                     at="right"
                     orient="right"
@@ -1182,14 +1212,14 @@ export const StockChart = (props: StockChartProps) => {
                 />
             </Chart>
             )}
-            {!disableForceIndex && (
-                <Chart id={8} height={100}
+            {isStudiesChartInclude(StudiesChart.FORCE_INDEX) && (
+                <Chart id={8} height={STUDIES_CHART_HEIGHT}
                    yExtents={fiEMA13.accessor()}
-                   origin={(w, h) => [0, h - 50]}
+                   origin={forceIndexOrigin}
                    padding={{ top: 10, bottom: 10 }}
             >
-                <XAxis axisAt="bottom" orient="bottom" />
-                <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")}/>
+                <XAxis axisAt="bottom" orient="bottom" {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.FORCE_INDEX)}/>
+                <YAxis axisAt="right" orient="right" ticks={4} tickFormat={format(".2s")} {...xAndYColors}/>
 
                 <MouseCoordinateX
                     at="bottom"
@@ -1216,13 +1246,14 @@ export const StockChart = (props: StockChartProps) => {
                 />
             </Chart>
             )}
-            {!disableStochasticOscillator && (
+            {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
             <Chart id={9}
                    yExtents={[0, 100]}
-                   height={125} origin={(w, h) => [0, h - 150]} padding={{ top: 10, bottom: 10 }}
+                   height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{ top: 10, bottom: 10 }}
             >
-                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} />
+                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
                 <YAxis axisAt="right" orient="right"
+                       {...xAndYColors}
                        tickValues={[20, 50, 80]} />
                 <MouseCoordinateY
                     at="right"
@@ -1241,13 +1272,14 @@ export const StockChart = (props: StockChartProps) => {
 
             </Chart>
             )}
-            {!disableStochasticOscillator && (
+            {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
             <Chart id={10}
                    yExtents={[0, 100]}
-                   height={125} origin={(w, h) => [0, h - 100]} padding={{ top: 10, bottom: 10 }}
+                   height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{ top: 10, bottom: 10 }}
             >
-                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} />
+                <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
                 <YAxis axisAt="right" orient="right"
+                       {...xAndYColors}
                        tickValues={[20, 50, 80]} />
 
                 <MouseCoordinateY
@@ -1267,13 +1299,14 @@ export const StockChart = (props: StockChartProps) => {
                     label="Fast STO" />
             </Chart>
             )}
-            {!disableStochasticOscillator && (
+            {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
             <Chart id={11}
                    yExtents={[0, 100]}
-                   height={125} origin={(w, h) => [0, h - 50]} padding={{ top: 10, bottom: 10 }}
+                   height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{ top: 10, bottom: 10 }}
             >
-                <XAxis axisAt="bottom" orient="bottom" {...xGrid} />
+                <XAxis axisAt="bottom" orient="bottom" {...xGrid} {...xAndYColors} showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
                 <YAxis axisAt="right" orient="right"
+                       {...xAndYColors}
                        tickValues={[20, 50, 80]} />
 
                 <MouseCoordinateX
