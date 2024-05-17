@@ -1,8 +1,6 @@
 import { parseFullSymbol, apiKey } from './helpers.js';
 
-const socket = new WebSocket(
-	'wss://streamer.cryptocompare.com/v2?api_key=' + apiKey
-);
+const socket = new WebSocket('wss://ws.finnhub.io?token=cohqsq9r01qkmfrcols0cohqsq9r01qkmfrcolsg');
 const channelToSubscription = new Map();
 
 socket.addEventListener('open', () => {
@@ -17,55 +15,115 @@ socket.addEventListener('error', (error) => {
 	console.log('[socket] Error:', error);
 });
 
+// socket.addEventListener('message', (event) => {
+// 	const data = JSON.parse(event.data);
+// 	console.log('[socket] Message:', data);
+// 	const {
+// 		TYPE: eventTypeStr,
+// 		M: exchange,
+// 		FSYM: fromSymbol,
+// 		TSYM: toSymbol,
+// 		TS: tradeTimeStr,
+// 		P: tradePriceStr,
+// 	} = data;
+//
+// 	if (parseInt(eventTypeStr) !== 0) {
+// 		// Skip all non-trading events
+// 		return;
+// 	}
+// 	const tradePrice = parseFloat(tradePriceStr);
+// 	const tradeTime = parseInt(tradeTimeStr);
+// 	const channelString = `0~${exchange}~${fromSymbol}~${toSymbol}`;
+// 	const subscriptionItem = channelToSubscription.get(channelString);
+// 	if (subscriptionItem === undefined) {
+// 		return;
+// 	}
+// 	const lastDailyBar = subscriptionItem.lastDailyBar;
+// 	const nextDailyBarTime = getNextDailyBarTime(lastDailyBar.time);
+//
+// 	let bar;
+// 	if (tradeTime >= nextDailyBarTime) {
+// 		bar = {
+// 			time: nextDailyBarTime,
+// 			open: tradePrice,
+// 			high: tradePrice,
+// 			low: tradePrice,
+// 			close: tradePrice,
+// 		};
+// 		console.log('[socket] Generate new bar', bar);
+// 	} else {
+// 		bar = {
+// 			...lastDailyBar,
+// 			high: Math.max(lastDailyBar.high, tradePrice),
+// 			low: Math.min(lastDailyBar.low, tradePrice),
+// 			close: tradePrice,
+// 		};
+// 		console.log('[socket] Update the latest bar by price', tradePrice);
+// 	}
+// 	subscriptionItem.lastDailyBar = bar;
+//
+// 	// Send data to every subscriber of that symbol
+// 	subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
+// });
+
 socket.addEventListener('message', (event) => {
 	const data = JSON.parse(event.data);
 	console.log('[socket] Message:', data);
-	const {
-		TYPE: eventTypeStr,
-		M: exchange,
-		FSYM: fromSymbol,
-		TSYM: toSymbol,
-		TS: tradeTimeStr,
-		P: tradePriceStr,
-	} = data;
+	// const {
+	// 	TYPE: eventTypeStr,
+	// 	M: exchange,
+	// 	FSYM: fromSymbol,
+	// 	TSYM: toSymbol,
+	// 	TS: tradeTimeStr,
+	// 	P: tradePriceStr,
+	// } = data;
 
-	if (parseInt(eventTypeStr) !== 0) {
-		// Skip all non-trading events
-		return;
-	}
-	const tradePrice = parseFloat(tradePriceStr);
-	const tradeTime = parseInt(tradeTimeStr);
-	const channelString = `0~${exchange}~${fromSymbol}~${toSymbol}`;
+	// if (parseInt(eventTypeStr) !== 0) {
+	// 	// Skip all non-trading events
+	// 	return;
+	// }
+	data.data.forEach(function(trade) {
+		const tradePrice = parseFloat(trade.p);
+
+	// const tradeTime = parseInt(tradeTimeStr);
+	// const channelString = `0~${exchange}~${fromSymbol}~${toSymbol}`;
+		const parsedSymbol = {
+			exchange: 'crypto',
+			fromSymbol: 'BTCUSDT',
+			toSymbol: 'USDT',
+		};
+		const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
 	const subscriptionItem = channelToSubscription.get(channelString);
-	if (subscriptionItem === undefined) {
-		return;
-	}
-	const lastDailyBar = subscriptionItem.lastDailyBar;
-	const nextDailyBarTime = getNextDailyBarTime(lastDailyBar.time);
+	// if (subscriptionItem === undefined) {
+	// 	return;
+	// }
+	// const lastDailyBar = subscriptionItem.lastDailyBar;
+	// const nextDailyBarTime = getNextDailyBarTime(lastDailyBar.time);
 
 	let bar;
-	if (tradeTime >= nextDailyBarTime) {
+	// if (tradeTime >= nextDailyBarTime) {
 		bar = {
-			time: nextDailyBarTime,
+			time: trade.t,
 			open: tradePrice,
 			high: tradePrice,
 			low: tradePrice,
 			close: tradePrice,
 		};
 		console.log('[socket] Generate new bar', bar);
-	} else {
-		bar = {
-			...lastDailyBar,
-			high: Math.max(lastDailyBar.high, tradePrice),
-			low: Math.min(lastDailyBar.low, tradePrice),
-			close: tradePrice,
-		};
+	// } else {
+	// 	bar = {
+	// 		...lastDailyBar,
+	// 		high: Math.max(lastDailyBar.high, tradePrice),
+	// 		low: Math.min(lastDailyBar.low, tradePrice),
+	// 		close: tradePrice,
+	// 	};
 		console.log('[socket] Update the latest bar by price', tradePrice);
-	}
+	// }
 	subscriptionItem.lastDailyBar = bar;
 
 	// Send data to every subscriber of that symbol
 	subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
+	});
 });
 
 function getNextDailyBarTime(barTime) {
@@ -82,12 +140,41 @@ export function subscribeOnStream(
 	onResetCacheNeededCallback,
 	lastDailyBar
 ) {
-	const parsedSymbol = parseFullSymbol(symbolInfo.full_name);
-	const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
+	// const parsedSymbol = parseFullSymbol(symbolInfo.full_name);
+	// const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
 	const handler = {
 		id: subscriberUID,
 		callback: onRealtimeCallback,
 	};
+	// let subscriptionItem = channelToSubscription.get(channelString);
+	// if (subscriptionItem) {
+	// 	// Already subscribed to the channel, use the existing subscription
+	// 	subscriptionItem.handlers.push(handler);
+	// 	return;
+	// }
+	// subscriptionItem = {
+	// 	subscriberUID,
+	// 	resolution,
+	// 	lastDailyBar,
+	// 	handlers: [handler],
+	// };
+	// channelToSubscription.set(channelString, subscriptionItem);
+	// console.log(
+	// 	'[subscribeBars]: Subscribe to streaming. Channel:',
+	// 	channelString
+	// );
+	// const subRequest = {
+	// 	action: 'SubAdd',
+	// 	subs: [channelString],
+	// };
+	// socket.send(JSON.stringify(subRequest));
+	// const parsedSymbol = parseFullSymbol(symbolInfo.full_name);
+	const parsedSymbol = {
+		exchange: 'crypto',
+		fromSymbol: 'BTCUSDT',
+		toSymbol: 'USDT',
+	};
+	const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
 	let subscriptionItem = channelToSubscription.get(channelString);
 	if (subscriptionItem) {
 		// Already subscribed to the channel, use the existing subscription
@@ -105,11 +192,7 @@ export function subscribeOnStream(
 		'[subscribeBars]: Subscribe to streaming. Channel:',
 		channelString
 	);
-	const subRequest = {
-		action: 'SubAdd',
-		subs: [channelString],
-	};
-	socket.send(JSON.stringify(subRequest));
+	socket.send(JSON.stringify({'type':'subscribe', 'symbol': 'BINANCE:BTCUSDT'}))
 }
 
 export function unsubscribeFromStream(subscriberUID) {
@@ -141,3 +224,27 @@ export function unsubscribeFromStream(subscriberUID) {
 		}
 	}
 }
+
+
+////// finnhub get websocket
+
+//
+// const socket = new WebSocket('wss://ws.finnhub.io?token=cohqsq9r01qkmfrcols0cohqsq9r01qkmfrcolsg');
+//
+// // Connection opened -> Subscribe
+// socket.addEventListener('open', function (event) {
+// 	socket.send(JSON.stringify({'type':'subscribe', 'symbol': 'AAPL'}))
+// 	socket.send(JSON.stringify({'type':'subscribe', 'symbol': 'BINANCE:BTCUSDT'}))
+// 	socket.send(JSON.stringify({'type':'subscribe', 'symbol': 'IC MARKETS:1'}))
+// });
+//
+// // Listen for messages
+// socket.addEventListener('message', function (event) {
+// 	console.log('Message from server ', event.data);
+// });
+//
+// // Unsubscribe
+// var unsubscribe = function(symbol) {
+// 	socket.send(JSON.stringify({'type':'unsubscribe','symbol': symbol}))
+// }
+
