@@ -78,7 +78,7 @@ export async function fetchCexSymbols(){
     // http://185.148.147.219:3333/api/v1/services/all/symbols
     const resultData:SymbolList[] = [];
     try {
-        const response = await fetch('http://185.148.147.219:3333/api/v1/services/all/symbols', {
+        const response = await fetch('http://91.92.108.4:4444/api/v1/services/all/symbols', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

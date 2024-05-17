@@ -4,8 +4,16 @@
         <title>TradingView Charts</title>
         <script type="text/javascript" src="charting_library_cloned_data/charting_library/charting_library.js"> </script>
         <script src="./charting_library_cloned_data/charting_library/socket.io.min.js"></script>
+        <script src="./charting_library_cloned_data/charting_library/tzdata.js"></script>
         <script type="module" src="src/main.js"></script>
+        <script>
+            function onLoad() {
+                var data = tzdata;
+            }
+        </script>
     </head>
+<!--    <body onLoad="onLoad()" style="margin:0px;">-->
+
     <body style="margin:0px;">
         <div id="tv_chart_container">
         </div>
