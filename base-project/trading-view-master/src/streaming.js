@@ -1,7 +1,9 @@
 // import {WEBSOCKET_ADDRESS} from "./constants";
 
 const socket = io("http://91.92.108.4:5555");
-
+import {
+    lastBarsCache
+} from './datafeed.js';
 socket.on("connect", () => {
     console.log(socket.id); // x8WIv7-mJelg7on_ALbx
 });
@@ -15,7 +17,10 @@ socket.on('symbolUpdate', (message) => {
 
     let rawData = window.tvWidget.symbolInterval().symbol.split(':')
     let rawSymbol
-    if (rawData[0] == 'BINANCE') {
+    if (rawData.length == 1) {
+        rawSymbol = rawData[0].replace('USDT', '_USD')
+    }
+   /* if (rawData[0] == 'BINANCE') {
         rawSymbol = rawData[1].replace('USDT', '_USD')
     }
     if (rawData[0] == 'OANDA') {
@@ -23,17 +28,18 @@ socket.on('symbolUpdate', (message) => {
     }
     if (rawData[0] == 'CRYPTO') {
         rawSymbol = rawData[1].replace('USDT', '_USD')
-    }
+    }*/
 
     if (message.symbol === rawSymbol) {
-        console.log(message)
-        // handleRealTimeCandleCex(message)
+        // console.log(message)
+        handleRealTimeCandleCex(message, rawSymbol)
     }
 
    });
 
 function handleRealTimeCandleCex(message) {
     const tradePrice = parseFloat(message.ask);
+    const tradeTime = parseInt(message.timestamp);
 
     const parsedSymbol = {
         exchange: 'crypto',
@@ -42,22 +48,85 @@ function handleRealTimeCandleCex(message) {
     };
     const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
     const subscriptionItem = channelToSubscription.get(channelString);
+    // if (subscriptionItem.lastDailyBar) {
+        let lastBar = subscriptionItem.lastDailyBar
+        console.log({lastBar})
+        let resolution =subscriptionItem.resolution
+        console.log({resolution})
+        let resolution1
+        if (resolution == '1D') {
+            // 1 day in minutes === 1440
+            resolution1 = 1440
+        }
+        let coeff = resolution1 * 60
+        console.log({coeff})
+        let rounded = Math.floor(tradeTime / coeff) * coeff
 
-    let bar;
-    bar = {
-        time: message.timestamp,
-        open: tradePrice,
-        high: tradePrice,
-        low: tradePrice,
-        close: tradePrice,
-    };
+        // let lastBarSec = lastBar.time / 1000
+        // console.log({lastBarSec})
+        /*    let resolution =subscriptionItem.resolution
+            const lastBar = subscriptionItem.lastDailyBar
+            // if (lastBar == undefined) return
+            let resolution1
+            if (resolution.includes('1D')) {
+                // 1 day in minutes === 1440
+                resolution1 = 1440
+            }
+            // if (resolution.includes('1')) {
+            //     // 1 week in minutes === 10080
+            //     resolution = 1
+            // }
+            if (resolution.includes('W')) {
+                // 1 week in minutes === 10080
+                resolution1 = 10080
+            }
+            let coeff = resolution * 60
+            // console.log({coeff})
+            let rounded = Math.floor(tradeTime / coeff) * coeff
+            let lastBarSec = subscriptionItem.lastDailyBar.time / 1000
 
-    console.log('[socket] Generate new bar', bar);
-    console.log('[socket] Update the latest bar by price', tradePrice);
-    subscriptionItem.lastDailyBar = bar;
+            let bar;
+            if (rounded > lastBarSec) {
+                // create a new candle, use last close as open **PERSONAL CHOICE**
+                bar = {
+                    // time: rounded * 1000,
+                    // time: message.timestamp,
+                    open: tradePrice,
+                    high: tradePrice,
+                    low: tradePrice,
+                    close: tradePrice,
+                    // volume: tradeVolume
+                }
+            } else {
+                // update lastBar candle!
+                if (tradePrice < lastBar.low) {
+                    lastBar.low = tradePrice
+                } else if (tradePrice > lastBar.high) {
+                    lastBar.high = tradePrice
+                }
+                // lastBar.volume += tradeVolume
+                // lastBar.close = tradePrice
+                bar = lastBar
+            }*/
 
-    // Send data to every subscriber of that symbol
-    subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
+        let bar
+        bar = {
+            // time: rounded * 1000,
+            // time: message.timestamp,
+            open: tradePrice,
+            high: tradePrice,
+            low: tradePrice,
+            close: tradePrice,
+            // volume: tradeVolume
+        }
+        console.log('[socket] Generate new bar', bar);
+        console.log('[socket] Update the latest bar by price', tradePrice);
+        subscriptionItem.lastDailyBar = bar;
+
+        // Send data to every subscriber of that symbol
+        subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
+
+
 }
 
 const channelToSubscription = new Map();

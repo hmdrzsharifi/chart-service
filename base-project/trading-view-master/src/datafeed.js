@@ -13,6 +13,7 @@ import {
 const url = 'http://127.0.0.1:5000';
 
 const lastBarsCache = new Map();
+export {lastBarsCache}; // Named export for lastBarsCache
 
 // DatafeedConfiguration implementation
 
@@ -49,7 +50,7 @@ function mapSymbolResult(originalObject) {
         type = 'STC';
     }
     return {
-        symbol:originalObject.symbol,
+        symbol: originalObject.symbol,
         full_name: originalObject.symbol,
         description: originalObject.symbol,
         // exchange:'BINANCE',
@@ -116,6 +117,8 @@ async function getAllSymbols() {
 }
 
 export default {
+    // lastBarsCache : lastBarsCache,
+
     onReady: (callback) => {
         console.log('[onReady]: Method call');
         setTimeout(() => callback(configurationData));
@@ -259,7 +262,7 @@ export default {
 
             if (firstDataRequest) {
                 lastBarsCache.set('BINANCE:' + rawSymbol, {
-                    ...resultData[resultData.length],
+                    ...resultData[resultData.length - 1],
                 });
             }
 
