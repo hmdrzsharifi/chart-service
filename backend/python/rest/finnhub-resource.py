@@ -23,8 +23,8 @@ def fetch_candle_data():
     if time_frame == '30M': time_frame = '30'
     if time_frame == '1H': time_frame = '60'
 
-    finnhub_client = finnhub.Client(api_key=SECRET)
-
+    finnhub_client = finnhub.Client(api_key="co60qgpr01qmuouob0cgco60qgpr01qmuouob0d0")
+    print(request_data)
     # Stock candles
     res = finnhub_client.stock_candles(symbol, time_frame, from_time, to_time)
 
