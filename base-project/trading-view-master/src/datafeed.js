@@ -19,7 +19,7 @@ const lastBarsCache = new Map();
 function mapObjectFinnhub(originalObject) {
     return {
         // time: timeToTz(originalObject.t, "Asia/Tehran"),
-        time: originalObject.t * 1000,
+        time: new Date(originalObject.t * 1000),
         open: originalObject.o,
         high: originalObject.h,
         low: originalObject.l,
@@ -191,37 +191,40 @@ export default {
 
         switch (resolution) {
             case "1":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (2000 * 60);
+                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 60);
                 break;
             case "5":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (2000 * 300);
+                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 300);
                 break;
             case "15":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (2000 * 900);
+                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 900);
                 break;
             case "30":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (2000 * 1800);
+                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 1800);
                 break;
             case "60":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (2000 * 3600);
+                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 3600);
                 break;
             case "1D":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (2000 * 24 * 3600);
+                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 24 * 3600);
                 break;
             case "1W":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (2000 * 7 * 24 * 3600);
+                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 7 * 24 * 3600);
                 break;
             case "1M":
                 //todo for 30 and 31 days
-                fromDate = Math.floor(new Date().getTime() / 1000) - (2000 * 30 * 24 * 3600);
+                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 30 * 24 * 3600);
                 break;
 
             default:
-                fromDate = Math.floor(new Date().getTime() / 1000) - (2000 * 24 * 3600)
+                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 24 * 3600)
         }
 
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
+        if (rawData.length == 1) {
+            rawSymbol = rawData[0];
+        }
         if (rawData.length == 2) {
             rawSymbol = rawData[1].replace('_USD', 'USDT')
         }
@@ -232,8 +235,8 @@ export default {
         const requestBody = {
             "Ticker": 'BINANCE:' + rawSymbol,
             "TimeFrame": reqResolution,
-            "from": fromDate,
-            "to": Math.floor(new Date().getTime() / 1000)
+            "from": from,
+            "to": to
         };
         const resultData = [];
         try {

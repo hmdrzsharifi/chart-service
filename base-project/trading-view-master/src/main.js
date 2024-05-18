@@ -8,9 +8,7 @@ window.tvWidget = new TradingView.widget({
 	datafeed: Datafeed,
 	library_path: '../charting_library_cloned_data/charting_library/',
 	theme: "Dark",
-	// timezone: "Asia/Tehran",
-	// timezone: "Custom/MyTehranTimezone", // Create a custom timezone
-	// offset: -210, // Set the offset to UTC+3:30
+	timezone:"Asia/Tehran"
 	/*time_frames: [
 		{ text: "1y", resolution: "1D", description: "1 Year" },
 		{ text: "3m", resolution: "1D", description: "3 Months"},
