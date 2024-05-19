@@ -8,13 +8,10 @@ import {DATA_ADDRESS} from "./constants.js";
 const url = DATA_ADDRESS;
 
 const lastBarsCache = new Map();
-export {lastBarsCache}; // Named export for lastBarsCache
-
-// DatafeedConfiguration implementation
+export {lastBarsCache};
 
 function mapObjectFinnhub(originalObject) {
     return {
-        // time: timeToTz(originalObject.t, "Asia/Tehran"),
         time: new Date(originalObject.t * 1000),
         open: originalObject.o,
         high: originalObject.h,
@@ -69,7 +66,7 @@ const configurationData = {
     symbols_types: [{
         name: 'CRT',
         value: 'CRT',
-    },
+        },
         {
             name: 'FX',
             value: 'FX',
@@ -78,7 +75,6 @@ const configurationData = {
             name: 'STC',
             value: 'STC',
         },
-
     ],
 };
 
@@ -97,25 +93,22 @@ async function getAllSymbols() {
         }
 
         const json = await response.json();
-        // console.log({json})
 
         json.forEach((entry) => {
             allSymbols.push(mapSymbolResult(entry));
         });
-        // console.log({allSymbols})
         return allSymbols;
     } catch (error) {
         console.error('There was an error fetching the candle data:', error);
         throw error; // Re-throw the error for the calling code to handle
     }
-
 }
 
 export default {
-    // lastBarsCache : lastBarsCache,
 
     onReady: (callback) => {
-        console.log('[onReady]: Method call');
+        console.clear()
+        // console.log('[onReady]: Method call');
         setTimeout(() => callback(configurationData));
     },
 
@@ -137,7 +130,7 @@ export default {
         onResolveErrorCallback,
         extension
     ) => {
-        console.log('[resolveSymbol]: Method call', symbolName);
+        // console.log('[resolveSymbol]: Method call', symbolName);
         // Symbol information object
         const symbolInfo = {
             ticker: symbolName.replace('_USD', 'USDT'),
@@ -150,14 +143,14 @@ export default {
             minmov: 1,
             pricescale: 100,
             has_intraday: true,
-            has_no_volume: true,
+            visible_plots_set: true,
             has_weekly_and_monthly: false,
             supported_resolutions: configurationData.supported_resolutions,
             volume_precision: 2,
             data_status: 'streaming',
         };
 
-        console.log('[resolveSymbol]: Symbol resolved', symbolName);
+        // console.log('[resolveSymbol]: Symbol resolved', symbolName);
         onSymbolResolvedCallback(symbolInfo);
     },
 
@@ -184,39 +177,6 @@ export default {
         } else {
             console.log("Unsupported resolution!");
         }
-
-        // let fromDate;
-
-        /*switch (resolution) {
-            case "1":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 60);
-                break;
-            case "5":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 300);
-                break;
-            case "15":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 900);
-                break;
-            case "30":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 1800);
-                break;
-            case "60":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 3600);
-                break;
-            case "1D":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 24 * 3600);
-                break;
-            case "1W":
-                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 7 * 24 * 3600);
-                break;
-            case "1M":
-                //todo for 30 and 31 days
-                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 30 * 24 * 3600);
-                break;
-
-            default:
-                fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 24 * 3600)
-        }*/
 
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
@@ -261,7 +221,7 @@ export default {
                 });
             }
 
-            console.log(`[getBars]: returned ${resultData.length} bar(s)`);
+            // console.log(`[getBars]: returned ${resultData.length} bar(s)`);
             onHistoryCallback(resultData, {
                 noData: false,
             });
@@ -278,7 +238,7 @@ export default {
         subscriberUID,
         onResetCacheNeededCallback,
     ) => {
-        console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
+        // console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
         if (rawData.length == 1) {
@@ -302,7 +262,7 @@ export default {
     },
 
     unsubscribeBars: (subscriberUID) => {
-        console.log('[unsubscribeBars]: Method call with subscriberUID:', subscriberUID);
+        // console.log('[unsubscribeBars]: Method call with subscriberUID:', subscriberUID);
         unsubscribeFromStream(subscriberUID);
     },
 };
