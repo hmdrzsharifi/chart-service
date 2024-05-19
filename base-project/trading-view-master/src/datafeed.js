@@ -3,14 +3,9 @@ import {
     unsubscribeFromStream,
 } from './streaming.js';
 
-// function timeToTz(originalTime, timeZone) {
-//     const zonedDate = new Date(originalTime * 1000).toLocaleString('en-US', { timeZone });
-//     // return zonedDate.getTime() / 1000;
-//     return zonedDate;
-// }
-// import {DATA_ADDRESS} from "./constants";
+import {DATA_ADDRESS} from "./constants.js";
 
-const url = 'http://127.0.0.1:5000';
+const url = DATA_ADDRESS;
 
 const lastBarsCache = new Map();
 export {lastBarsCache}; // Named export for lastBarsCache
@@ -168,7 +163,7 @@ export default {
 
     getBars: async (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
         const {from, to, firstDataRequest} = periodParams;
-        var reqResolution;
+        let reqResolution;
 
         if (resolution === '1') {
             reqResolution = '1M';
@@ -190,9 +185,9 @@ export default {
             console.log("Unsupported resolution!");
         }
 
-        let fromDate;
+        // let fromDate;
 
-        switch (resolution) {
+        /*switch (resolution) {
             case "1":
                 fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 60);
                 break;
@@ -221,7 +216,7 @@ export default {
 
             default:
                 fromDate = Math.floor(new Date().getTime() / 1000) - (1000 * 24 * 3600)
-        }
+        }*/
 
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
@@ -286,6 +281,9 @@ export default {
         console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
+        if (rawData.length == 1) {
+            rawSymbol = rawData[0]
+        }
         if (rawData.length == 2) {
             rawSymbol = rawData[1].replace('_USD', 'USDT')
         }

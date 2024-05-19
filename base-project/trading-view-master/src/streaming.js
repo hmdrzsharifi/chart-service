@@ -1,6 +1,5 @@
-// import {WEBSOCKET_ADDRESS} from "./constants";
 
-const socket = io("http://91.92.108.4:5555");
+/*const socket = io("http://91.92.108.4:5555");
 import {
     lastBarsCache
 } from './datafeed.js';
@@ -20,7 +19,7 @@ socket.on('symbolUpdate', (message) => {
     if (rawData.length == 1) {
         rawSymbol = rawData[0].replace('USDT', '_USD')
     }
-   /* if (rawData[0] == 'BINANCE') {
+   /!* if (rawData[0] == 'BINANCE') {
         rawSymbol = rawData[1].replace('USDT', '_USD')
     }
     if (rawData[0] == 'OANDA') {
@@ -28,18 +27,46 @@ socket.on('symbolUpdate', (message) => {
     }
     if (rawData[0] == 'CRYPTO') {
         rawSymbol = rawData[1].replace('USDT', '_USD')
-    }*/
+    }*!/
 
     if (message.symbol === rawSymbol) {
         // console.log(message)
         handleRealTimeCandleCex(message, rawSymbol)
     }
 
-   });
+   });*/
 
-function handleRealTimeCandleCex(message) {
+import {WEBSOCKET_ADDRESS} from "./constants.js";
+import {lastBarsCache} from "./datafeed.js";
+
+function initializeWebSocket() {
+    const socket = io(WEBSOCKET_ADDRESS);
+
+    socket.on("connect", () => {
+        console.log("WebSocket connected with ID:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("WebSocket disconnected:", socket.id); // undefined
+    });
+
+    socket.on('symbolUpdate', (message) => {
+        let rawData = window.tvWidget.symbolInterval().symbol.split(':');
+        let rawSymbol;
+        if (rawData.length === 1) {
+            rawSymbol = rawData[0].replace('USDT', '_USD');
+        }
+
+        if (message.symbol === rawSymbol) {
+            handleRealTimeCandleCex(message, rawSymbol);
+        }
+    });
+}
+
+function handleRealTimeCandleCex(message,rawSymbol) {
     const tradePrice = parseFloat(message.ask);
-    const tradeTime = parseInt(message.timestamp);
+    const tradeVolume = message.volume;
+    const tradeTime = message.timestamp / 1000;
 
     const parsedSymbol = {
         exchange: 'crypto',
@@ -49,83 +76,97 @@ function handleRealTimeCandleCex(message) {
     const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
     const subscriptionItem = channelToSubscription.get(channelString);
     // if (subscriptionItem.lastDailyBar) {
-        let lastBar = subscriptionItem.lastDailyBar
-        console.log({lastBar})
-        let resolution =subscriptionItem.resolution
-        console.log({resolution})
-        let resolution1
-        if (resolution == '1D') {
-            // 1 day in minutes === 1440
-            resolution1 = 1440
-        }
-        let coeff = resolution1 * 60
-        console.log({coeff})
-        let rounded = Math.floor(tradeTime / coeff) * coeff
+    lastBarsCache.get('BINANCE:' + rawSymbol)
+    let lastBar = subscriptionItem.lastDailyBar
+    console.log({lastBar})
+    let resolution = subscriptionItem.resolution
+    console.log({resolution})
+    let resolution1
+    if (resolution == '1D') {
+        // 1 day in minutes === 1440
+        resolution1 = 1440
+    }
+    let coeff = resolution1 * 60
+    let rounded = Math.floor(tradeTime / coeff) * coeff
 
-        // let lastBarSec = lastBar.time / 1000
-        // console.log({lastBarSec})
-        /*    let resolution =subscriptionItem.resolution
-            const lastBar = subscriptionItem.lastDailyBar
-            // if (lastBar == undefined) return
-            let resolution1
-            if (resolution.includes('1D')) {
-                // 1 day in minutes === 1440
-                resolution1 = 1440
-            }
-            // if (resolution.includes('1')) {
-            //     // 1 week in minutes === 10080
-            //     resolution = 1
-            // }
-            if (resolution.includes('W')) {
-                // 1 week in minutes === 10080
-                resolution1 = 10080
-            }
-            let coeff = resolution * 60
-            // console.log({coeff})
-            let rounded = Math.floor(tradeTime / coeff) * coeff
-            let lastBarSec = subscriptionItem.lastDailyBar.time / 1000
+    let lastBarSec = lastBar.time / 1000
 
-            let bar;
-            if (rounded > lastBarSec) {
-                // create a new candle, use last close as open **PERSONAL CHOICE**
-                bar = {
-                    // time: rounded * 1000,
-                    // time: message.timestamp,
-                    open: tradePrice,
-                    high: tradePrice,
-                    low: tradePrice,
-                    close: tradePrice,
-                    // volume: tradeVolume
-                }
-            } else {
-                // update lastBar candle!
-                if (tradePrice < lastBar.low) {
-                    lastBar.low = tradePrice
-                } else if (tradePrice > lastBar.high) {
-                    lastBar.high = tradePrice
-                }
-                // lastBar.volume += tradeVolume
-                // lastBar.close = tradePrice
-                bar = lastBar
-            }*/
+    let bar;
+    if (rounded > lastBarSec) {
 
-        let bar
+        // create a new candle, use last close as open **PERSONAL CHOICE**
         bar = {
-            // time: rounded * 1000,
-            // time: message.timestamp,
+            time: message.timestamp,
             open: tradePrice,
             high: tradePrice,
             low: tradePrice,
             close: tradePrice,
-            // volume: tradeVolume
+            volume: tradeVolume
         }
         console.log('[socket] Generate new bar', bar);
+    } else {
+        // update lastBar candle!
+        if (tradePrice < lastBar.low) {
+            lastBar.low = tradePrice
+        } else if (tradePrice > lastBar.high) {
+            lastBar.high = tradePrice
+        }
+        lastBar.volume += tradeVolume
+        lastBar.close = tradePrice
+        bar = lastBar
+
         console.log('[socket] Update the latest bar by price', tradePrice);
-        subscriptionItem.lastDailyBar = bar;
+    }
 
-        // Send data to every subscriber of that symbol
-        subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
+    /*    let resolution =subscriptionItem.resolution
+        const lastBar = subscriptionItem.lastDailyBar
+        // if (lastBar == undefined) return
+        let resolution1
+        if (resolution.includes('1D')) {
+            // 1 day in minutes === 1440
+            resolution1 = 1440
+        }
+        // if (resolution.includes('1')) {
+        //     // 1 week in minutes === 10080
+        //     resolution = 1
+        // }
+        if (resolution.includes('W')) {
+            // 1 week in minutes === 10080
+            resolution1 = 10080
+        }
+        let coeff = resolution * 60
+        // console.log({coeff})
+        let rounded = Math.floor(tradeTime / coeff) * coeff
+        let lastBarSec = subscriptionItem.lastDailyBar.time / 1000
 
+        let bar;
+        if (rounded > lastBarSec) {
+            // create a new candle, use last close as open **PERSONAL CHOICE**
+            bar = {
+                // time: rounded * 1000,
+                // time: message.timestamp,
+                open: tradePrice,
+                high: tradePrice,
+                low: tradePrice,
+                close: tradePrice,
+                // volume: tradeVolume
+            }
+        } else {
+            // update lastBar candle!
+            if (tradePrice < lastBar.low) {
+                lastBar.low = tradePrice
+            } else if (tradePrice > lastBar.high) {
+                lastBar.high = tradePrice
+            }
+            // lastBar.volume += tradeVolume
+            // lastBar.close = tradePrice
+            bar = lastBar
+        }*/
+
+    subscriptionItem.lastDailyBar = bar;
+
+    // Send data to every subscriber of that symbol
+    subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
 
 }
 
@@ -172,6 +213,7 @@ export function subscribeOnStream(
         '[subscribeBars]: Subscribe to streaming. Channel:',
         channelString
     );
+    initializeWebSocket();
     // socket.send(JSON.stringify({'type': 'subscribe', 'symbol': 'BINANCE:BTCUSDT'}))
 }
 
