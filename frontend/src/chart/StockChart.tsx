@@ -125,6 +125,7 @@ export const StockChart = (props: StockChartProps) => {
     const {symbol, setSymbol} = useStore();
     const {disableCrossHair} = useStore();
     const {themeMode} = useDesignStore();
+    const {selectedSymbol} = useStore();
     const {enableTrendLine, setEnableTrendLine} = useDesignStore();
     const {enableFib, setEnableFib} = useDesignStore();
     const {enableEquidistant, setEnableEquidistant} = useDesignStore();
@@ -828,6 +829,13 @@ export const StockChart = (props: StockChartProps) => {
                 {(isStudiesChartWithTooltipInclude(StudiesChart.ELDER_IMPULSE) || isStudiesChartInclude(StudiesChart.ELDER_RAY)) && (
                     <OHLCSeries strokeWidth={5}/>
                 )}
+                <SingleValueTooltip
+                    yAccessor={ema26.accessor()}
+                    yLabel={selectedSymbol}
+                    yDisplayFormat={format(".2f")}
+                    valueFill="#ff7f0e"
+                    /* labelStroke="#4682B4" - optional prop */
+                    origin={[TOOLTIP_PADDING_LEFT, 35]}/>
                 <XAxis showGridLines {...xAndYColors} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} {...xAndYColors} />
 
@@ -970,7 +978,7 @@ export const StockChart = (props: StockChartProps) => {
                     />
                         <BollingerBandTooltip
                             // @ts-ignore
-                            origin={getStudiesChartTooltipOrigin(StudiesChart.BOLLINGER_BAND, 200, 34)}
+                            origin={getStudiesChartTooltipOrigin(StudiesChart.BOLLINGER_BAND, 200, 55)}
                             yAccessor={d => d.bb}
                             options={bb.options()}
                             textFill={getDesignTokens(themeMode).palette.text.primary}/>
