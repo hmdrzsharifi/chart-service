@@ -743,6 +743,10 @@ export const StockChart = (props: StockChartProps) => {
         return [yPosition, studiesChartsWithTooltip.indexOf(chart) * height + paddingTop]
     }
 
+    const getlastPrice = (d: any): number => {
+        return initialData[initialData.length - 1].close;
+    };
+
     const showTickLabel = (chart: StudiesChart) => {
         return studiesCharts.indexOf(chart) === 0
     }
@@ -830,7 +834,7 @@ export const StockChart = (props: StockChartProps) => {
                     <OHLCSeries strokeWidth={5}/>
                 )}
                 <SingleValueTooltip
-                    yAccessor={ema26.accessor()}
+                    yAccessor={getlastPrice}
                     yLabel={selectedSymbol}
                     yDisplayFormat={format(".2f")}
                     valueFill="#ff7f0e"
