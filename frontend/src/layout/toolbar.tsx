@@ -5,7 +5,7 @@ import useStore from "../util/store";
 import {
     Autocomplete,
     CircularProgress,
-    IconButton,
+    IconButton, InputAdornment,
     List,
     ListItem,
     Menu,
@@ -37,6 +37,7 @@ import {Add, CameraEnhance, Close, Message, Search} from "@mui/icons-material";
 import {SymbolList} from "../type/SymbolType";
 import {fetchCexSymbols} from "../util/utils";
 import html2canvas from 'html2canvas';
+import getDesignTokens from "../config/theme";
 
 const Toolbar = (props: any) => {
 
@@ -213,7 +214,7 @@ const Toolbar = (props: any) => {
                         <Message/>
                     </ToggleButton>
                 </Tooltip>
-                <Tooltip title="Search Symbol" placement="bottom" arrow>
+                <Tooltip title="Symbol Search" placement="bottom" arrow>
                     <IconButton onClick={handleOpen}>
                         <Search/>
                     </IconButton>
@@ -225,8 +226,8 @@ const Toolbar = (props: any) => {
                     open={open}
                     onClose={handleClose}
                     sx={{maxHeight: '95%'}}
-                    aria-labelledby="modal-modal-title"
-                    aria-describedby="modal-modal-description"
+                    // aria-labelledby="modal-modal-title"
+                    // aria-describedby="modal-modal-description"
                 >
                     {loading ? (
                         <div style={{
@@ -239,12 +240,12 @@ const Toolbar = (props: any) => {
                             <p>Loading...</p>
                         </div>
                     ) : (
-                        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', maxWidth: 600, maxHeight: '80%', bgcolor: 'background.paper', boxShadow: 24, p: 4 ,
+                        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', maxWidth: 600, maxHeight: '80%', bgcolor: getDesignTokens(themeMode).palette.chartBackground, boxShadow: 24, p: 4 ,
                             border: '2px solid #000',
                             borderRadius: '8px'}}>
 
                         <Typography id="modal-modal-title" variant="h6" component="h2">
-                                Select Symbol
+                            Symbol Search
                             </Typography>
                             <IconButton aria-label='close' onClick={handleClose}
                                         style={{position: 'absolute', top: '10px', right: '10px'}}>
@@ -252,8 +253,21 @@ const Toolbar = (props: any) => {
                             </IconButton>
                             <Autocomplete
                                 freeSolo
+                                style={{ marginTop: '16px' }}
                                 options={options}
-                                renderInput={(params) => <TextField {...params} label="Search" variant="outlined"/>}
+                                renderInput={(params) => <TextField
+                                    {...params}
+                                    label="Search"
+                                    variant="outlined"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Search />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />}
                                 onInputChange={(event, value) => handleSearch(event, value)}
                             />
                             <Tabs value={tabValue} onChange={handleChangeTab} sx={{mt: 2}} variant="scrollable"
@@ -263,7 +277,6 @@ const Toolbar = (props: any) => {
                                 <Tab label="FX"/>
                                 <Tab label="ETF"/>
                                 <Tab label="CMD"/>
-                                <Tab label="CRT"/>
                                 <Tab label="IND"/>
                                 <Tab label="STC"/>
                                 <Tab label="FUND"/>
@@ -271,7 +284,8 @@ const Toolbar = (props: any) => {
                             <Scrollbar style={{height: 300}}>
                                 {tabValue === 0 && (
                                     <List>
-                                        {symbolList.filter((item: SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                        {symbolList.filter((item: SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm)).sort((a: SymbolList, b: SymbolList) => a.categoryName.localeCompare(b.categoryName))
+                                            .map((item: SymbolList) => (
                                             <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                                     {item.icon && <img src={item.icon} alt="icon" style={{ marginRight: '8px', width: '24px', height: '24px' }} />}
@@ -370,7 +384,7 @@ const Toolbar = (props: any) => {
                                 )}
                                 {tabValue === 5 && (
                                     <List sx={{mt: 2}}>
-                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('CRT') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('IND') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
@@ -391,27 +405,6 @@ const Toolbar = (props: any) => {
                                 )}
                                 {tabValue === 6 && (
                                     <List sx={{mt: 2}}>
-                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('IND') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
-                                            <ListItem className='element' key={item.symbol}
-                                                      onClick={(e) => sendToApp(item)}
-                                                      style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                <div style={{display: 'flex', alignItems: 'center'}}>
-                                                    {item.icon && <img src={item.icon} alt="icon" style={{
-                                                        marginRight: '8px',
-                                                        width: '24px',
-                                                        height: '24px'
-                                                    }}/>}
-                                                    <span>{item.categoryName}</span>
-                                                </div>
-                                                <div style={{display: 'flex', alignItems: 'center'}}>
-                                                    <span>{item.symbol}</span>
-                                                </div>
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                )}
-                                {tabValue === 7 && (
-                                    <List sx={{mt: 2}}>
                                         {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('STC') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
@@ -431,7 +424,7 @@ const Toolbar = (props: any) => {
                                         ))}
                                     </List>
                                 )}
-                                {tabValue === 8 && (
+                                {tabValue === 7 && (
                                     <List sx={{mt: 2}}>
                                         {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('Fund') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
                                             <ListItem className='element' key={item.symbol}
@@ -453,10 +446,6 @@ const Toolbar = (props: any) => {
                                     </List>
                                 )}
                             </Scrollbar>
-                            <Button onClick={handleClose} color='error' sx={{
-                                alignSelf: 'flex-end', // قرار دادن دکمه "بستن" در انتهای باکس
-                            }}
-                            >Close</Button>
                         </Box>
                     )}
                 </Modal>
