@@ -46,6 +46,7 @@ import {
     StraightLine,
     TrendLine,
     StandardDeviationChannel,
+    GannFan,
     XAxis,
     YAxis,
     ZoomButtons,
@@ -132,6 +133,7 @@ export const StockChart = (props: StockChartProps) => {
     const {enableEquidistant, setEnableEquidistant} = useDesignStore();
     const {enableStandardDeviationChannel, setEnableStandardDeviationChannel} = useDesignStore();
     const {enableBrush, setEnableBrush} = useDesignStore();
+    const {enableGanFan, setEnableGanFan} = useDesignStore();
     const {enableInteractiveObject, setEnableInteractiveObject} = useDesignStore();
     const [retracements, setRetracements] = useState<any[]>([]);
     const [text, setText] = useState<any[]>([]);
@@ -149,6 +151,7 @@ export const StockChart = (props: StockChartProps) => {
     const [trends, setTrends] = useState<TrendLineType[]>([])
     const [equidistantChannels, setEquidistantChannels] = useState<any[]>([])
     const [standardDeviationChannel, setStandardDeviationChannel] = useState<any[]>([]);
+    const [fans, setFans] = useState<any[]>([]);
     const [brushes, setBrushes] = useState<any[]>([])
 
     const dateFormat = timeFormat("%Y-%m-%d");
@@ -522,6 +525,34 @@ export const StockChart = (props: StockChartProps) => {
         setStandardDeviationChannel(newChannels)
     }
 
+    const GanFanOnDrawComplete = (e: React.MouseEvent, newfans: any[], moreProps: any) => {
+        // this gets called on
+        // 1. draw complete of drawing object
+        // 2. drag complete of drawing object
+        setEnableGanFan(false)
+        setFans(newfans)
+    }
+
+    const hexToRgba = (hex: string, alpha: number) => {
+        const bigint = parseInt(hex.slice(1), 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+    const colorsWithTransparency = [
+        hexToRgba("#e41a1c", 0.3),
+        hexToRgba("#377eb8", 0.3),
+        hexToRgba("#4daf4a", 0.3),
+        hexToRgba("#984ea3", 0.3),
+        hexToRgba("#ff7f00", 0.3),
+        hexToRgba("#ffff33", 0.3),
+        hexToRgba("#a65628", 0.3),
+        hexToRgba("#f781bf", 0.3)
+    ];
+
+
     const isStudiesChartInclude = (chart: StudiesChart): boolean => {
         return studiesCharts.includes(chart)
     }
@@ -560,6 +591,10 @@ export const StockChart = (props: StockChartProps) => {
             const newStandardDeviationChannel = standardDeviationChannel.filter(each => !each.selected)
 
             setStandardDeviationChannel(newStandardDeviationChannel)
+
+            const newGanFan = fans.filter(each => !each.selected)
+
+            setFans(newGanFan)
         } else if (key === 'Escape') {
             // @ts-ignore
             canvasRef?.current?.cancelDrag()
@@ -567,8 +602,11 @@ export const StockChart = (props: StockChartProps) => {
             setEnableFib(false)
             setEnableEquidistant(false)
             setEnableStandardDeviationChannel(false)
+            setEnableGanFan(false)
         }
     };
+
+
 
     useEventListener("keydown", handler);
 
@@ -1094,6 +1132,28 @@ export const StockChart = (props: StockChartProps) => {
                         r: 5,
                     }}
                 ></StandardDeviationChannel>
+
+                <GannFan
+                    // ref={this.saveInteractiveNodes("GannFan", 1)}
+                    enabled={enableGanFan}
+                    onStart={() => console.log("START")}
+                    onComplete={GanFanOnDrawComplete}
+                    fans={fans}
+                    appearance={{
+                    stroke: "#000000",
+                    fillOpacity: 1,
+                    strokeOpacity: 1,
+                    strokeWidth: 1,
+                    edgeStroke: "#000000",
+                    edgeFill: "#FFFFFF",
+                    edgeStrokeWidth: 1,
+                    r: 5,
+                    fill: colorsWithTransparency,
+                    fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
+                    fontSize: 12,
+                    fontFill:  getDesignTokens(themeMode).palette.borderBar,
+                }}
+                />
 
                 <Brush
                     // ref={this.saveInteractiveNode(1)}

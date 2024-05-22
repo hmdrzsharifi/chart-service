@@ -19,6 +19,9 @@ type DesignStore = {
     enableStandardDeviationChannel: boolean
     setEnableStandardDeviationChannel: (enableStandardDeviationChannel: boolean) => void
 
+    enableGanFan: boolean
+    setEnableGanFan: (enableGanFan: boolean) => void
+
     enableBrush: boolean
     setEnableBrush: (enableBrush: boolean) => void
 
@@ -56,6 +59,9 @@ const useDesignStore = create<DesignStore>((set) => ({
 
     enableStandardDeviationChannel : false ,
     setEnableStandardDeviationChannel:  (enableStandardDeviationChannel: boolean) => set((state) => ({ enableStandardDeviationChannel: enableStandardDeviationChannel })),
+
+    enableGanFan : false,
+    setEnableGanFan: (enableGanFan: boolean) => set((state) => ({ enableGanFan: enableGanFan })),
 
 
 }));
