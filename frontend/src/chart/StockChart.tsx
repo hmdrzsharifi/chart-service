@@ -45,6 +45,7 @@ import {
     StochasticTooltip,
     StraightLine,
     TrendLine,
+    StandardDeviationChannel,
     XAxis,
     YAxis,
     ZoomButtons,
@@ -129,6 +130,7 @@ export const StockChart = (props: StockChartProps) => {
     const {enableTrendLine, setEnableTrendLine} = useDesignStore();
     const {enableFib, setEnableFib} = useDesignStore();
     const {enableEquidistant, setEnableEquidistant} = useDesignStore();
+    const {enableStandardDeviationChannel, setEnableStandardDeviationChannel} = useDesignStore();
     const {enableBrush, setEnableBrush} = useDesignStore();
     const {enableInteractiveObject, setEnableInteractiveObject} = useDesignStore();
     const [retracements, setRetracements] = useState<any[]>([]);
@@ -146,6 +148,7 @@ export const StockChart = (props: StockChartProps) => {
     }])*/
     const [trends, setTrends] = useState<TrendLineType[]>([])
     const [equidistantChannels, setEquidistantChannels] = useState<any[]>([])
+    const [standardDeviationChannel, setStandardDeviationChannel] = useState<any[]>([]);
     const [brushes, setBrushes] = useState<any[]>([])
 
     const dateFormat = timeFormat("%Y-%m-%d");
@@ -513,6 +516,12 @@ export const StockChart = (props: StockChartProps) => {
         setEquidistantChannels(equidistantChannels)
     }
 
+    const onDrawCompleteStandardDeviationChannel = (e: React.MouseEvent, newChannels: any, moreProps: any) => {
+
+        setEnableStandardDeviationChannel(false);
+        setStandardDeviationChannel(newChannels)
+    }
+
     const isStudiesChartInclude = (chart: StudiesChart): boolean => {
         return studiesCharts.includes(chart)
     }
@@ -547,12 +556,17 @@ export const StockChart = (props: StockChartProps) => {
             const newEquidistantChannel = equidistantChannels.filter(each => !each.selected)
 
             setEquidistantChannels(newEquidistantChannel)
+
+            const newStandardDeviationChannel = standardDeviationChannel.filter(each => !each.selected)
+
+            setStandardDeviationChannel(newStandardDeviationChannel)
         } else if (key === 'Escape') {
             // @ts-ignore
             canvasRef?.current?.cancelDrag()
             setEnableTrendLine(false)
             setEnableFib(false)
             setEnableEquidistant(false)
+            setEnableStandardDeviationChannel(false)
         }
     };
 
@@ -1060,6 +1074,26 @@ export const StockChart = (props: StockChartProps) => {
                         r: 5,
                     }}
                 />
+
+                <StandardDeviationChannel
+                    // ref={this.saveInteractiveNodes("StandardDeviationChannel", 1)}
+                    enabled={enableStandardDeviationChannel}
+                    onSelect={onDrawCompleteStandardDeviationChannel}
+                    onStart={() => console.log("START")}
+                    onComplete={onDrawCompleteStandardDeviationChannel}
+                    channels={standardDeviationChannel}
+                    appearance={{
+                        stroke: getDesignTokens(themeMode).palette.lineColor,
+                        strokeOpacity: 1,
+                        strokeWidth: 1,
+                        fill: "rgba(112, 176, 217, 0.4)",
+                        fillOpacity: 0.1,
+                        edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
+                        edgeFill: getDesignTokens(themeMode).palette.lineColor,
+                        edgeStrokeWidth: 1,
+                        r: 5,
+                    }}
+                ></StandardDeviationChannel>
 
                 <Brush
                     // ref={this.saveInteractiveNode(1)}

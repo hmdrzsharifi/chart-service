@@ -16,6 +16,9 @@ type DesignStore = {
     enableEquidistant: boolean
     setEnableEquidistant: (enableEquidistant: boolean) => void
 
+    enableStandardDeviationChannel: boolean
+    setEnableStandardDeviationChannel: (enableStandardDeviationChannel: boolean) => void
+
     enableBrush: boolean
     setEnableBrush: (enableBrush: boolean) => void
 
@@ -50,6 +53,10 @@ const useDesignStore = create<DesignStore>((set) => ({
 
     themeSecondaryColor: '#000',
     setThemeSecondaryColor: (color: string) => set((state) => ({ themeSecondaryColor: color })),
+
+    enableStandardDeviationChannel : false ,
+    setEnableStandardDeviationChannel:  (enableStandardDeviationChannel: boolean) => set((state) => ({ enableStandardDeviationChannel: enableStandardDeviationChannel })),
+
 
 }));
 

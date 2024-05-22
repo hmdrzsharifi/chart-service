@@ -6,6 +6,7 @@ import useDesignStore from "../util/designStore";
 import Brush from "../icons/Brush";
 import EquidistantChannel from "../icons/EquidistantChannel";
 import InteractiveText from "../icons/InteractiveText";
+import StandardDeviationChannel from "../icons/StandardDeviationChannel";
 
 const Sidebar = (props: any) => {
 
@@ -14,6 +15,7 @@ const Sidebar = (props: any) => {
     const {enableEquidistant, setEnableEquidistant} = useDesignStore();
     const {enableBrush, setEnableBrush} = useDesignStore();
     const {enableInteractiveObject, setEnableInteractiveObject} = useDesignStore();
+    const {enableStandardDeviationChannel, setEnableStandardDeviationChannel} = useDesignStore();
 
 
     const {themeSecondaryColor} = useDesignStore();
@@ -60,6 +62,20 @@ const Sidebar = (props: any) => {
                     }}
                 >
                     <EquidistantChannel selected={enableEquidistant} color={themeSecondaryColor} />
+                </IconButton>
+            </Tooltip>
+
+            <Tooltip title="StandardDeviation Channel" placement="right" arrow>
+                <IconButton
+                    onClick={() => {
+                        setEnableStandardDeviationChannel(!enableStandardDeviationChannel)
+                        setEnableTrendLine(false)
+                        setEnableFib(false)
+                        setEnableBrush(false)
+                        setEnableInteractiveObject(false)
+                    }}
+                >
+                    <StandardDeviationChannel selected={enableStandardDeviationChannel} color={themeSecondaryColor} />
                 </IconButton>
             </Tooltip>
 
