@@ -1151,7 +1151,7 @@ export const StockChart = (props: StockChartProps) => {
                     fill: colorsWithTransparency,
                     fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
                     fontSize: 12,
-                    fontFill:  getDesignTokens(themeMode).palette.borderBar,
+                    fontFill:  getDesignTokens(themeMode).palette.edgeStroke,
                 }}
                 />
 
