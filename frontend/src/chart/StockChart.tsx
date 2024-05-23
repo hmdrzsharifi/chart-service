@@ -80,11 +80,12 @@ import useDesignStore from "../util/designStore";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {Button} from "@mui/material";
+import {Button, Menu, MenuItem, Popover} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import getDesignTokens from "../config/theme";
 
 import {macdAppearance, mouseEdgeAppearance, stoAppearance} from '../indicator/indicatorSettings'
+import {ColorResult, SketchPicker } from "react-color";
 
 interface StockChartProps {
     readonly data: IOHLCData[];
@@ -495,14 +496,72 @@ export const StockChart = (props: StockChartProps) => {
         }
     };
 
-    const onDrawCompleteChart = (event: any, trends: any) => {
-        // this gets called on
-        // 1. draw complete of trendline
-        // @ts-ignore
-        console.log({trends});
+    const [contextMenuVisible, setContextMenuVisible] = useState(false);
+    const [menuPosition, setMenuPosition] = useState<{ mouseX: null | number; mouseY: null | number }>({
+        mouseX: null,
+        mouseY: null,
+    });
+
+    const [colorPickerVisible, setColorPickerVisible] = useState(false);
+    const [colorPickerAnchorEl, setColorPickerAnchorEl] = useState<HTMLButtonElement | null>(null);
+
+    const [selectedTrend, setSelectedTrend] = useState<any | null>(null);
+
+    const onDrawCompleteChart = (e: React.MouseEvent, newTrends: any[], moreProps: any) => {
+        console.log({ newTrends });
         setEnableTrendLine(false);
-        setTrends(trends)
-    }
+        setTrends(newTrends);
+
+        setMenuPosition({
+            mouseX: e.clientX - 2,
+            mouseY: e.clientY - 4,
+        });
+        setContextMenuVisible(true);
+        setSelectedTrend(newTrends[newTrends.length - 1]);
+    };
+
+    const handleColorChange = (color: ColorResult) => {
+        if (selectedTrend) {
+            const updatedTrends = trends.map(trend =>
+                trend === selectedTrend
+                    ? {
+                        ...trend,
+                        appearance: {
+                            ...trend.appearance,
+                            // edgeFill: color.hex,
+                            strokeStyle: color.hex
+                        },
+                    }
+                    : trend
+            );
+            setTrends(updatedTrends);
+            setSelectedTrend({
+                ...selectedTrend,
+                appearance: {
+                    ...selectedTrend.appearance,
+                    edgeFill: color.hex,
+                }
+            });
+        }
+    };
+
+    const handleClose = () => {
+        setContextMenuVisible(false);
+        setMenuPosition({ mouseX: null, mouseY: null });
+        setColorPickerVisible(false);
+        setColorPickerAnchorEl(null);
+    };
+
+    const handleOpenColorPicker = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setColorPickerAnchorEl(event.currentTarget);
+        setColorPickerVisible(true);
+    };
+
+    const handleCloseColorPicker = () => {
+        setColorPickerVisible(false);
+        setColorPickerAnchorEl(null);
+    };
+
 
     const onFibComplete = (event: any, retracements: any) => {
         console.log({retracements});
@@ -911,23 +970,23 @@ export const StockChart = (props: StockChartProps) => {
 
                 {isStudiesChartWithTooltipInclude(StudiesChart.ELDER_IMPULSE) && (
                     <>
-                    <div>
-                        <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
-                        <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
-                    </div>
-                    <MovingAverageTooltip
-                        textFill={getDesignTokens(themeMode).palette.text.primary}
-                        onClick={() => setOpenMovingAverageModal(true)}
-                        origin={getStudiesChartTooltipOrigin(StudiesChart.ELDER_IMPULSE)}
-                        options={[
-                            {
-                                yAccessor: ema12.accessor(),
-                                type: "EMA",
-                                stroke: ema12.stroke(),
-                                windowSize: ema12.options().windowSize,
-                            },
-                        ]}
-                    />
+                        <div>
+                            <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()}/>
+                            <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()}/>
+                        </div>
+                        <MovingAverageTooltip
+                            textFill={getDesignTokens(themeMode).palette.text.primary}
+                            onClick={() => setOpenMovingAverageModal(true)}
+                            origin={getStudiesChartTooltipOrigin(StudiesChart.ELDER_IMPULSE)}
+                            options={[
+                                {
+                                    yAccessor: ema12.accessor(),
+                                    type: "EMA",
+                                    stroke: ema12.stroke(),
+                                    windowSize: ema12.options().windowSize,
+                                },
+                            ]}
+                        />
                     </>
                 )}
 
@@ -1007,31 +1066,31 @@ export const StockChart = (props: StockChartProps) => {
 
                 {isStudiesChartWithTooltipInclude(StudiesChart.BOLLINGER_BAND) && (
                     <>
-                    <MovingAverageTooltip
-                        textFill={getDesignTokens(themeMode).palette.text.primary}
-                        onClick={e => console.log(e)}
-                        origin={getStudiesChartTooltipOrigin(StudiesChart.BOLLINGER_BAND)}
-                        options={[
-                            {
-                                yAccessor: sma20.accessor(),
-                                type: sma20.type(),
-                                stroke: sma20.stroke(),
-                                windowSize: sma20.options().windowSize,
-                            },
-                            {
-                                yAccessor: ema20.accessor(),
-                                type: ema20.type(),
-                                stroke: ema20.stroke(),
-                                windowSize: ema20.options().windowSize,
-                            },
-                            {
-                                yAccessor: ema50.accessor(),
-                                type: ema50.type(),
-                                stroke: ema50.stroke(),
-                                windowSize: ema50.options().windowSize,
-                            },
-                        ]}
-                    />
+                        <MovingAverageTooltip
+                            textFill={getDesignTokens(themeMode).palette.text.primary}
+                            onClick={e => console.log(e)}
+                            origin={getStudiesChartTooltipOrigin(StudiesChart.BOLLINGER_BAND)}
+                            options={[
+                                {
+                                    yAccessor: sma20.accessor(),
+                                    type: sma20.type(),
+                                    stroke: sma20.stroke(),
+                                    windowSize: sma20.options().windowSize,
+                                },
+                                {
+                                    yAccessor: ema20.accessor(),
+                                    type: ema20.type(),
+                                    stroke: ema20.stroke(),
+                                    windowSize: ema20.options().windowSize,
+                                },
+                                {
+                                    yAccessor: ema50.accessor(),
+                                    type: ema50.type(),
+                                    stroke: ema50.stroke(),
+                                    windowSize: ema50.options().windowSize,
+                                },
+                            ]}
+                        />
                         <BollingerBandTooltip
                             // @ts-ignore
                             origin={getStudiesChartTooltipOrigin(StudiesChart.BOLLINGER_BAND, 200, 55)}
@@ -1039,39 +1098,79 @@ export const StockChart = (props: StockChartProps) => {
                             options={bb.options()}
                             textFill={getDesignTokens(themeMode).palette.text.primary}/>
 
-            <LineSeries yAccessor={sma20.accessor()} strokeStyle={sma20.stroke()}/>
-            <LineSeries yAccessor={ema20.accessor()} strokeStyle={ema20.stroke()}/>
-            <LineSeries yAccessor={ema50.accessor()} strokeStyle={ema50.stroke()}/>
-            <CurrentCoordinate yAccessor={sma20.accessor()} fillStyle={sma20.stroke()} />
-            <CurrentCoordinate yAccessor={ema20.accessor()} fillStyle={ema20.stroke()} />
-            <CurrentCoordinate yAccessor={ema50.accessor()} fillStyle={ema50.stroke()} />
+                        <LineSeries yAccessor={sma20.accessor()} strokeStyle={sma20.stroke()}/>
+                        <LineSeries yAccessor={ema20.accessor()} strokeStyle={ema20.stroke()}/>
+                        <LineSeries yAccessor={ema50.accessor()} strokeStyle={ema50.stroke()}/>
+                        <CurrentCoordinate yAccessor={sma20.accessor()} fillStyle={sma20.stroke()}/>
+                        <CurrentCoordinate yAccessor={ema20.accessor()} fillStyle={ema20.stroke()}/>
+                        <CurrentCoordinate yAccessor={ema50.accessor()} fillStyle={ema50.stroke()}/>
 
-            <BollingerSeries yAccessor={d => d.bb}
-            strokeStyle={bbStroke}
-            fillStyle={bbFill}/>
-                </>
-    )};
+                        <BollingerSeries yAccessor={d => d.bb}
+                                         strokeStyle={bbStroke}
+                                         fillStyle={bbFill}/>
+                    </>
+                )};
 
                 /*##### Interactive #####*/
-                <TrendLine
-                    // ref={saveInteractiveNodes("Trendline", 1)}
-                    enabled={enableTrendLine}
-                    type="RAY"
-                    snap={false}
-                    snapTo={d => [d.high, d.low]}
-                    onStart={() => console.log("START", trends)}
-                    onComplete={onDrawCompleteChart}
-                    appearance={{
-                        strokeStyle: getDesignTokens(themeMode).palette.lineColor,
-                        strokeWidth: 1,
-                        strokeDasharray: "Solid",
-                        edgeStrokeWidth: 1,
-                        edgeFill: getDesignTokens(themeMode).palette.lineColor,
-                        edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
-                    }}
-                    // onComplete={() => console.log("End", trends)}
-                    trends={trends}
-                />
+                <div>
+                    <TrendLine
+                        enabled={enableTrendLine}
+                        type="RAY"
+                        snap={false}
+                        snapTo={(d: any) => [d.high, d.low]}
+                        onStart={() => console.log("START", trends)}
+                        onComplete={onDrawCompleteChart}
+                        appearance={{
+                            strokeStyle: getDesignTokens(themeMode).palette.lineColor,
+                            strokeWidth: 1,
+                            strokeDasharray: "Solid",
+                            edgeStrokeWidth: 1,
+                            edgeFill: getDesignTokens(themeMode).palette.lineColor,
+                            edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
+                        }}
+                        trends={trends}
+                    />
+
+                    <Menu
+                        keepMounted
+                        open={contextMenuVisible}
+                        onClose={handleClose}
+                        anchorReference="anchorPosition"
+                        anchorPosition={
+                            menuPosition.mouseY !== null && menuPosition.mouseX !== null
+                                ? { top: menuPosition.mouseY, left: menuPosition.mouseX }
+                                : undefined
+                        }
+                    >
+                        <MenuItem>
+                            <Box display="flex" justifyContent="flex-end" width="100%">
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleOpenColorPicker}
+                                >
+                                    Change Color
+                                </Button>
+                            </Box>
+                        </MenuItem>
+                    </Menu>
+
+
+                    <Popover
+                        open={colorPickerVisible}
+                        anchorEl={colorPickerAnchorEl}
+                        onClose={handleCloseColorPicker}
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'left',
+                        }}
+                    >
+                        <SketchPicker
+                            color={selectedTrend?.appearance?.edgeFill || '#000'}
+                            onChangeComplete={handleColorChange}
+                        />
+                    </Popover>
+                </div>
 
                 <FibonacciRetracement
                     // ref={saveInteractiveNodes("FibonacciRetracement", 1)}
@@ -1140,19 +1239,19 @@ export const StockChart = (props: StockChartProps) => {
                     onComplete={GanFanOnDrawComplete}
                     fans={fans}
                     appearance={{
-                    stroke: "#000000",
-                    fillOpacity: 1,
-                    strokeOpacity: 1,
-                    strokeWidth: 1,
-                    edgeStroke: "#000000",
-                    edgeFill: "#FFFFFF",
-                    edgeStrokeWidth: 1,
-                    r: 5,
-                    fill: colorsWithTransparency,
-                    fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
-                    fontSize: 12,
-                    fontFill:  getDesignTokens(themeMode).palette.edgeStroke,
-                }}
+                        stroke: "#000000",
+                        fillOpacity: 1,
+                        strokeOpacity: 1,
+                        strokeWidth: 1,
+                        edgeStroke: "#000000",
+                        edgeFill: "#FFFFFF",
+                        edgeStrokeWidth: 1,
+                        r: 5,
+                        fill: colorsWithTransparency,
+                        fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
+                        fontSize: 12,
+                        fontFill: getDesignTokens(themeMode).palette.edgeStroke,
+                    }}
                 />
 
                 <Brush
@@ -1207,20 +1306,20 @@ export const StockChart = (props: StockChartProps) => {
 
                 {isStudiesChartWithTooltipInclude(StudiesChart.SAR) && (
                     <>
-                    <SARSeries yAccessor={d => d.sar} highlightOnHover/>
-                    <MovingAverageTooltip
-                        textFill={getDesignTokens(themeMode).palette.text.primary}
-                        onClick={() => setOpenMovingAverageModal(true)}
-                        origin={getStudiesChartTooltipOrigin(StudiesChart.SAR, 2)}
-                        options={[
-                            {
-                                yAccessor: (d) => d.sar,
-                                type: `SAR (${accelerationFactor}, ${maxAccelerationFactor})`,
-                                stroke: '',
-                                windowSize: 0,
-                            },
-                        ]}
-                    />
+                        <SARSeries yAccessor={d => d.sar} highlightOnHover/>
+                        <MovingAverageTooltip
+                            textFill={getDesignTokens(themeMode).palette.text.primary}
+                            onClick={() => setOpenMovingAverageModal(true)}
+                            origin={getStudiesChartTooltipOrigin(StudiesChart.SAR, 2)}
+                            options={[
+                                {
+                                    yAccessor: (d) => d.sar,
+                                    type: `SAR (${accelerationFactor}, ${maxAccelerationFactor})`,
+                                    stroke: '',
+                                    windowSize: 0,
+                                },
+                            ]}
+                        />
                     </>
                 )}
 
