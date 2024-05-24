@@ -216,7 +216,9 @@ export default {
             ticker = 'OANDA' + ':' + rawSymbol
         }
         if (symbolCategory == "IND") {
-            ticker = 'OANDA' + ':' + rawSymbol
+            if (rawSymbol == "DJIUSDT") {
+                ticker = "^DJI"
+            }
         }
 
         const requestBody = {
