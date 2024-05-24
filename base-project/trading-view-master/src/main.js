@@ -8,7 +8,10 @@ window.tvWidget = new TradingView.widget({
 	datafeed: Datafeed,
 	library_path: '../charting_library_cloned_data/charting_library/',
 	theme: "Dark",
-	timezone:"Asia/Tehran"
+/*	disabled_features: ["use_localstorage_for_settings"
+		, "header_symbol_search",
+	],*/
+	timezone:Intl.DateTimeFormat().resolvedOptions().timeZone
 	/*time_frames: [
 		{ text: "1y", resolution: "1D", description: "1 Year" },
 		{ text: "3m", resolution: "1D", description: "3 Months"},

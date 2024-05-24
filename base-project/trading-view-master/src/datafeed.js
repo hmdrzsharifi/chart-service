@@ -63,9 +63,10 @@ const configurationData = {
     },
     ],
     // The `symbols_types` arguments are used for the `searchSymbols` method if a user selects this symbol type
-    symbols_types: [{
-        name: 'CRT',
-        value: 'CRT',
+    symbols_types: [
+        {
+            name: 'CRT',
+            value: 'CRT',
         },
         {
             name: 'FX',
@@ -79,8 +80,9 @@ const configurationData = {
 };
 
 // Obtains all symbols for all exchanges supported by CryptoCompare API
+let symbolMap = new Map();
+
 async function getAllSymbols() {
-    let allSymbols = [];
     try {
         const response = await fetch('http://91.92.108.4:4444/api/v1/services/all/symbols', {
             method: 'GET',
@@ -93,9 +95,10 @@ async function getAllSymbols() {
         }
 
         const json = await response.json();
-
+        let allSymbols = []
         json.forEach((entry) => {
             allSymbols.push(mapSymbolResult(entry));
+            symbolMap.set(entry.symbol, mapSymbolResult(entry));
         });
         return allSymbols;
     } catch (error) {
@@ -107,8 +110,6 @@ async function getAllSymbols() {
 export default {
 
     onReady: (callback) => {
-        console.clear()
-        // console.log('[onReady]: Method call');
         setTimeout(() => callback(configurationData));
     },
 
@@ -118,7 +119,7 @@ export default {
         symbolType,
         onResultReadyCallback,
     ) => {
-        console.log('[searchSymbols]: Method call');
+        // console.log('[searchSymbols]: Method call');
         let symbols = await getAllSymbols();
         symbols.filter(value => value.type == symbolType)
         onResultReadyCallback(symbols);
@@ -132,16 +133,22 @@ export default {
     ) => {
         // console.log('[resolveSymbol]: Method call', symbolName);
         // Symbol information object
+        let symbolCategory;
+        if (symbolMap.has(symbolName)) {
+            symbolCategory = symbolMap.get(symbolName).type
+        } else {
+            symbolCategory = 'CRT'
+        }
         const symbolInfo = {
             ticker: symbolName.replace('_USD', 'USDT'),
             name: symbolName,
             description: symbolName,
-            type: 'CRT',
+            type: symbolCategory,
             session: '24x7',
             timezone: 'Etc/UTC',
-            exchange: 'crypto',
+            exchange: symbolCategory,
             minmov: 1,
-            pricescale: 100,
+            pricescale: 10000,
             has_intraday: true,
             visible_plots_set: true,
             has_weekly_and_monthly: false,
@@ -151,11 +158,12 @@ export default {
         };
 
         // console.log('[resolveSymbol]: Symbol resolved', symbolName);
-        onSymbolResolvedCallback(symbolInfo);
+        setTimeout(() => onSymbolResolvedCallback(symbolInfo));
+
     },
 
     getBars: async (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
-        const {from, to, firstDataRequest} = periodParams;
+        const {from, to, firstDataRequest, countBack} = periodParams;
         let reqResolution;
 
         if (resolution === '1') {
@@ -190,13 +198,34 @@ export default {
             rawSymbol = rawData[2].replace('_USD', 'USDT')
         }
 
+        const symbolCategory = symbolInfo.type;
+        let ticker = '';
+        if (symbolCategory === 'CRT') {
+            ticker = 'BINANCE' + ':' + rawSymbol
+        }
+        if (symbolCategory == "FX") {
+            ticker = 'OANDA' + ':' + rawSymbol
+        }
+        if (symbolCategory == "STC") {
+            ticker = rawSymbol
+        }
+        if (symbolCategory == "ETF") {
+            ticker = rawSymbol
+        }
+        if (symbolCategory == "CMD") {
+            ticker = 'OANDA' + ':' + rawSymbol
+        }
+        if (symbolCategory == "IND") {
+            ticker = 'OANDA' + ':' + rawSymbol
+        }
+
         const requestBody = {
-            "Ticker": 'BINANCE:' + rawSymbol,
+            "Ticker": ticker,
             "TimeFrame": reqResolution,
             "from": from,
             "to": to
         };
-        const resultData = [];
+        let resultData = [];
         try {
             const response = await fetch(url + '/fetchCandleData', {
                 method: 'POST',
@@ -210,13 +239,15 @@ export default {
             }
 
             const json = await response.json();
-
-            json.forEach((entry) => {
-                resultData.push(mapObjectFinnhub(entry));
-            });
+            // if (json.s == 'no_data')
+            if (json.length > 0) {
+                json.forEach((entry) => {
+                    resultData.push(mapObjectFinnhub(entry));
+                });
+            }
 
             if (firstDataRequest) {
-                lastBarsCache.set('BINANCE:' + rawSymbol, {
+                lastBarsCache.set(symbolCategory + ':' + rawSymbol.replace('USDT', '_USD'), {
                     ...resultData[resultData.length - 1],
                 });
             }
@@ -239,6 +270,7 @@ export default {
         onResetCacheNeededCallback,
     ) => {
         // console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
+        let symbolCategory = symbolInfo.type;
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
         if (rawData.length == 1) {
@@ -257,7 +289,7 @@ export default {
             onRealtimeCallback,
             subscriberUID,
             onResetCacheNeededCallback,
-            lastBarsCache.get('BINANCE:' + rawSymbol),
+            lastBarsCache.get(symbolCategory + ':' + rawSymbol.replace('USDT', '_USD')),
         );
     },
 
