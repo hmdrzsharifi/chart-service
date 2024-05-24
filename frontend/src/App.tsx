@@ -11,17 +11,22 @@ import useStore from "./util/store";
 import {fetchCandleData} from "./util/utils";
 import io from 'socket.io-client';
 import useDesignStore from "./util/designStore";
-import {TimeFrame} from "./type/Enum";
 import getDesignTokens from "./config/theme";
 import Decimal from 'decimal.js';
-
+import {MainChart} from "./chart/MainChart";
+// @ts-ignore
+import useDimensions from 'react-use-dimensions'
+import { CirclesWithBar } from 'react-loader-spinner'
 
 function App() {
+
+    const [ref, { width, height }] = useDimensions()
 
     const [data, setData] = useState<any>([]);
     const [lastTime, setLastTime] = useState<any>(new Date());
     const {symbol, timeFrame} = useStore();
     const {openSideBar, themeMode} = useDesignStore();
+    const {loading, setLoading} = useDesignStore();
 
 
     const stateRef: React.MutableRefObject<any> = useRef();
@@ -74,8 +79,6 @@ function App() {
         socket.on('symbolUpdate', (message: any) => {
             // console.log(message)
             const convertedMessage = {...message, ask: new Decimal(message.ask).toNumber()}
-            console.log({symbol})
-            console.log("###########", message.symbol)
 
             let rawData = symbol.split(':')
             let rawSymbol
@@ -386,6 +389,8 @@ function App() {
         try {
             let from;
 
+            setLoading(true)
+
             switch (timeFrame) {
                 case "1M":
                     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 60);
@@ -407,6 +412,8 @@ function App() {
             // console.log(candleData)
 
             setData(candleData)
+            setLoading(false)
+
         } catch (error) {
             console.error('Error fetching candle data:', error);
         }
@@ -567,14 +574,33 @@ function App() {
                             background: getDesignTokens(themeMode).palette.backgroundBar,
                             borderColor: getDesignTokens(themeMode).palette.borderBar
                         }}/>
-                        <div className="chart" id="chartId" style={{
+                        <div className="chart" id="chartId" ref={ref} style={{
                             width: '100%',
                             background: getDesignTokens(themeMode).palette.chartBackground
                         }}>
-                            <StockChart data={stateDataRef.current} setData={setData} theme={theme}
-                                        height={window.innerHeight - 100}
-                                        ratio={3}
-                                        width={getWidth()}/>
+                            {loading &&
+                                <div className={'loader-wrapper'} style={{ width: width - (openSideBar ? 40 : 0), height }}>
+                            <CirclesWithBar
+                                height={200}
+                                width={width}
+                                color={getDesignTokens(themeMode).palette.edgeStroke}
+                                outerCircleColor={getDesignTokens(themeMode).palette.edgeStroke}
+                                innerCircleColor={getDesignTokens(themeMode).palette.edgeStroke}
+                                barColor={getDesignTokens(themeMode).palette.edgeStroke}
+                                ariaLabel="loading"
+                                wrapperStyle={{}}
+                                wrapperClass=""
+                                visible={true}
+                            />
+                            </div>}
+                            {data.length > 0 && <MainChart dataList={data} width={width - (openSideBar ? 45 : 10)} ratio={3}
+                                                           theme={theme} height={height}
+                            />}
+
+                            {/*<StockChart data={stateDataRef.current} setData={setData} theme={theme}*/}
+                            {/*            height={window.innerHeight - 100}*/}
+                            {/*            ratio={3}*/}
+                            {/*            width={getWidth()}/>*/}
                         </div>
                     </div>
                     <Footer style={{
