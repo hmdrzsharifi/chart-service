@@ -80,12 +80,13 @@ import useDesignStore from "../util/designStore";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {Button, Menu, MenuItem, Popover} from "@mui/material";
+import {Button, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Popover} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import getDesignTokens from "../config/theme";
 
 import {macdAppearance, mouseEdgeAppearance, stoAppearance} from '../indicator/indicatorSettings'
 import {ColorResult, SketchPicker } from "react-color";
+import {BorderColor} from "@mui/icons-material";
 
 interface StockChartProps {
     readonly data: IOHLCData[];
@@ -503,7 +504,7 @@ export const StockChart = (props: StockChartProps) => {
     });
 
     const [colorPickerVisible, setColorPickerVisible] = useState(false);
-    const [colorPickerAnchorEl, setColorPickerAnchorEl] = useState<HTMLButtonElement | null>(null);
+    const [colorPickerAnchorEl, setColorPickerAnchorEl] = useState<HTMLDivElement | null>(null);
 
     const [selectedTrend, setSelectedTrend] = useState<any | null>(null);
 
@@ -545,6 +546,7 @@ export const StockChart = (props: StockChartProps) => {
         }
     };
 
+
     const handleClose = () => {
         setContextMenuVisible(false);
         setMenuPosition({ mouseX: null, mouseY: null });
@@ -552,7 +554,7 @@ export const StockChart = (props: StockChartProps) => {
         setColorPickerAnchorEl(null);
     };
 
-    const handleOpenColorPicker = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleOpenColorPicker = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         setColorPickerAnchorEl(event.currentTarget);
         setColorPickerVisible(true);
     };
@@ -561,7 +563,6 @@ export const StockChart = (props: StockChartProps) => {
         setColorPickerVisible(false);
         setColorPickerAnchorEl(null);
     };
-
 
     const onFibComplete = (event: any, retracements: any) => {
         console.log({retracements});
@@ -1142,17 +1143,14 @@ export const StockChart = (props: StockChartProps) => {
                                 : undefined
                         }
                     >
-                        <MenuItem>
-                            <Box display="flex" justifyContent="flex-end" width="100%">
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={handleOpenColorPicker}
-                                >
-                                    Change Color
-                                </Button>
-                            </Box>
-                        </MenuItem>
+                            <MenuList >
+                                <MenuItem>
+                                    <ListItemIcon onClick={handleOpenColorPicker}>
+                                        <BorderColor fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText onClick={handleOpenColorPicker}>Change Color</ListItemText>
+                                </MenuItem>
+                            </MenuList>
                     </Menu>
 
 
