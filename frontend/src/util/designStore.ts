@@ -30,6 +30,9 @@ type DesignStore = {
 
     themeSecondaryColor: string
     setThemeSecondaryColor: (color: string) => void
+
+    loading: boolean
+    setLoading: (loading: boolean) => void
 };
 
 const useDesignStore = create<DesignStore>((set) => ({
@@ -63,6 +66,8 @@ const useDesignStore = create<DesignStore>((set) => ({
     enableGanFan : false,
     setEnableGanFan: (enableGanFan: boolean) => set((state) => ({ enableGanFan: enableGanFan })),
 
+    loading: true,
+    setLoading: (loading: boolean) => set((state) => ({ loading: loading })),
 
 }));
 
