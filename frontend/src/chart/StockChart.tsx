@@ -74,19 +74,21 @@ import {
     TOOLTIP_PADDING_LEFT,
     TOOLTIP_PADDING_TOP
 } from "../config/constants";
+import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
 import {HourAndMinutesTimeFrames, StudiesChart, TimeFrame} from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {Button, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Popover} from "@mui/material";
+import {Button, ListItem, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Popover} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import getDesignTokens from "../config/theme";
 
 import {macdAppearance, mouseEdgeAppearance, stoAppearance} from '../indicator/indicatorSettings'
-import {ColorResult, SketchPicker } from "react-color";
 import {BorderColor} from "@mui/icons-material";
+import EditIcon from '@mui/icons-material/Edit';
+import {ColorResult, SketchPicker} from "react-color";
 
 interface StockChartProps {
     readonly data: IOHLCData[];
@@ -186,6 +188,16 @@ export const StockChart = (props: StockChartProps) => {
         setEnableInteractiveObject(false)
         setText([...text, textList])
     }
+
+    const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        console.log({event})
+        event.preventDefault();
+        setMenuPosition({
+            mouseX: event.clientX,
+            mouseY: event.clientY,
+        });
+        setContextMenuVisible(true);
+    };
 
     const handleDragStart = (_: React.MouseEvent, moreProps: any) => {
         // const { position } = this.props;
@@ -509,7 +521,7 @@ export const StockChart = (props: StockChartProps) => {
     const [selectedTrend, setSelectedTrend] = useState<any | null>(null);
 
     const onDrawCompleteChart = (e: React.MouseEvent, newTrends: any[], moreProps: any) => {
-        console.log({ newTrends });
+        console.log({newTrends});
         setEnableTrendLine(false);
         setTrends(newTrends);
 
@@ -523,8 +535,11 @@ export const StockChart = (props: StockChartProps) => {
 
     const handleColorChange = (color: ColorResult) => {
         if (selectedTrend) {
+            console.log({color})
+            console.log({trends})
+            console.log({selectedTrend})
             const updatedTrends = trends.map(trend =>
-                trend === selectedTrend
+                trend.start === selectedTrend.start && trend.end === selectedTrend.end
                     ? {
                         ...trend,
                         appearance: {
@@ -535,6 +550,7 @@ export const StockChart = (props: StockChartProps) => {
                     }
                     : trend
             );
+            console.log({updatedTrends})
             setTrends(updatedTrends);
             setSelectedTrend({
                 ...selectedTrend,
@@ -549,7 +565,7 @@ export const StockChart = (props: StockChartProps) => {
 
     const handleClose = () => {
         setContextMenuVisible(false);
-        setMenuPosition({ mouseX: null, mouseY: null });
+        setMenuPosition({mouseX: null, mouseY: null});
         setColorPickerVisible(false);
         setColorPickerAnchorEl(null);
     };
@@ -562,6 +578,68 @@ export const StockChart = (props: StockChartProps) => {
     const handleCloseColorPicker = () => {
         setColorPickerVisible(false);
         setColorPickerAnchorEl(null);
+    };
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [submenuAnchorEl, setSubmenuAnchorEl] = useState<null | HTMLElement>(null);
+    const [typeAnchorEl, setTypeAnchorEl] = useState<null | HTMLElement>(null);
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleSubmenuClick = (event: React.MouseEvent<HTMLElement>) => {
+        setSubmenuAnchorEl(event.currentTarget);
+    };
+
+    const handleTypeClick = (event: React.MouseEvent<HTMLElement>) => {
+        setTypeAnchorEl(event.currentTarget);
+    };
+
+    const handleTypeClose = (value: string) => () => {
+        console.log(`Selected Sub Option: ${value}`);
+        if (selectedTrend) {
+            const updatedTrends = trends.map(trend =>
+                trend.start === selectedTrend.start && trend.end === selectedTrend.end
+                    ? {
+                        ...trend,
+                        type: value,
+                    }
+                    : trend
+            );
+            setTrends(updatedTrends);
+            setSelectedTrend({
+                ...selectedTrend,
+                type: value,
+            });
+        }
+        setTypeAnchorEl(null);
+    };
+
+    const handleSubmenuClose = (value: number) => () => {
+        console.log(`Selected Sub Option: ${value}`);
+        if (selectedTrend) {
+            const updatedTrends = trends.map(trend =>
+                trend.start === selectedTrend.start && trend.end === selectedTrend.end
+                    ? {
+                        ...trend,
+                        appearance: {
+                            ...trend.appearance,
+                            // edgeFill: color.hex,
+                            strokeWidth: value
+                        },
+                    }
+                    : trend
+            );
+            setTrends(updatedTrends);
+            setSelectedTrend({
+                ...selectedTrend,
+                appearance: {
+                    ...selectedTrend.appearance,
+                    strokeWidth: value,
+                }
+            });
+        }
+        setSubmenuAnchorEl(null);
     };
 
     const onFibComplete = (event: any, retracements: any) => {
@@ -665,7 +743,6 @@ export const StockChart = (props: StockChartProps) => {
             setEnableGanFan(false)
         }
     };
-
 
 
     useEventListener("keydown", handler);
@@ -1113,10 +1190,10 @@ export const StockChart = (props: StockChartProps) => {
                 )};
 
                 /*##### Interactive #####*/
-                <div>
+                <div onContextMenu={handleContextMenu}>
                     <TrendLine
                         enabled={enableTrendLine}
-                        type="RAY"
+                        type="LINE"
                         snap={false}
                         snapTo={(d: any) => [d.high, d.low]}
                         onStart={() => console.log("START", trends)}
@@ -1130,6 +1207,7 @@ export const StockChart = (props: StockChartProps) => {
                             edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
                         }}
                         trends={trends}
+
                     />
 
                     <Menu
@@ -1139,18 +1217,76 @@ export const StockChart = (props: StockChartProps) => {
                         anchorReference="anchorPosition"
                         anchorPosition={
                             menuPosition.mouseY !== null && menuPosition.mouseX !== null
-                                ? { top: menuPosition.mouseY, left: menuPosition.mouseX }
+                                ? {top: menuPosition.mouseY, left: menuPosition.mouseX}
                                 : undefined
                         }
                     >
-                            <MenuList >
-                                <MenuItem>
-                                    <ListItemIcon onClick={handleOpenColorPicker}>
-                                        <BorderColor fontSize="small" />
-                                    </ListItemIcon>
-                                    <ListItemText onClick={handleOpenColorPicker}>Change Color</ListItemText>
-                                </MenuItem>
-                            </MenuList>
+                        <ListItem button onClick={handleOpenColorPicker}>
+                            <ListItemIcon>
+                                <BorderColor fontSize="small"/>
+                            </ListItemIcon>
+                            <ListItemText onClick={handleOpenColorPicker}>Change Color</ListItemText>
+                        </ListItem>
+                        <ListItem button onClick={handleSubmenuClick}>
+                            <ListItemIcon>
+                                <EditIcon fontSize="small"/>
+                            </ListItemIcon>
+                            <ListItemText>StrokeWidth</ListItemText>
+                        </ListItem>
+                        <ListItem button onClick={handleTypeClick}>
+                            <ListItemIcon>
+                                <HorizontalRuleRoundedIcon fontSize="small"/>
+                            </ListItemIcon>
+                            <ListItemText>Type</ListItemText>
+                        </ListItem>
+                        <Menu
+                            anchorEl={typeAnchorEl}
+                            open={Boolean(typeAnchorEl)}
+                            onClose={handleTypeClose}
+                        >
+                            <MenuItem>
+                                <ListItemIcon onClick={handleTypeClose("XLINE")}>
+                                    <HorizontalRuleRoundedIcon fontSize="small"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleTypeClose("XLINE")}>XLINE</ListItemText>
+                            </MenuItem>
+                            <MenuItem>
+                                <ListItemIcon onClick={handleTypeClose("RAY")}>
+                                    <HorizontalRuleRoundedIcon fontSize="small"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleTypeClose("RAY")}>RAY</ListItemText>
+                            </MenuItem>
+                            <MenuItem>
+                                <ListItemIcon onClick={handleTypeClose("LINE")}>
+                                    <HorizontalRuleRoundedIcon fontSize="small"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleTypeClose("LINE")}>LINE</ListItemText>
+                            </MenuItem>
+                        </Menu>
+                        <Menu
+                            anchorEl={submenuAnchorEl}
+                            open={Boolean(submenuAnchorEl)}
+                            onClose={handleSubmenuClose}
+                        >
+                            <MenuItem>
+                                <ListItemIcon onClick={handleSubmenuClose(1)}>
+                                    <EditIcon fontSize="small"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleSubmenuClose(1)}>1</ListItemText>
+                            </MenuItem>
+                            <MenuItem>
+                                <ListItemIcon onClick={handleSubmenuClose(3)}>
+                                    <EditIcon fontSize="medium"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleSubmenuClose(3)}>3</ListItemText>
+                            </MenuItem>
+                            <MenuItem>
+                                <ListItemIcon onClick={handleSubmenuClose(5)}>
+                                    <EditIcon fontSize="large"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleSubmenuClose(5)}>5</ListItemText>
+                            </MenuItem>
+                        </Menu>
                     </Menu>
 
 
@@ -1343,72 +1479,72 @@ export const StockChart = (props: StockChartProps) => {
             /*##### ElderRay Chart #####*/
             {isStudiesChartInclude(StudiesChart.ELDER_RAY) &&
 
-                // <ElderRayStudiesChart
-                //     yExtents={[0, elder.accessor()]}
-                //     displayFormat={timeDisplayFormat}
-                //     margin={margin}
-                //     pricesDisplayFormat={pricesDisplayFormat}
-                //     elderAccessor={elder.accessor()}
-                //     origin={elderRayOrigin}
-                // />
+            // <ElderRayStudiesChart
+            //     yExtents={[0, elder.accessor()]}
+            //     displayFormat={timeDisplayFormat}
+            //     margin={margin}
+            //     pricesDisplayFormat={pricesDisplayFormat}
+            //     elderAccessor={elder.accessor()}
+            //     origin={elderRayOrigin}
+            // />
 
-                (
-                    <Chart id={3} height={STUDIES_CHART_HEIGHT} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
-                           padding={{top: 8, bottom: 8}}>
-                        {/*<XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>*/}
-                        <XAxis showGridLines {...xAndYColors}/>
-                        <YAxis ticks={4} tickFormat={pricesDisplayFormat} {...xAndYColors}/>
+            (
+                <Chart id={3} height={STUDIES_CHART_HEIGHT} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
+                       padding={{top: 8, bottom: 8}}>
+                    {/*<XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>*/}
+                    <XAxis showGridLines {...xAndYColors}/>
+                    <YAxis ticks={4} tickFormat={pricesDisplayFormat} {...xAndYColors}/>
 
-                        <MouseCoordinateX displayFormat={timeDisplayFormat}/>
-                        <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat}/>
-                        <MouseCoordinateY
-                            at="right"
-                            orient="right"
-                            displayFormat={pricesDisplayFormat}
-                            {...mouseEdgeAppearance}/>
-                        <ElderRaySeries yAccessor={elder.accessor()}/>
-                        <SingleValueTooltip
-                            // origin={[10,50]}
-                            valueFill={getDesignTokens(themeMode).palette.text.primary}
-                            className='elderChart'
-                            xInitDisplay='200px'
-                            onClick={() => setOpenElderRayModal(true)}
-                            yAccessor={elder.accessor()}
-                            yLabel="Elder Ray"
-                            yDisplayFormat={(d: any) =>
-                                `${pricesDisplayFormat(d.bullPower)}, ${pricesDisplayFormat(d.bearPower)}`
-                            }
-                            origin={[8, 16]}
-                        />
+                    <MouseCoordinateX displayFormat={timeDisplayFormat}/>
+                    <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat}/>
+                    <MouseCoordinateY
+                        at="right"
+                        orient="right"
+                        displayFormat={pricesDisplayFormat}
+                        {...mouseEdgeAppearance}/>
+                    <ElderRaySeries yAccessor={elder.accessor()}/>
+                    <SingleValueTooltip
+                        // origin={[10,50]}
+                        valueFill={getDesignTokens(themeMode).palette.text.primary}
+                        className='elderChart'
+                        xInitDisplay='200px'
+                        onClick={() => setOpenElderRayModal(true)}
+                        yAccessor={elder.accessor()}
+                        yLabel="Elder Ray"
+                        yDisplayFormat={(d: any) =>
+                            `${pricesDisplayFormat(d.bullPower)}, ${pricesDisplayFormat(d.bearPower)}`
+                        }
+                        origin={[8, 16]}
+                    />
 
-                        <Modal
-                            open={openElderRayModal}
-                            onClose={() => setOpenElderRayModal(false)}
-                            sx={{maxHeight: '95%'}}
-                            aria-labelledby="modal-modal-title"
-                            aria-describedby="modal-modal-description"
-                        >
-                            <Box sx={{
-                                position: 'absolute',
-                                top: '50%',
-                                left: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                width: 400,
-                                bgcolor: 'background.paper',
-                                boxShadow: 24,
-                                p: 4
-                            }}>
-                                <Typography id="modal-modal-title" variant="h6" component="h2">
-                                    changing
-                                </Typography>
-                                <Button color='error' title='disable ElderRay' onClick={() => {
-                                    setStudiesCharts(studiesCharts.filter(item => item !== StudiesChart.ELDER_RAY))
-                                    setOpenElderRayModal(false)
-                                }}> disable ElderRay </Button>
-                            </Box>
-                        </Modal>
-                    </Chart>
-                )
+                    <Modal
+                        open={openElderRayModal}
+                        onClose={() => setOpenElderRayModal(false)}
+                        sx={{maxHeight: '95%'}}
+                        aria-labelledby="modal-modal-title"
+                        aria-describedby="modal-modal-description"
+                    >
+                        <Box sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 400,
+                            bgcolor: 'background.paper',
+                            boxShadow: 24,
+                            p: 4
+                        }}>
+                            <Typography id="modal-modal-title" variant="h6" component="h2">
+                                changing
+                            </Typography>
+                            <Button color='error' title='disable ElderRay' onClick={() => {
+                                setStudiesCharts(studiesCharts.filter(item => item !== StudiesChart.ELDER_RAY))
+                                setOpenElderRayModal(false)
+                            }}> disable ElderRay </Button>
+                        </Box>
+                    </Modal>
+                </Chart>
+            )
             }
 
             /*##### MACD Chart #####*/
