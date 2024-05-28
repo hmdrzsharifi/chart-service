@@ -19,7 +19,7 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 # redis level 1 caching
 # cache = Cache(app, config={
 # 'CACHE_TYPE': 'redis',
-# 'CACHE_REDIS_URL': 'redis://localhost:6379/0',
+# 'CACHE_REDIS_URL': 'redis://:mypassword@adi.dev.modernisc.com:6379/0',
 # 'CACHE_DEFAULT_TIMEOUT': 300
 # })
 
