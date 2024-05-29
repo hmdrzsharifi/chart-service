@@ -60,6 +60,7 @@ const Toolbar = (props: any) => {
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
+    const {setError} = useStore();
     // const {disableMACD, setDisableMACD} = useStore();
     const [loading, setLoading] = useState(false);
 
@@ -88,7 +89,6 @@ const Toolbar = (props: any) => {
         setSearchTerm('');
     }
     const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
-        console.log({newValue})
         setTabValue(newValue)
     };
     const handleSearch = (event: React.ChangeEvent<{}>, value: string) => {
@@ -128,6 +128,7 @@ const Toolbar = (props: any) => {
         console.log({selectedText})
         setSymbol(selectedText)
         setSelectedSymbol(item.symbol)
+        setError(false)
         handleClose()
     }
 
