@@ -27,6 +27,8 @@ function App() {
     const {symbol, timeFrame} = useStore();
     const {openSideBar, themeMode} = useDesignStore();
     const {loading, setLoading} = useDesignStore();
+    const {error, setError} = useStore();
+
 
 
     const stateRef: React.MutableRefObject<any> = useRef();
@@ -416,6 +418,7 @@ function App() {
 
         } catch (error) {
             console.error('Error fetching candle data:', error);
+            setError(true)
         }
     };
 
@@ -578,7 +581,7 @@ function App() {
                             width: '100%',
                             background: getDesignTokens(themeMode).palette.chartBackground
                         }}>
-                            {loading &&
+                            {loading && !error &&
                                 <div className={'loader-wrapper'} style={{ width: width - (openSideBar ? 40 : 0), height }}>
                             <CirclesWithBar
                                 height={200}
@@ -593,14 +596,15 @@ function App() {
                                 visible={true}
                             />
                             </div>}
-                            {data.length > 0 && <MainChart dataList={data} width={width - (openSideBar ? 45 : 10)} ratio={3}
-                                                           theme={theme} height={height}
-                            />}
+                            {/*{data.length > 0 && <MainChart dataList={data} width={width - (openSideBar ? 45 : 10)} ratio={3}*/}
+                            {/*                               theme={theme} height={height}*/}
+                            {/*/>}*/}
 
-                            {/*<StockChart data={stateDataRef.current} setData={setData} theme={theme}*/}
-                            {/*            height={window.innerHeight - 100}*/}
-                            {/*            ratio={3}*/}
-                            {/*            width={getWidth()}/>*/}
+                            {error ? <div className="error-message">failed to fetch Data</div> :  <StockChart data={stateDataRef.current} setData={setData} theme={theme}
+                                                            height={window.innerHeight - 100}
+                                                            ratio={3}
+                                                            width={getWidth()}/>
+                            }
                         </div>
                     </div>
                     <Footer style={{
