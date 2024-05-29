@@ -125,7 +125,7 @@ export const StockChart = (props: StockChartProps) => {
         (d: IOHLCData) => d.date,
     );
 
-    const [fixedPosition, setFixedPosition] = useState(false)
+    const {fixedPosition, setFixedPosition} = useStore()
     const [xExtents, setXExtents] = useState([0, 0])
     // const [xScale, setXScale] = useState()
     // const [xAccessor, setXAccessor] = useState()
