@@ -569,6 +569,7 @@ function App() {
                             background: getDesignTokens(themeMode).palette.backgroundBar,
                             borderColor: getDesignTokens(themeMode).palette.borderBar
                         }}
+                        fetchInitialData={fetchInitialData}
                     />
                     <div className="chart-container">
                         <Sidebar style={{

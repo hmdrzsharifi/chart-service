@@ -33,7 +33,7 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
-import {Add, CameraEnhance, Close, Message, Search} from "@mui/icons-material";
+import {Add, CameraEnhance, Close, Message, RefreshTwoTone, Search} from "@mui/icons-material";
 import {SymbolList} from "../type/SymbolType";
 import {fetchCexSymbols} from "../util/utils";
 import html2canvas from 'html2canvas';
@@ -61,6 +61,7 @@ const Toolbar = (props: any) => {
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
     const {setError} = useStore();
+    const {setFixedPosition} = useStore()
     // const {disableMACD, setDisableMACD} = useStore();
     const [loading, setLoading] = useState(false);
 
@@ -195,6 +196,15 @@ const Toolbar = (props: any) => {
                 <Tooltip title="Screenshot" placement="bottom" arrow>
                     <IconButton onClick={captureScreenshot}>
                         <CameraEnhance/>
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Refresh chart" placement="bottom" arrow>
+                    <IconButton onClick={() => {
+                        props.fetchInitialData()
+                        setFixedPosition(false)
+                        setError(false)
+                    }}>
+                        <RefreshTwoTone/>
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Crosshair" placement="bottom" arrow>

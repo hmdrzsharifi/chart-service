@@ -36,6 +36,9 @@ type Store = {
     error: boolean,
     setError:(error: boolean) => void
 
+    fixedPosition: boolean,
+    setFixedPosition:(fixedPosition: boolean) => void
+
     // disableOHLCSeries:boolean
     // setDisableOHLCSeries : (disableOHLCSeries: boolean) => void
     // selectedSymbol : string
@@ -76,6 +79,9 @@ const useStore = create<Store>((set) => ({
 
     error: false,
     setError: (error: boolean) => set((state) => ({error:error})),
+
+    fixedPosition: false,
+    setFixedPosition: (fixedPosition: boolean) => set((state) => ({fixedPosition:fixedPosition})),
 
     // disableOHLCSeries : true,
     // setDisableOHLCSeries : (disableOHLCSeries: boolean) => set((state) => ({disableOHLCSeries:disableOHLCSeries}))
