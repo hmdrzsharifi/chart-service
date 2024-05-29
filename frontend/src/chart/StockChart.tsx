@@ -936,6 +936,14 @@ export const StockChart = (props: StockChartProps) => {
         return initialData[initialData.length - 1].close;
     };
 
+    const getlastPriceForColor = () : string => {
+        const lastItem = initialData[initialData.length - 1];
+        if (!lastItem){
+            return '#ccc'
+        }
+        return lastItem.close > lastItem.open ? "#8cc176" : "#b82c0c";
+    };
+
     const showTickLabel = (chart: StudiesChart) => {
         return studiesCharts.indexOf(chart) === 0
     }
@@ -1025,8 +1033,9 @@ export const StockChart = (props: StockChartProps) => {
                 <SingleValueTooltip
                     yAccessor={getlastPrice}
                     yLabel={selectedSymbol}
+                    fontSize={18}
                     yDisplayFormat={format(".2f")}
-                    valueFill="#ff7f0e"
+                    valueFill={getlastPriceForColor()}
                     /* labelStroke="#4682B4" - optional prop */
                     origin={[TOOLTIP_PADDING_LEFT, 35]}/>
                 <XAxis showGridLines {...xAndYColors} />
@@ -1125,11 +1134,11 @@ export const StockChart = (props: StockChartProps) => {
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
                         width: 400,
-                        bgcolor: 'background.paper',
+                        bgcolor: getDesignTokens(themeMode).palette.chartBackground,
                         boxShadow: 24,
                         p: 4
                     }}>
-                        <Typography id="modal-modal-title" variant="h6" component="h2">
+                        <Typography id="modal-modal-title" variant="h6" component="h2" sx={{ marginBottom: 2 }}>
                             changing
                         </Typography>
                         <Button color='error' title='disable MovingAverage' onClick={() => {

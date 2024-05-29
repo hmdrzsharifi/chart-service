@@ -274,28 +274,28 @@ const Toolbar = (props: any) => {
                                   scrollButtons="auto">
                                 <Tab label="ALL"/>
                                 <Tab label="CRYPTO"/>
+                                <Tab label="STC"/>
                                 <Tab label="FX"/>
                                 <Tab label="ETF"/>
                                 <Tab label="CMD"/>
                                 <Tab label="IND"/>
-                                <Tab label="STC"/>
                                 <Tab label="FUND"/>
                             </Tabs>
-                            <Scrollbar style={{height: 300}}>
+                            <Scrollbar style={{height: 300}} >
                                 {tabValue === 0 && (
                                     <List>
                                         {symbolList.filter((item: SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm)).sort((a: SymbolList, b: SymbolList) => a.categoryName.localeCompare(b.categoryName))
                                             .map((item: SymbolList) => (
-                                            <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                    {item.icon && <img src={item.icon} alt="icon" style={{ marginRight: '8px', width: '24px', height: '24px' }} />}
-                                                    <span>{item.categoryName}</span>
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                    <span>{item.symbol}</span>
-                                                </div>
-                                            </ListItem>
-                                        ))}
+                                                <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                        {item.icon && <img src={item.icon} alt="icon" style={{ marginRight: '8px', width: '24px', height: '24px' }} />}
+                                                        <span>{item.categoryName}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                        <span>{item.symbol}</span>
+                                                    </div>
+                                                </ListItem>
+                                            ))}
                                     </List>
                                 )}
                                 {tabValue === 1 && (
@@ -321,7 +321,7 @@ const Toolbar = (props: any) => {
                                 )}
                                 {tabValue === 2 && (
                                     <List sx={{mt: 2}}>
-                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('FX') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('STC') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
@@ -342,7 +342,7 @@ const Toolbar = (props: any) => {
                                 )}
                                 {tabValue === 3 && (
                                     <List sx={{mt: 2}}>
-                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('ETF') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('FX') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
@@ -363,7 +363,7 @@ const Toolbar = (props: any) => {
                                 )}
                                 {tabValue === 4 && (
                                     <List sx={{mt: 2}}>
-                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('CMD') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('ETF') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
@@ -384,7 +384,7 @@ const Toolbar = (props: any) => {
                                 )}
                                 {tabValue === 5 && (
                                     <List sx={{mt: 2}}>
-                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('IND') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('CMD') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
@@ -405,7 +405,7 @@ const Toolbar = (props: any) => {
                                 )}
                                 {tabValue === 6 && (
                                     <List sx={{mt: 2}}>
-                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('STC') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
+                                        {symbolList.filter((item: SymbolList) => item.categoryName.startsWith('IND') && item.symbol.toString().toLowerCase().includes(searchTerm)).map((item: SymbolList) => (
                                             <ListItem className='element' key={item.symbol}
                                                       onClick={(e) => sendToApp(item)}
                                                       style={{display: 'flex', justifyContent: 'space-between'}}>
