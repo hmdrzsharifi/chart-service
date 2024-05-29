@@ -81,7 +81,17 @@ import useDesignStore from "../util/designStore";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {Button, ListItem, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Popover} from "@mui/material";
+import {
+    Button,
+    ClickAwayListener,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    MenuList,
+    Popover
+} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import getDesignTokens from "../config/theme";
 
@@ -581,6 +591,7 @@ export const StockChart = (props: StockChartProps) => {
     };
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [movingAveragePopanchorEl, setMovingAveragePopanchorEl] = useState<null | SVGRectElement>(null);
     const [submenuAnchorEl, setSubmenuAnchorEl] = useState<null | HTMLElement>(null);
     const [typeAnchorEl, setTypeAnchorEl] = useState<null | HTMLElement>(null);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -970,7 +981,6 @@ export const StockChart = (props: StockChartProps) => {
     // const {disableOHLCSeries} = useStore();
 
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
-    const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
     const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
 
 
@@ -998,6 +1008,17 @@ export const StockChart = (props: StockChartProps) => {
         setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
         setEnableBrush(false)
     }
+
+    const handleClickMovingAveragePop = (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
+        setMovingAveragePopanchorEl(event.currentTarget);
+    };
+
+    const handleCloseMovingAveragePop = () => {
+        setMovingAveragePopanchorEl(null);
+    };
+
+    const openMovingAveragePop = Boolean(movingAveragePopanchorEl);
+    const movingAveragePopId = openMovingAveragePop ? 'simple-popover' : undefined;
 
     // @ts-ignore
     return (
@@ -1063,7 +1084,7 @@ export const StockChart = (props: StockChartProps) => {
                         </div>
                         <MovingAverageTooltip
                             textFill={getDesignTokens(themeMode).palette.text.primary}
-                            onClick={() => setOpenMovingAverageModal(true)}
+                            onClick={handleClickMovingAveragePop}
                             origin={getStudiesChartTooltipOrigin(StudiesChart.ELDER_IMPULSE)}
                             options={[
                                 {
@@ -1102,7 +1123,7 @@ export const StockChart = (props: StockChartProps) => {
                 {isStudiesChartWithTooltipInclude(StudiesChart.MOVING_AVERAGE) && (
                     <MovingAverageTooltip
                         textFill={getDesignTokens(themeMode).palette.text.primary}
-                        onClick={() => setOpenMovingAverageModal(true)}
+                        onClick={handleClickMovingAveragePop}
                         origin={getStudiesChartTooltipOrigin(StudiesChart.MOVING_AVERAGE)}
                         options={[
                             {
@@ -1121,32 +1142,46 @@ export const StockChart = (props: StockChartProps) => {
                     />
                 )}
 
-                <Modal
-                    open={openMovingAverageModal}
-                    onClose={() => setOpenMovingAverageModal(false)}
-                    sx={{maxHeight: '95%'}}
-                    aria-labelledby="modal-modal-title"
-                    aria-describedby="modal-modal-description"
+                <Popover
+                    id={movingAveragePopId}
+                    open={openMovingAveragePop}
+                    anchorEl={movingAveragePopanchorEl}
+                    onClose={handleCloseMovingAveragePop}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'center',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'center',
+                    }}
                 >
-                    <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 400,
-                        bgcolor: getDesignTokens(themeMode).palette.chartBackground,
-                        boxShadow: 24,
-                        p: 4
-                    }}>
-                        <Typography id="modal-modal-title" variant="h6" component="h2" sx={{ marginBottom: 2 }}>
-                            changing
-                        </Typography>
-                        <Button color='error' title='disable MovingAverage' onClick={() => {
-                            setStudiesChartsWithTooltip(studiesChartsWithTooltip.filter(item => item !== StudiesChart.MOVING_AVERAGE))
-                            setOpenMovingAverageModal(false)
-                        }}> disable MovingAverage </Button>
-                    </Box>
-                </Modal>
+                    <ClickAwayListener onClickAway={handleCloseMovingAveragePop}>
+                        <Box sx={{
+                            bgcolor: getDesignTokens(themeMode).palette.chartBackground,
+                            boxShadow: 24,
+                            p: 2,
+                            textAlign: 'center'
+                        }}>
+                            <Typography variant="h6" component="h2" sx={{ marginBottom: 2, fontSize: '1rem' }}>
+                                changing
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                color='error'
+                                size='small'
+                                title='disable MovingAverage'
+                                onClick={() => {
+                                    setStudiesChartsWithTooltip(studiesChartsWithTooltip.filter(item => item !== StudiesChart.MOVING_AVERAGE));
+                                    handleCloseMovingAveragePop();
+                                }}
+                                sx={{ textTransform: 'none' }}
+                            >
+                                Disable MovingAverage
+                            </Button>
+                        </Box>
+                    </ClickAwayListener>
+                </Popover>
 
                 <ZoomButtons onReset={handleReset}/>
                 <OHLCTooltip origin={[8, 16]} textFill={getDesignTokens(themeMode).palette.text.primary}/>
@@ -1452,7 +1487,6 @@ export const StockChart = (props: StockChartProps) => {
                         <SARSeries yAccessor={d => d.sar} highlightOnHover/>
                         <MovingAverageTooltip
                             textFill={getDesignTokens(themeMode).palette.text.primary}
-                            onClick={() => setOpenMovingAverageModal(true)}
                             origin={getStudiesChartTooltipOrigin(StudiesChart.SAR, 2)}
                             options={[
                                 {
