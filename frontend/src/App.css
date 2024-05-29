@@ -158,3 +158,14 @@ button:focus { outline: none !important;}
   align-items: center;
   overflow: hidden;
 }
+
+.error-message {
+  font-size: 24px;
+  color: white;
+  background-color: #972323d4;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+  max-width: 40%;
+  margin: 0 auto;
+}

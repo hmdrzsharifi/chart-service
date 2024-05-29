@@ -33,6 +33,9 @@ type Store = {
     disableCrossHair : boolean
     setDisableCrossHair : (disableCrossHair: boolean) => void
 
+    error: boolean,
+    setError:(error: boolean) => void
+
     // disableOHLCSeries:boolean
     // setDisableOHLCSeries : (disableOHLCSeries: boolean) => void
     // selectedSymbol : string
@@ -70,6 +73,9 @@ const useStore = create<Store>((set) => ({
 
     disableCrossHair : true,
     setDisableCrossHair : (disableCrossHair: boolean) => set((state) => ({disableCrossHair:disableCrossHair})),
+
+    error: false,
+    setError: (error: boolean) => set((state) => ({error:error})),
 
     // disableOHLCSeries : true,
     // setDisableOHLCSeries : (disableOHLCSeries: boolean) => set((state) => ({disableOHLCSeries:disableOHLCSeries}))
