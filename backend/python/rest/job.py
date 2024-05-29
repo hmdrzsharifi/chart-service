@@ -25,12 +25,13 @@ def fetch_and_cache_candle_data():
             'to': to_timestamp
         }
 
-        response = requests.post(url, json=payload, headers=headers)
+        try:
+            response = requests.post(url, json=payload, headers=headers)
 
-        if response.status_code == 200:
-            print(f"Data fetched and cache filled successfully for {ticker}")
-        else:
-            print(f"Failed to fetch data for {ticker}: {response.status_code} - {response.text}")
+            if response.status_code == 200:
+                print(f"Data fetched and cache filled successfully for {ticker}")
+        except:
+            print(f"Failed to fetch data")
 
 
 # Schedule the job to run every 30 seconds
