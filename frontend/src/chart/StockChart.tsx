@@ -98,6 +98,7 @@ import getDesignTokens from "../config/theme";
 import {macdAppearance, mouseEdgeAppearance, stoAppearance} from '../indicator/indicatorSettings'
 import {BorderColor} from "@mui/icons-material";
 import EditIcon from '@mui/icons-material/Edit';
+// @ts-ignore
 import {ColorResult, SketchPicker} from "react-color";
 
 interface StockChartProps {

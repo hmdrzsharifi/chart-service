@@ -53,7 +53,7 @@ import {
     ema50,
     macdCalculator,
     maxAccelerationFactor,
-    sma20,
+    sma20, smaVolume50,
 } from "../indicator/indicators";
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData} from "../util/utils";
@@ -87,7 +87,7 @@ const bbStroke = {
 
 const bbFill = "rgba(70,130,180,0.24)";
 
-const LENGTH_TO_SHOW = 90;
+const LENGTH_TO_SHOW = 150;
 
 export const MainChart = (props: MainChartProps) => {
 
@@ -481,9 +481,27 @@ export const MainChart = (props: MainChartProps) => {
 
         console.log({moreData})
 
+        // let calculatedData = calculateData(moreData)
 
+        function calculateData(inputData: any) {
+            /*return ema20(
+                wma20(
+                    tma20(
+                        sma20(
+                            ema50(
+                                bb(
+                                    smaVolume50(macdCalculator(ema12(ema26(elder(rsiCalculator(fullSTO(fi(defaultSar(atr14(inputData))))))))))
+                                )
+                            )
+                        )
+                    )
+                )
+            )*/
 
+            // return macdCalculator(ema12(ema26(bb(initialData))))
+            return macdCalculator(ema20(sma20(ema50(smaVolume50(ema12(ema26(bb(inputData))))))));
 
+        }
 
         /* SERVER - START */
         // const dataToCalculate = inputData
@@ -519,10 +537,18 @@ export const MainChart = (props: MainChartProps) => {
             .initialIndex(Math.ceil(start))
             .withIndex(index);
 
-        const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(prevData));
+        const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculateData(calculatedData.slice(-rowsToDownload).concat(prevData)));
+        // const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
+        // setDisplayXAccessor(displayXAccessor)
+        // setXScale(xScale)
+        // setXAccessor(xAccessor)
 
-            setData(linearData)
+        setData(linearData)
         setLoading(false)
+
+        setXScale(() => xScale)
+        setXAccessor(()=>xAccessor)
+        setDisplayXAccessor(()=>displayXAccessor)
 
     }
 

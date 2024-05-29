@@ -597,15 +597,15 @@ function App() {
                                 visible={true}
                             />
                             </div>}
-                            {/*{data.length > 0 && <MainChart dataList={data} width={width - (openSideBar ? 45 : 10)} ratio={3}*/}
-                            {/*                               theme={theme} height={height}*/}
-                            {/*/>}*/}
+                            {data.length > 0 && <MainChart dataList={data} width={width - (openSideBar ? 45 : 10)} ratio={3}
+                                                           theme={theme} height={height}
+                            />}
 
-                            {error ? <div className="error-message">failed to fetch Data</div> :  <StockChart data={stateDataRef.current} setData={setData} theme={theme}
+                         {/*   {error ? <div className="error-message">Failed to fetch</div> :  <StockChart data={stateDataRef.current} setData={setData} theme={theme}
                                                             height={window.innerHeight - 100}
                                                             ratio={3}
                                                             width={getWidth()}/>
-                            }
+                            }*/}
                         </div>
                     </div>
                     <Footer style={{
