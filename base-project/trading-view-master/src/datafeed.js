@@ -113,16 +113,19 @@ export default {
         setTimeout(() => callback(configurationData));
     },
 
-    searchSymbols: async (
-        userInput,
-        exchange,
-        symbolType,
-        onResultReadyCallback,
-    ) => {
-        // console.log('[searchSymbols]: Method call');
-        let symbols = await getAllSymbols();
-        symbols.filter(value => value.type == symbolType)
-        onResultReadyCallback(symbols);
+    async searchSymbols(userInput, exchange, symbolType, onResultReadyCallback) {
+        try {
+            let symbols = await getAllSymbols();
+            let filteredSymbols = symbols.filter(value =>
+                value.symbol.toLowerCase().includes(userInput.toLowerCase()) &&
+                (!symbolType || value.type === symbolType) &&
+                (!exchange || value.exchange === exchange)
+            );
+            onResultReadyCallback(filteredSymbols);
+        } catch (error) {
+            console.error('There was an error searching the symbols:', error);
+            onResultReadyCallback([]);
+        }
     },
 
     resolveSymbol: async (
@@ -131,7 +134,7 @@ export default {
         onResolveErrorCallback,
         extension
     ) => {
-        // console.log('[resolveSymbol]: Method call', symbolName);
+        console.log('[resolveSymbol]: Method call', symbolName);
         // Symbol information object
         let symbolCategory;
         if (symbolMap.has(symbolName)) {

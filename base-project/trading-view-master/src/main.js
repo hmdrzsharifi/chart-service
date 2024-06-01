@@ -8,9 +8,21 @@ window.tvWidget = new TradingView.widget({
 	datafeed: Datafeed,
 	library_path: '../charting_library_cloned_data/charting_library/',
 	theme: "Dark",
-/*	disabled_features: ["use_localstorage_for_settings"
-		, "header_symbol_search",
-	],*/
+	charts_storage_api_version: "1.1", // Ensure this is set correctly
+	charts_storage_url: 'http://saveload.tradingview.com',
+	client_id: 'tradingview.com',
+	user_id: 'public_user',
+	symbol_search_request_delay: 1,
+	enabled_features: [
+		'use_localstorage_for_settings',
+		'volume_force_overlay',
+		'symbol_search_hot_key',
+		'header_symbol_search',
+		'header_screenshot',
+		'header_compare',
+		'header_saveload',
+		'header_undo_redo',
+	],
 	timezone:Intl.DateTimeFormat().resolvedOptions().timeZone
 	/*time_frames: [
 		{ text: "1y", resolution: "1D", description: "1 Year" },
@@ -19,4 +31,17 @@ window.tvWidget = new TradingView.widget({
 		{ text: "1w", resolution: "60", description: "1 Week" },
 		{ text: "1d", resolution: "5", description: "1 Day" },
 	]*/
+});
+
+document.getElementById('save_button').addEventListener('click', function() {
+	window.tvWidget.save(function() {
+		console.log("Chart layout saved successfully.");
+	});
+});
+
+// Optional: Add a manual load button if needed
+document.getElementById('load_button').addEventListener('click', function() {
+	window.tvWidget.load(function() {
+		console.log("Chart layout loaded successfully.");
+	});
 });
