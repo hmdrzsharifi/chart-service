@@ -25,6 +25,9 @@ window.tvWidget = new TradingView.widget({
 		'header_settings',
 		'header_template'
 	],
+	/*	disabled_features: ["use_localstorage_for_settings"
+		, "header_symbol_search",
+	],*/
 	timezone:Intl.DateTimeFormat().resolvedOptions().timeZone
 	/*time_frames: [
 		{ text: "1y", resolution: "1D", description: "1 Year" },
