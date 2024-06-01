@@ -65,6 +65,10 @@ const configurationData = {
     // The `symbols_types` arguments are used for the `searchSymbols` method if a user selects this symbol type
     symbols_types: [
         {
+            name: 'ALL',
+            value: 'ALL',
+        },
+        {
             name: 'CRT',
             value: 'CRT',
         },
@@ -116,17 +120,26 @@ export default {
     async searchSymbols(userInput, exchange, symbolType, onResultReadyCallback) {
         try {
             let symbols = await getAllSymbols();
-            let filteredSymbols = symbols.filter(value =>
-                value.symbol.toLowerCase().includes(userInput.toLowerCase()) &&
-                (!symbolType || value.type === symbolType) &&
-                (!exchange || value.exchange === exchange)
-            );
+            let filteredSymbols;
+            if (symbolType === 'ALL') {
+                filteredSymbols = symbols.filter(value =>
+                    value.symbol.toLowerCase().includes(userInput.toLowerCase()) &&
+                    (!exchange || value.exchange === exchange)
+                );
+            } else {
+                filteredSymbols = symbols.filter(value =>
+                    value.symbol.toLowerCase().includes(userInput.toLowerCase()) &&
+                    value.type === symbolType &&
+                    (!exchange || value.exchange === exchange)
+                );
+            }
             onResultReadyCallback(filteredSymbols);
         } catch (error) {
             console.error('There was an error searching the symbols:', error);
             onResultReadyCallback([]);
         }
     },
+
 
     resolveSymbol: async (
         symbolName,
