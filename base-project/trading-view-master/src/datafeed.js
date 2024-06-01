@@ -88,7 +88,7 @@ let symbolMap = new Map();
 
 async function getAllSymbols() {
     try {
-        const response = await fetch('http://91.92.108.4:4444/api/v1/services/all/symbols', {
+        const response = await fetch(url + '/getAllSymbols', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

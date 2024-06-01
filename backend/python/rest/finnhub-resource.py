@@ -7,6 +7,8 @@ import json
 from flask_caching import Cache
 import hashlib
 import datetime
+import requests
+
 
 pd.set_option('display.float_format', '{:.8f}'.format)
 
@@ -23,34 +25,56 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 # 'CACHE_DEFAULT_TIMEOUT': 300
 # })
 
-def make_cache_key():
-    logging.debug("make_cache_key function called")
-    request_data = request.get_json()
-    if request_data:
-        from_time = request_data.get('from')
-        to_time = request_data.get('to')
+# def make_cache_key():
+#     logging.debug("make_cache_key function called")
+#     request_data = request.get_json()
+#     if request_data:
+#         from_time = request_data.get('from')
+#         to_time = request_data.get('to')
+#
+#         # Convert timestamps to human-readable dates
+#         from_date = datetime.datetime.fromtimestamp(from_time).strftime('%Y-%m-%d')
+#         to_date = datetime.datetime.fromtimestamp(to_time).strftime('%Y-%m-%d')
+#
+#         # Use the dates along with other request parameters to generate the key
+#         key_data = {
+#             'Ticker': request_data.get('Ticker'),
+#             'TimeFrame': request_data.get('TimeFrame'),
+#             'from_date': from_date,
+#             'to_date': to_date
+#         }
+#
+#         key = json.dumps(key_data, sort_keys=True)  # Sort keys for consistency
+#         cache_key = hashlib.md5(key.encode('utf-8')).hexdigest()
+#         logging.debug(f"Generated cache key: {cache_key}")
+#         return cache_key
+#     return None
 
-        # Convert timestamps to human-readable dates
-        from_date = datetime.datetime.fromtimestamp(from_time).strftime('%Y-%m-%d')
-        to_date = datetime.datetime.fromtimestamp(to_time).strftime('%Y-%m-%d')
+def make_getSymbols_cache_key_():
+    logging.debug("make_getSymbols_cache_key_ function called")
+    args = request.args  # For GET requests
+    if args:
+        key = json.dumps(request.args, sort_keys=True)  # Sort keys for consistency
+    else:
+        key = 'static_key_for_all_symbols'  # Static key when there are no query parameters
+    cache_key = hashlib.md5(key.encode('utf-8')).hexdigest()
+    logging.debug(f"Generated cache key: {cache_key}")
+    return cache_key
 
-        # Use the dates along with other request parameters to generate the key
-        key_data = {
-            'Ticker': request_data.get('Ticker'),
-            'TimeFrame': request_data.get('TimeFrame'),
-            'from_date': from_date,
-            'to_date': to_date
-        }
+@app.route('/getAllSymbols', methods=['GET'])
+@cache.cached(timeout=86400, key_prefix=make_getSymbols_cache_key_) # Cache for 1 day
+def getAllSymbols():
+    url = 'http://91.92.108.4:4444/api/v1/services/all/symbols'
+    response = requests.get(url)
 
-        key = json.dumps(key_data, sort_keys=True)  # Sort keys for consistency
-        cache_key = hashlib.md5(key.encode('utf-8')).hexdigest()
-        logging.debug(f"Generated cache key: {cache_key}")
-        return cache_key
-    return None
+    if response.status_code == 200:
+        return response.json()  # Use jsonify to return a proper JSON response
+    else:
+        response.raise_for_status()
 
 
 @app.route('/fetchCandleData', methods=['POST'])
-@cache.cached(timeout=300, key_prefix=make_cache_key)  # Cache for 5 minutes
+# @cache.cached(timeout=300, key_prefix=make_cache_key)  # Cache for 5 minutes
 def fetch_candle_data():
     request_data = request.json
     symbol = request_data.get('Ticker')
@@ -76,6 +100,13 @@ def fetch_candle_data():
     else:
         json_data = json.dumps(res)
     return json_data
+
+
+@app.route('/clearCache', methods=['GET'])
+def clear_cache():
+    cache.clear()
+    logging.debug("Cache cleared")
+    return "Cache cleared", 200
 
 
 if __name__ == '__main__':
