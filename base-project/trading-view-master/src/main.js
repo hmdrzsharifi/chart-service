@@ -22,6 +22,8 @@ window.tvWidget = new TradingView.widget({
 		'header_compare',
 		'header_saveload',
 		'header_undo_redo',
+		'header_settings',
+		'header_template'
 	],
 	timezone:Intl.DateTimeFormat().resolvedOptions().timeZone
 	/*time_frames: [
@@ -33,15 +35,3 @@ window.tvWidget = new TradingView.widget({
 	]*/
 });
 
-document.getElementById('save_button').addEventListener('click', function() {
-	window.tvWidget.save(function() {
-		console.log("Chart layout saved successfully.");
-	});
-});
-
-// Optional: Add a manual load button if needed
-document.getElementById('load_button').addEventListener('click', function() {
-	window.tvWidget.load(function() {
-		console.log("Chart layout loaded successfully.");
-	});
-});
