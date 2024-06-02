@@ -20,16 +20,14 @@ window.tvWidget = new TradingView.widget({
 		'header_symbol_search',
 		'header_screenshot',
 		'header_compare',
-		"header_saveload",
+		'header_saveload',
 		'header_undo_redo',
 		'header_settings',
 		'header_template',
-		"chart_template_storage",
-		"study_templates",
-		"show_exchange_logos",
 		"left_toolbar",
 		"header_layouttoggle",
-		"support_multicharts"
+		"support_multicharts",
+		"chart_template_storage"
 
 	],
 	/*	disabled_features: ["use_localstorage_for_settings"
