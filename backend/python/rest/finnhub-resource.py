@@ -1,19 +1,22 @@
 import logging
 import finnhub
 import pandas as pd
-from flask import Flask, request
+from flask import Flask, request, jsonify, current_app
 from flask_cors import CORS
 import json
 from flask_caching import Cache
 import hashlib
 import datetime
 import requests
+# from waitress import serve
 
 
 pd.set_option('display.float_format', '{:.8f}'.format)
 
 app = Flask(__name__)
 CORS(app, resources={r'*': {'origins': '*'}})
+app.config.from_object('config.Config')  # Load configuration from config.py
+
 
 # Configure caching
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
@@ -63,14 +66,15 @@ def make_getSymbols_cache_key_():
 
 @app.route('/getAllSymbols', methods=['GET'])
 @cache.cached(timeout=86400, key_prefix=make_getSymbols_cache_key_) # Cache for 1 day
-def getAllSymbols():
-    url = 'http://91.92.108.4:4444/api/v1/services/all/symbols'
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        return response.json()  # Use jsonify to return a proper JSON response
-    else:
+def get_all_symbols():
+    url = current_app.config['SYMBOLS_API_URL']
+    try:
+        response = requests.get(url)
         response.raise_for_status()
+        return jsonify(response.json())
+    except requests.RequestException as exp:
+        current_app.logger.error(f"Error fetching symbols: {exp}")
+        return jsonify({"error": "Failed to fetch symbols"}), 500
 
 
 @app.route('/fetchCandleData', methods=['POST'])
@@ -88,7 +92,7 @@ def fetch_candle_data():
     if time_frame == '30M': time_frame = '30'
     if time_frame == '1H': time_frame = '60'
 
-    finnhub_client = finnhub.Client(api_key="co60qgpr01qmuouob0cgco60qgpr01qmuouob0d0")
+    finnhub_client = finnhub.Client(api_key=current_app.config['FINNHUB_API_KEY'])
     print(request_data)
     # Stock candles
     res = finnhub_client.stock_candles(symbol, time_frame, from_time, to_time)
@@ -110,6 +114,8 @@ def clear_cache():
 
 
 if __name__ == '__main__':
-    SECRET = "co60qgpr01qmuouob0cgco60qgpr01qmuouob0d0"
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    host = app.config['HOST']
+    port = app.config['PORT']
+    debug = app.config['DEBUG']
+    app.run(host=host, port=port, debug=debug)
 
