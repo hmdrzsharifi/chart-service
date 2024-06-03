@@ -62,6 +62,7 @@ const Toolbar = (props: any) => {
     const {disableCrossHair, setDisableCrossHair} = useStore();
     const {setError} = useStore();
     const {setFixedPosition} = useStore()
+    const {chartDimensions} = useStore()
     // const {disableMACD, setDisableMACD} = useStore();
     const [loading, setLoading] = useState(false);
 
@@ -126,7 +127,7 @@ const Toolbar = (props: any) => {
             name = `OANDA:${name}`;
             selectedText = name
         }
-        console.log({selectedText})
+
         setSymbol(selectedText)
         setSelectedSymbol(item.symbol)
         setError(false)
@@ -135,25 +136,20 @@ const Toolbar = (props: any) => {
 
     const captureScreenshot = () => {
         const element = document.getElementById("chartId");
-        const elementToolbar = document.getElementById("toolbarId");
-        const yOffset = elementToolbar ? elementToolbar.offsetHeight - 40 : 0;
-        const width = document.body.scrollWidth;
-        const height = element ? element.offsetHeight - yOffset : 0;
 
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = chartDimensions.width;
+        canvas.height = chartDimensions.height;
 
         if(element) {
             html2canvas(element, {
                 canvas: canvas,
-                y: yOffset,
-                height: height
+                scale: 1,
             }).then(canvas => {
                 const image = canvas.toDataURL('image/png');
                 const downloadLink = document.createElement('a');
                 downloadLink.href = image;
-                downloadLink.download = 'screenshot.png';
+                downloadLink.download = `chart-${selectedSymbol}.jpg`;
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
                 document.body.removeChild(downloadLink);

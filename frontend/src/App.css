@@ -157,6 +157,7 @@ button:focus { outline: none !important;}
   display: flex;
   align-items: center;
   overflow: hidden;
+  justify-content: center;
 }
 
 .error-message {

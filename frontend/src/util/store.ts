@@ -39,6 +39,9 @@ type Store = {
     fixedPosition: boolean,
     setFixedPosition:(fixedPosition: boolean) => void
 
+    chartDimensions: {width: number, height: number},
+    setChartDimensions:(dimensions: {width: number, height: number}) => void
+
     // disableOHLCSeries:boolean
     // setDisableOHLCSeries : (disableOHLCSeries: boolean) => void
     // selectedSymbol : string
@@ -82,6 +85,9 @@ const useStore = create<Store>((set) => ({
 
     fixedPosition: false,
     setFixedPosition: (fixedPosition: boolean) => set((state) => ({fixedPosition:fixedPosition})),
+
+    chartDimensions: {width:0, height:0},
+    setChartDimensions: (dimensions: {width: number, height: number}) => set((state) => ({chartDimensions:dimensions})),
 
     // disableOHLCSeries : true,
     // setDisableOHLCSeries : (disableOHLCSeries: boolean) => set((state) => ({disableOHLCSeries:disableOHLCSeries}))

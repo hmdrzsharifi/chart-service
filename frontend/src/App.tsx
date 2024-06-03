@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import './App.css';
 import {StockChart} from "./chart/StockChart";
 
@@ -17,6 +17,7 @@ import {MainChart} from "./chart/MainChart";
 // @ts-ignore
 import useDimensions from 'react-use-dimensions'
 import { CirclesWithBar } from 'react-loader-spinner'
+import {BlinkBlur, Slab} from "react-loading-indicators";
 
 function App() {
 
@@ -28,7 +29,12 @@ function App() {
     const {openSideBar, themeMode} = useDesignStore();
     const {loading, setLoading} = useDesignStore();
     const {error, setError} = useStore();
+    const {setChartDimensions} = useStore();
 
+
+    useEffect(() => {
+        setChartDimensions({width, height})
+    }, [width, height])
 
 
     const stateRef: React.MutableRefObject<any> = useRef();
@@ -584,18 +590,7 @@ function App() {
                         }}>
                             {loading && !error &&
                                 <div className={'loader-wrapper'} style={{ width: width - (openSideBar ? 40 : 0), height }}>
-                            <CirclesWithBar
-                                height={200}
-                                width={width}
-                                color={getDesignTokens(themeMode).palette.edgeStroke}
-                                outerCircleColor={getDesignTokens(themeMode).palette.edgeStroke}
-                                innerCircleColor={getDesignTokens(themeMode).palette.edgeStroke}
-                                barColor={getDesignTokens(themeMode).palette.edgeStroke}
-                                ariaLabel="loading"
-                                wrapperStyle={{}}
-                                wrapperClass=""
-                                visible={true}
-                            />
+                                    <BlinkBlur color="#f3cc00" size="medium" text="Loading..." textColor="" />
                             </div>}
                             {error ? <div className="error-message">Failed to fetch</div> : <MainChart dataList={data} width={width - (openSideBar ? 45 : 10)} ratio={3}
                                                            theme={theme} height={height}

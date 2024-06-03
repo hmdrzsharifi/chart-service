@@ -58,7 +58,13 @@ import {
 import useStore from "../util/store";
 import {changeIndicatorsColor, fetchCandleData} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
-import {STUDIES_CHART_HEIGHT, TOOLTIP_HEIGHT, TOOLTIP_PADDING_LEFT, TOOLTIP_PADDING_TOP} from "../config/constants";
+import {
+    NO_OF_CANDLES,
+    STUDIES_CHART_HEIGHT,
+    TOOLTIP_HEIGHT,
+    TOOLTIP_PADDING_LEFT,
+    TOOLTIP_PADDING_TOP
+} from "../config/constants";
 import {HourAndMinutesTimeFrames, StudiesChart, TimeFrame} from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
@@ -153,6 +159,8 @@ export const MainChart = (props: MainChartProps) => {
     const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
     const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
 
+    const [suffix, setSuffix] = useState(1);
+
 
 
     // ----------------- helpers constants ----------------- //
@@ -212,7 +220,7 @@ export const MainChart = (props: MainChartProps) => {
     };
 
     function handleReset() {
-        setFixedPosition(false);
+        setSuffix(suffix + 1)
     }
 
     const onDrawCompleteChart = (event: any, trends: any) => {
@@ -442,6 +450,8 @@ export const MainChart = (props: MainChartProps) => {
 
         setLoading(true)
 
+        setFixedPosition(false)
+
 
         const prevData = data
         // const { data: inputData } = props;
@@ -514,25 +524,16 @@ export const MainChart = (props: MainChartProps) => {
 
 
 
-        const calculatedData = ema26(ema12(macdCalculator(smaVolume50(moreData))));
+        const calculatedData = ema26(ema12(macdCalculator(smaVolume50(moreData.slice(0, moreData.length - 1)))));
         const indexCalculator = discontinuousTimeScaleProviderBuilder()
             .initialIndex(Math.ceil(start))
             .indexCalculator();
-
-        console.log({indexCalculator})
 
         const { index } = indexCalculator(
             calculatedData
                 .slice(-rowsToDownload)
                 .concat(prevData));
         /* SERVER - END */
-
-        console.log({calculatedData})
-        console.log({prevData})
-        console.log('indexCalculator(calculatedData)',indexCalculator(calculatedData))
-        console.log({index})
-
-
         const xScaleProvider = discontinuousTimeScaleProviderBuilder()
             .initialIndex(Math.ceil(start))
             .withIndex(index);
@@ -590,7 +591,7 @@ export const MainChart = (props: MainChartProps) => {
     return (
         <ChartCanvas ratio={ratio} width={width} height={height}
                      margin={margin}
-                     seriesName="Data"
+                     seriesName={`chart_${suffix}`}
                      data={data}
                      xScale={xScale}
                      xAccessor={xAccessor}
@@ -966,7 +967,7 @@ export const MainChart = (props: MainChartProps) => {
                             yDisplayFormat={(d: any) =>
                                 `${pricesDisplayFormat(d.bullPower)}, ${pricesDisplayFormat(d.bearPower)}`
                             }
-                            origin={[8, 16]}
+                            origin={[TOOLTIP_PADDING_LEFT, 30]}
                         />
 
                         <Modal
@@ -1028,7 +1029,7 @@ export const MainChart = (props: MainChartProps) => {
 
                     <MACDSeries yAccessor={d => d.macd} {...macdAppearance} />
                     <MACDTooltip
-                        origin={[-38, 15]}
+                        origin={[TOOLTIP_PADDING_LEFT, 30]}
                         yAccessor={d => d.macd}
                         options={macdCalculator.options()}
                         appearance={macdAppearance}
@@ -1060,7 +1061,7 @@ export const MainChart = (props: MainChartProps) => {
 
                     <RSISeries yAccessor={d => d.rsi}/>
 
-                    <RSITooltip origin={[8, 36]}
+                    <RSITooltip origin={[TOOLTIP_PADDING_LEFT, 30]}
                                 textFill={getDesignTokens(themeMode).palette.text.primary}
                                 yAccessor={d => d.rsi}
                                 options={rsiCalculator.options()}/>
@@ -1094,7 +1095,7 @@ export const MainChart = (props: MainChartProps) => {
                         yDisplayFormat={format(".2f")}
                         /* valueStroke={atr14.stroke()} - optional prop */
                         /* labelStroke="#4682B4" - optional prop */
-                        origin={[8, 80]}/>
+                        origin={[TOOLTIP_PADDING_LEFT, 45]}/>
                 </Chart>
             )}
 
@@ -1124,7 +1125,7 @@ export const MainChart = (props: MainChartProps) => {
                         valueFill={getDesignTokens(themeMode).palette.text.primary}
                         yLabel="ForceIndex (1)"
                         yDisplayFormat={format(".4s")}
-                        origin={[8, 80]}
+                        origin={[TOOLTIP_PADDING_LEFT, 30]}
                     />
                 </Chart>
             )}
@@ -1159,7 +1160,7 @@ export const MainChart = (props: MainChartProps) => {
                         valueFill={getDesignTokens(themeMode).palette.text.primary}
                         yLabel={`ForceIndex (${fiEMA13.options().windowSize})`}
                         yDisplayFormat={format(".4s")}
-                        origin={[8, 36]}
+                        origin={[TOOLTIP_PADDING_LEFT, 45]}
                     />
                 </Chart>
             )}
@@ -1189,7 +1190,7 @@ export const MainChart = (props: MainChartProps) => {
                         yAccessor={d => d.fastSTO}
                         {...stoAppearance} />
                     <StochasticTooltip
-                        origin={[-38, 15]}
+                        origin={[TOOLTIP_PADDING_LEFT, 30]}
                         yAccessor={d => d.slowSTO}
                         options={slowSTO.options()}
                         appearance={stoAppearance}
@@ -1220,7 +1221,7 @@ export const MainChart = (props: MainChartProps) => {
                         {...stoAppearance} />
 
                     <StochasticTooltip
-                        origin={[-38, 15]}
+                        origin={[TOOLTIP_PADDING_LEFT, 45]}
                         yAccessor={d => d.fastSTO}
                         options={fastSTO.options()}
                         appearance={stoAppearance}
@@ -1253,7 +1254,7 @@ export const MainChart = (props: MainChartProps) => {
                         {...stoAppearance} />
 
                     <StochasticTooltip
-                        origin={[-38, 15]}
+                        origin={[TOOLTIP_PADDING_LEFT, 60]}
                         yAccessor={d => d.fullSTO}
                         options={fullSTO.options()}
                         appearance={stoAppearance}
