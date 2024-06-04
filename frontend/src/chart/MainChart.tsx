@@ -113,7 +113,8 @@ export const MainChart = (props: MainChartProps) => {
         selectedSymbol,
         seriesType,
         disableHoverTooltip,
-        disableVolume, setDisableVolume
+        disableVolume, setDisableVolume,
+        setError
     } = useStore();
 
     const {
@@ -486,11 +487,16 @@ export const MainChart = (props: MainChartProps) => {
 
         // const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
         // Fetch more data
-        const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
 
+        let moreData = []
 
-        console.log({moreData})
-
+        try {
+            moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+        } catch (error) {
+            console.error('Error fetching candle data:', error);
+            setError(true)
+            return
+        }
         // let calculatedData = calculateData(moreData)
 
         function calculateData(inputData: any) {
