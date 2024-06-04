@@ -17,6 +17,7 @@ import {MainChart} from "./chart/MainChart";
 // @ts-ignore
 import useDimensions from 'react-use-dimensions'
 import { CirclesWithBar } from 'react-loader-spinner'
+// @ts-ignore
 import {BlinkBlur, Slab} from "react-loading-indicators";
 
 function App() {
