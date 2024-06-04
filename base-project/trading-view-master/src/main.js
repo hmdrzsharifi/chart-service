@@ -43,3 +43,13 @@ window.tvWidget = new TradingView.widget({
 	]*/
 });
 
+// add custom button to header
+/*window.tvWidget.onChartReady(function() {
+	// Create the custom button
+	var button = window.tvWidget.createButton();
+	button.setAttribute('title', 'Custom Button');
+	button.innerHTML = 'Custom Button';
+	button.addEventListener('click', function() {
+		alert('Custom button clicked!');
+	});
+});*/

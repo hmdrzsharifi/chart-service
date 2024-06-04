@@ -17,7 +17,7 @@ python finnhub-resource.py
 ## Useful Links for Indicators
 ##### https://medium.com/proof-of-fintech/implementing-custom-line-indicators-with-react-stockcharts-alpha-ac30eb7aa7a7
 ##### https://github.com/rrag/react-stockcharts/blob/master/docs/md/COMING-SOON.md
-
+##### https://jsfiddle.net/TradingView/60vemsp8/ 
 ## Data Provider Info
 ##### Finnhub 
 https://github.com/Finnhub-Stock-API 
