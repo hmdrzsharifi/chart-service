@@ -589,11 +589,12 @@ function App() {
                             background: getDesignTokens(themeMode).palette.chartBackground
                         }}>
                             {loading && !error &&
-                                <div className={'loader-wrapper'} style={{ width: width - (openSideBar ? 40 : 0), height }}>
+                                <div className={'loader-wrapper'} style={{ width: width ? width - (openSideBar ? 40 : 0) : 0, height: height ? height : 0 }}>
                                     <BlinkBlur color="#f3cc00" size="medium" text="Loading..." textColor="" />
                             </div>}
-                            {error ? <div className="error-message">Failed to fetch</div> : <MainChart dataList={data} width={width - (openSideBar ? 45 : 10)} ratio={3}
-                                                           theme={theme} height={height}
+                            {error ? <div className="error-message">Failed to fetch</div> :
+                                data.length > 0 && <MainChart dataList={data} width={width ? width - (openSideBar ? 45 : 10) : 0} ratio={3}
+                                                           theme={theme} height={height ? height : 0}
                             />}
 
                             {/*{error ? <div className="error-message">Failed to fetch</div> :  <StockChart data={stateDataRef.current} setData={setData} theme={theme}
