@@ -10,8 +10,10 @@ import {
     BollingerBandTooltip,
     BollingerSeries,
     Brush,
+    change,
     Chart,
-    ChartCanvas, CrossHairCursor,
+    ChartCanvas,
+    CrossHairCursor,
     CurrentCoordinate,
     discontinuousTimeScaleProviderBuilder,
     EdgeIndicator,
@@ -19,7 +21,8 @@ import {
     ElderRaySeries,
     ema,
     EquidistantChannel,
-    FibonacciRetracement, forceIndex,
+    FibonacciRetracement,
+    forceIndex,
     HoverTooltip,
     InteractiveText,
     lastVisibleItemBasedZoomAnchor,
@@ -38,8 +41,14 @@ import {
     sar,
     SARSeries,
     SingleValueTooltip,
-    sma, stochasticOscillator, StochasticSeries, StochasticTooltip, StraightLine,
+    sma,
+    stochasticOscillator,
+    StochasticSeries,
+    StochasticTooltip,
+    StraightLine,
     TrendLine,
+    StandardDeviationChannel,
+    GannFan,
     XAxis,
     YAxis,
     ZoomButtons,
@@ -48,15 +57,18 @@ import {IOHLCData} from "../data";
 
 import {
     accelerationFactor,
-    bb, ema12,
-    ema20, ema26,
+    bb,
+    ema12,
+    ema20,
+    ema26,
     ema50,
     macdCalculator,
     maxAccelerationFactor,
-    sma20, smaVolume50,
+    sma20,
+    smaVolume50,
 } from "../indicator/indicators";
 import useStore from "../util/store";
-import {changeIndicatorsColor, fetchCandleData} from "../util/utils";
+import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {
     NO_OF_CANDLES,
@@ -65,19 +77,36 @@ import {
     TOOLTIP_PADDING_LEFT,
     TOOLTIP_PADDING_TOP
 } from "../config/constants";
+import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
 import {HourAndMinutesTimeFrames, StudiesChart, TimeFrame} from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {Button} from "@mui/material";
+import {
+    Button,
+    ClickAwayListener,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    MenuList,
+    Popover
+} from "@mui/material";
+import {useTheme} from "@mui/material/styles";
 import getDesignTokens from "../config/theme";
 
 import {macdAppearance, mouseEdgeAppearance, stoAppearance} from '../indicator/indicatorSettings'
+import {BorderColor} from "@mui/icons-material";
+import EditIcon from '@mui/icons-material/Edit';
+// @ts-ignore
+import {ColorResult, SketchPicker} from "react-color";
 
 interface MainChartProps {
     readonly dataList: IOHLCData[];
+    // readonly setData: any;
     readonly height: number;
     readonly dateTimeFormat?: string;
     readonly width: number;
@@ -97,6 +126,10 @@ const LENGTH_TO_SHOW = 150;
 
 export const MainChart = (props: MainChartProps) => {
 
+   /* const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
+        (d: IOHLCData) => d.date,
+    );*/
+
     const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList} = props;
 
 
@@ -113,7 +146,8 @@ export const MainChart = (props: MainChartProps) => {
         selectedSymbol,
         seriesType,
         disableHoverTooltip,
-        disableVolume, setDisableVolume
+        disableVolume, setDisableVolume,
+        setError
     } = useStore();
 
     const {
@@ -124,6 +158,9 @@ export const MainChart = (props: MainChartProps) => {
         enableBrush, setEnableBrush,
         enableInteractiveObject, setEnableInteractiveObject,
         loading, setLoading,
+        enableStandardDeviationChannel, setEnableStandardDeviationChannel,
+        enableGanFan, setEnableGanFan,
+
     } = useDesignStore();
 
 
@@ -151,6 +188,9 @@ export const MainChart = (props: MainChartProps) => {
     const [trends, setTrends] = useState<TrendLineType[]>([])
     const [equidistantChannels, setEquidistantChannels] = useState<any[]>([])
     const [retracements, setRetracements] = useState<any[]>([]);
+    // const {fixedPosition, setFixedPosition} = useStore()
+    // const muiTheme = useTheme();
+
     const [fixedPosition, setFixedPosition] = useState(false)
     const [text, setText] = useState<any[]>([]);
     const [yExtents1, setYExtents1] = useState<any>()
@@ -161,7 +201,22 @@ export const MainChart = (props: MainChartProps) => {
 
     const [suffix, setSuffix] = useState(1);
 
+    const [textList_1, textList_3] = useState<any[]>([]);
+    const [hover, setHover] = useState<boolean>();
+    const [selected, setSelected] = useState<boolean>(false);
+    const BRUSH_TYPE = "2D";
+    /*const [trends, setTrends] = useState([{
+        start: [37, 193.5119667590028],
+        end: [107, 180.54797783933518],
+        appearance: {stroke: "green"},
+        type: "XLINE",
+        selected: undefined
+    }])*/
+    const [standardDeviationChannel, setStandardDeviationChannel] = useState<any[]>([]);
+    const [fans, setFans] = useState<any[]>([]);
+    const [brushes, setBrushes] = useState<any[]>([])
 
+    const numberFormat = format(".2f");
 
     // ----------------- helpers constants ----------------- //
     const margin = {left: 0, right: 58, top: 10, bottom: 40};
@@ -169,7 +224,6 @@ export const MainChart = (props: MainChartProps) => {
     const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
     const pricesDisplayFormat = format(".2f");
     const dateFormat = timeFormat("%Y-%m-%d");
-    const BRUSH_TYPE = "2D";
     const barChartHeight = gridHeight / 4;
     const elder = elderRay();
     const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
@@ -177,7 +231,13 @@ export const MainChart = (props: MainChartProps) => {
     const xGrid = showGrid ? {innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1} : {};
 
 
-
+    const getlastPriceForColor = () : string => {
+        const lastItem = dataList[dataList.length - 1];
+        if (!lastItem){
+            return '#ccc'
+        }
+        return lastItem.close > lastItem.open ? "#8cc176" : "#b82c0c";
+    };
 
     // ----------------- helpers methods ----------------- //
     const candleChartExtents = (data: IOHLCData) => {
@@ -222,15 +282,38 @@ export const MainChart = (props: MainChartProps) => {
     function handleReset() {
         setSuffix(suffix + 1)
     }
+    function handleHover(_: React.MouseEvent, moreProps: any) {
+        if (hover !== moreProps.hovering) {
+            setHover(moreProps.hovering);
+        }
+    }
 
-    const onDrawCompleteChart = (event: any, trends: any) => {
+    const hoverHandler = {
+        onHover: handleHover,
+        onUnHover: handleHover,
+    };
+   /* const onDrawCompleteChart = (event: any, trends: any) => {
         // this gets called on
         // 1. draw complete of trendline
         setEnableTrendLine(false);
         setTrends(trends)
-    }
+    }*/
 
-    const onFibComplete = (event: any, retracements: any) => {
+   /* const onDrawCompleteChart = (e: React.MouseEvent, newTrends: any[], moreProps: any) => {
+        console.log({newTrends});
+        setEnableTrendLine(false);
+        setTrends(newTrends);
+
+        setMenuPosition({
+            mouseX: e.clientX - 2,
+            mouseY: e.clientY - 4,
+        });
+        setContextMenuVisible(true);
+        setSelectedTrend(newTrends[newTrends.length - 1]);
+    };*/
+
+
+   /* const onFibComplete = (event: any, retracements: any) => {
         setEnableFib(false)
         setRetracements(retracements)
     }
@@ -240,7 +323,16 @@ export const MainChart = (props: MainChartProps) => {
         // 1. draw complete of trendline
         setEnableEquidistant(false);
         setEquidistantChannels(equidistantChannels)
-    }
+    }*/
+
+/*    const onDrawCompleteEquidistantChannel = (event: any, equidistantChannels: any) => {
+        // this gets called on
+        // 1. draw complete of trendline
+        // @ts-ignore
+        console.log({equidistantChannels});
+        setEnableEquidistant(false);
+        setEquidistantChannels(equidistantChannels)
+    }*/
 
     const onDrawComplete = (textList: any, moreProps: any) => {
         // this gets called on
@@ -252,6 +344,59 @@ export const MainChart = (props: MainChartProps) => {
         setText([...text, textList])
     }
 
+    const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        console.log({event})
+        event.preventDefault();
+        setMenuPosition({
+            mouseX: event.clientX,
+            mouseY: event.clientY,
+        });
+        setContextMenuVisible(true);
+    };
+
+    const handleDragStart = (_: React.MouseEvent, moreProps: any) => {
+        // const { position } = this.props;
+        const {mouseXY} = moreProps;
+        const {
+            chartConfig: {yScale},
+            xScale,
+        } = moreProps;
+        const [mouseX, mouseY] = mouseXY;
+
+        // const [textCX, textCY] = position;
+        // const dx = mouseX - xScale(textCX);
+        // const dy = mouseY - yScale(textCY);
+
+        // this.dragStartPosition = {
+        //     position,
+        //     dx,
+        //     dy,
+        // };
+    };
+
+    function getMaxUndefined(calculators: any) {
+        return calculators.map((each: any) => each.undefinedLength()).reduce((a: any, b: any) => Math.max(a, b));
+    }
+
+    const interactiveTextOnDrawComplete = (textList: any, moreProps: any) => {
+        // this gets called on
+        // 1. draw complete of drawing object
+        // 2. drag complete of drawing object
+        console.log({textList})
+        const {id: chartId} = moreProps.chartConfig;
+        setEnableInteractiveObject(false)
+        // [`textList_${chartId}`]: textList
+
+        // this.setState({
+        //     enableInteractiveObject: false
+        // });
+    }
+
+    // const canvasRef = useRef(null);
+
+    // const {data: initialData, dateTimeFormat = "%d %b", height, ratio, width, theme, setData} = props;
+
+/*
     const handleBrush1 = (brushCoords: any, moreProps: any) => {
         const {start, end} = brushCoords;
         const left = Math.min(start.xValue, end.xValue);
@@ -269,8 +414,9 @@ export const MainChart = (props: MainChartProps) => {
         setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
         setEnableBrush(false)
     }
+*/
 
-    const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length) * STUDIES_CHART_HEIGHT - barChartHeight];
+   /* const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length) * STUDIES_CHART_HEIGHT - barChartHeight];*/
 
     const barChartExtents = (data: IOHLCData) => {
         return data.volume;
@@ -436,6 +582,12 @@ export const MainChart = (props: MainChartProps) => {
         setDisplayXAccessor(()=>displayXAccessor)
     },[])
 
+    const handleDataLoadAfter = async (start: any, end: any) => {
+        // setFixedPosition(true);
+        console.log("My Data After")
+
+    };
+
 
     async function handleDownloadMore(start: any, end: any) {
 
@@ -486,11 +638,16 @@ export const MainChart = (props: MainChartProps) => {
 
         // const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
         // Fetch more data
-        const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
 
+        let moreData = []
 
-        console.log({moreData})
-
+        try {
+            moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+        } catch (error) {
+            console.error('Error fetching candle data:', error);
+            setError(true)
+            return
+        }
         // let calculatedData = calculateData(moreData)
 
         function calculateData(inputData: any) {
@@ -559,6 +716,244 @@ export const MainChart = (props: MainChartProps) => {
          return null
      }*/
 
+    const [contextMenuVisible, setContextMenuVisible] = useState(false);
+    const [menuPosition, setMenuPosition] = useState<{ mouseX: null | number; mouseY: null | number }>({
+        mouseX: null,
+        mouseY: null,
+    });
+
+    const [colorPickerVisible, setColorPickerVisible] = useState(false);
+    const [colorPickerAnchorEl, setColorPickerAnchorEl] = useState<HTMLDivElement | null>(null);
+
+    const [selectedTrend, setSelectedTrend] = useState<any | null>(null);
+
+    const onDrawCompleteChart = (e: React.MouseEvent, newTrends: any[], moreProps: any) => {
+        console.log({newTrends});
+        setEnableTrendLine(false);
+        setTrends(newTrends);
+
+        setMenuPosition({
+            mouseX: e.clientX - 2,
+            mouseY: e.clientY - 4,
+        });
+        setContextMenuVisible(true);
+        setSelectedTrend(newTrends[newTrends.length - 1]);
+    };
+
+    const handleColorChange = (color: ColorResult) => {
+        if (selectedTrend) {
+            console.log({color})
+            console.log({trends})
+            console.log({selectedTrend})
+            const updatedTrends = trends.map(trend =>
+                trend.start === selectedTrend.start && trend.end === selectedTrend.end
+                    ? {
+                        ...trend,
+                        appearance: {
+                            ...trend.appearance,
+                            // edgeFill: color.hex,
+                            strokeStyle: color.hex
+                        },
+                    }
+                    : trend
+            );
+            console.log({updatedTrends})
+            setTrends(updatedTrends);
+            setSelectedTrend({
+                ...selectedTrend,
+                appearance: {
+                    ...selectedTrend.appearance,
+                    edgeFill: color.hex,
+                }
+            });
+        }
+    };
+
+
+    const handleClose = () => {
+        setContextMenuVisible(false);
+        setMenuPosition({mouseX: null, mouseY: null});
+        setColorPickerVisible(false);
+        setColorPickerAnchorEl(null);
+    };
+
+    const handleOpenColorPicker = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        setColorPickerAnchorEl(event.currentTarget);
+        setColorPickerVisible(true);
+    };
+
+    const handleCloseColorPicker = () => {
+        setColorPickerVisible(false);
+        setColorPickerAnchorEl(null);
+    };
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [movingAveragePopanchorEl, setMovingAveragePopanchorEl] = useState<null | SVGRectElement>(null);
+    const [submenuAnchorEl, setSubmenuAnchorEl] = useState<null | HTMLElement>(null);
+    const [typeAnchorEl, setTypeAnchorEl] = useState<null | HTMLElement>(null);
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleSubmenuClick = (event: React.MouseEvent<HTMLElement>) => {
+        setSubmenuAnchorEl(event.currentTarget);
+    };
+
+    const handleTypeClick = (event: React.MouseEvent<HTMLElement>) => {
+        setTypeAnchorEl(event.currentTarget);
+    };
+
+    const handleTypeClose = (value: string) => () => {
+        console.log(`Selected Sub Option: ${value}`);
+        if (selectedTrend) {
+            const updatedTrends = trends.map(trend =>
+                trend.start === selectedTrend.start && trend.end === selectedTrend.end
+                    ? {
+                        ...trend,
+                        type: value,
+                    }
+                    : trend
+            );
+            setTrends(updatedTrends);
+            setSelectedTrend({
+                ...selectedTrend,
+                type: value,
+            });
+        }
+        setTypeAnchorEl(null);
+    };
+
+    const handleSubmenuClose = (value: number) => () => {
+        console.log(`Selected Sub Option: ${value}`);
+        if (selectedTrend) {
+            const updatedTrends = trends.map(trend =>
+                trend.start === selectedTrend.start && trend.end === selectedTrend.end
+                    ? {
+                        ...trend,
+                        appearance: {
+                            ...trend.appearance,
+                            // edgeFill: color.hex,
+                            strokeWidth: value
+                        },
+                    }
+                    : trend
+            );
+            setTrends(updatedTrends);
+            setSelectedTrend({
+                ...selectedTrend,
+                appearance: {
+                    ...selectedTrend.appearance,
+                    strokeWidth: value,
+                }
+            });
+        }
+        setSubmenuAnchorEl(null);
+    };
+
+    const onFibComplete = (event: any, retracements: any) => {
+        console.log({retracements});
+        setEnableFib(false)
+        setRetracements(retracements)
+    }
+
+    const onDrawCompleteEquidistantChannel = (event: any, equidistantChannels: any) => {
+        // this gets called on
+        // 1. draw complete of trendline
+        // @ts-ignore
+        console.log({equidistantChannels});
+        setEnableEquidistant(false);
+        setEquidistantChannels(equidistantChannels)
+    }
+
+    const onDrawCompleteStandardDeviationChannel = (e: React.MouseEvent, newChannels: any, moreProps: any) => {
+
+        setEnableStandardDeviationChannel(false);
+        setStandardDeviationChannel(newChannels)
+    }
+
+    const GanFanOnDrawComplete = (e: React.MouseEvent, newfans: any[], moreProps: any) => {
+        // this gets called on
+        // 1. draw complete of drawing object
+        // 2. drag complete of drawing object
+        setEnableGanFan(false)
+        setFans(newfans)
+    }
+
+    const hexToRgba = (hex: string, alpha: number) => {
+        const bigint = parseInt(hex.slice(1), 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+    const colorsWithTransparency = [
+        hexToRgba("#e41a1c", 0.3),
+        hexToRgba("#377eb8", 0.3),
+        hexToRgba("#4daf4a", 0.3),
+        hexToRgba("#984ea3", 0.3),
+        hexToRgba("#ff7f00", 0.3),
+        hexToRgba("#ffff33", 0.3),
+        hexToRgba("#a65628", 0.3),
+        hexToRgba("#f781bf", 0.3)
+    ];
+
+
+  /*  const isStudiesChartInclude = (chart: StudiesChart): boolean => {
+        return studiesCharts.includes(chart)
+    }
+
+    const isStudiesChartWithTooltipInclude = (chart: StudiesChart): boolean => {
+        return studiesChartsWithTooltip.includes(chart)
+    }*/
+
+    const handleSelection = (interactives: any) => {
+        /* const state = toObject(interactives, each => {
+             return [
+                 `retracements_${each.chartId}`,
+                 each.objects,
+             ];
+         });
+         this.setState(state);*/
+
+        console.log({interactives})
+        // console.log({test})
+    }
+
+    const handler = ({key}: any) => {
+        if (key === 'Delete') {
+            const newTrends = trends.filter(each => !each.selected)
+
+            setTrends(newTrends)
+
+            const newRetracements = retracements.filter(each => !each.selected)
+
+            setRetracements(newRetracements)
+
+            const newEquidistantChannel = equidistantChannels.filter(each => !each.selected)
+
+            setEquidistantChannels(newEquidistantChannel)
+
+            const newStandardDeviationChannel = standardDeviationChannel.filter(each => !each.selected)
+
+            setStandardDeviationChannel(newStandardDeviationChannel)
+
+            const newGanFan = fans.filter(each => !each.selected)
+
+            setFans(newGanFan)
+        } else if (key === 'Escape') {
+            // @ts-ignore
+            canvasRef?.current?.cancelDrag()
+            setEnableTrendLine(false)
+            setEnableFib(false)
+            setEnableEquidistant(false)
+            setEnableStandardDeviationChannel(false)
+            setEnableGanFan(false)
+        }
+    };
+
+
+    useEventListener("keydown", handler);
 
 
     if(ema12 == undefined || ema26 == undefined || macdCalculator == undefined || smaVolume50 == undefined || xScale == undefined
@@ -587,9 +982,182 @@ export const MainChart = (props: MainChartProps) => {
     //
     // }
 
+
+
+   /* useEffect(() => {
+        if (!fixedPosition) {
+            const max = xAccessor(data[data.length - 1]);
+            const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
+            setXExtents([min, max + 10])
+        }
+    }, [props, fixedPosition])
+
+    useEffect(() => {
+
+        // change Indicators according to themeMode
+        changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements)
+
+    }, [themeMode])
+*/
+/*    const gridHeight = height - margin.top - margin.bottom;*/
+
+/*    const defaultSar = sar()
+        .options({
+            accelerationFactor, maxAccelerationFactor
+        })
+        .merge((d: any, c: any) => {
+            d.sar = c;
+        })
+        .accessor((d: any) => d.sar);
+    const calculatedData1 = defaultSar(initialData);
+
+
+    const rsiCalculator = rsi()
+        .options({windowSize: 14})
+        .merge((d: any, c: any) => {
+            d.rsi = c;
+        })
+        .accessor((d: any) => d.rsi);
+    const calculatedData2 = rsiCalculator(initialData);
+
+    const atr14 = atr()
+        .options({windowSize: 14})
+        .merge((d: any, c: any) => {
+            d.atr14 = c;
+        })
+        .accessor((d: any) => d.atr14);
+    const calculatedData3 = atr14(initialData);*/
+
+/*    const fi = forceIndex()
+        .merge((d: any, c: any) => {
+            d.fi = c;
+        })
+        .accessor((d: any) => d.fi);
+    const calculatedData4 = fi(initialData);
+
+    const fiEMA13 = ema()
+        .id(1)
+        .options({windowSize: 13, sourcePath: "fi"})
+        .merge((d: any, c: any) => {
+            d.fiEMA13 = c;
+        })
+        .accessor((d: any) => d.fiEMA13);
+    const calculatedData5 = fiEMA13(initialData);
+
+    const elder = elderRay();
+
+    const changeCalculator = change();
+    const calculatedData6 = changeCalculator(elder(initialData));*/
+
+
+/*    const slowSTO = stochasticOscillator()
+        .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
+        .merge((d: any, c: any) => {
+            d.slowSTO = c;
+        })
+        .accessor((d: any) => d.slowSTO);
+    const calculatedData7 = slowSTO(elder(initialData));
+
+    const fastSTO = stochasticOscillator()
+        .options({windowSize: 14, kWindowSize: 1, dWindowSize: 4})
+        .merge((d: any, c: any) => {
+            d.fastSTO = c;
+        })
+        .accessor((d: any) => d.fastSTO);
+    const calculatedData8 = fastSTO(elder(initialData));
+
+    const fullSTO = stochasticOscillator()
+        .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
+        .merge((d: any, c: any) => {
+            d.fullSTO = c;
+        })
+        .accessor((d: any) => d.fullSTO);
+    const calculatedData9 = fullSTO(elder(initialData));*/
+
+    // const calculatedData10 = elderImpulseCalculator(macdCalculator(ema12(changeCalculator(initialData))));
+
+/*    const showGrid = false;
+    const xGrid = showGrid ? {innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1} : {};
+
+    const getStudiesChartOrigin = (chart: StudiesChart) => {
+        return (studiesCharts.indexOf(chart) + 1) * STUDIES_CHART_HEIGHT
+    }
+
+    const getStudiesChartTooltipOrigin = (chart: StudiesChart, yPosition = TOOLTIP_PADDING_LEFT, paddingTop = TOOLTIP_PADDING_TOP, height = TOOLTIP_HEIGHT) => {
+        return [yPosition, studiesChartsWithTooltip.indexOf(chart) * height + paddingTop]
+    }*/
+
+   /* const getlastPrice = (d: any): number => {
+        return initialData[initialData.length - 1].close;
+    };*/
+
+  /*  const getlastPriceForColor = () : string => {
+        const lastItem = initialData[initialData.length - 1];
+        if (!lastItem){
+            return '#ccc'
+        }
+        return lastItem.close > lastItem.open ? "#8cc176" : "#b82c0c";
+    };*/
+
+   /* const showTickLabel = (chart: StudiesChart) => {
+        return studiesCharts.indexOf(chart) === 0
+    }
+*/
+    // const elderRayOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.ELDER_RAY)];
+    // const macdOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.MACD)];
+    // const rsiAndAtrOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.RSI_AND_ATR)];
+    // const forceIndexOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.FORCE_INDEX)];
+    // const stochasticOscillatorOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.STOCHASTIC_OSCILLATOR)];
+    // const barChartHeight = gridHeight / 4;
+    // const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
+    const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length + 1) * STUDIES_CHART_HEIGHT - 5];
+    // const {disableVolume, setDisableVolume} = useStore();
+    // const {disableHoverTooltip} = useStore();
+
+    // const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
+    // const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
+
+
+   /* const xAndYColors = {
+        tickLabelFill: getDesignTokens(themeMode).palette.lineColor,
+        tickStrokeStyle: getDesignTokens(themeMode).palette.lineColor,
+        strokeStyle: getDesignTokens(themeMode).palette.lineColor,
+        gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
+    }*/
+
+    const handleBrush1 = (brushCoords: any, moreProps: any) => {
+        const {start, end} = brushCoords;
+        const left = Math.min(start.xValue, end.xValue);
+        const right = Math.max(start.xValue, end.xValue);
+
+        const low = Math.min(start.yValue, end.yValue);
+        const high = Math.max(start.yValue, end.yValue);
+
+        // uncomment the line below to make the brush to zoom
+        setXExtents([left, right])
+        setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
+        setEnableBrush(false)
+        console.log(enableBrush)
+        setXExtents([left, right])
+        setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
+        setEnableBrush(false)
+    }
+
+    const handleClickMovingAveragePop = (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
+        setMovingAveragePopanchorEl(event.currentTarget);
+    };
+
+    const handleCloseMovingAveragePop = () => {
+        setMovingAveragePopanchorEl(null);
+    };
+
+    const openMovingAveragePop = Boolean(movingAveragePopanchorEl);
+    const movingAveragePopId = openMovingAveragePop ? 'simple-popover' : undefined;
     // @ts-ignore
     return (
-        <ChartCanvas ratio={ratio} width={width} height={height}
+        <ChartCanvas
+            ref={canvasRef}
+            ratio={ratio} width={width} height={height}
                      margin={margin}
                      seriesName={`chart_${suffix}`}
                      data={data}
@@ -599,10 +1167,11 @@ export const MainChart = (props: MainChartProps) => {
                      xExtents={xExtents}
                      zoomAnchor={lastVisibleItemBasedZoomAnchor}
                      useCrossHairStyleCursor={!disableCrossHair}
-                     onLoadBefore={handleDownloadMore}>
+                     onLoadBefore={handleDownloadMore}
+           >
 
 
-
+            /*##### Main Chart #####*/
             <Chart
                 id={1}
                 height={chartHeight}
@@ -616,8 +1185,9 @@ export const MainChart = (props: MainChartProps) => {
                 <SingleValueTooltip
                     yAccessor={getLastPrice}
                     yLabel={selectedSymbol}
+                    fontSize={18}
                     yDisplayFormat={format(".2f")}
-                    valueFill="#ff7f0e"
+                    valueFill={getlastPriceForColor()}
                     /* labelStroke="#4682B4" - optional prop */
                     origin={[TOOLTIP_PADDING_LEFT, 35]}/>
                 <XAxis showGridLines {...xAndYColors} />
@@ -645,7 +1215,8 @@ export const MainChart = (props: MainChartProps) => {
                         </div>
                         <MovingAverageTooltip
                             textFill={getDesignTokens(themeMode).palette.text.primary}
-                            onClick={() => setOpenMovingAverageModal(true)}
+                            onClick={handleClickMovingAveragePop}
+                            // onClick={() => setOpenMovingAverageModal(true)}
                             origin={getStudiesChartTooltipOrigin(StudiesChart.ELDER_IMPULSE)}
                             options={[
                                 {
@@ -684,7 +1255,8 @@ export const MainChart = (props: MainChartProps) => {
                 {isStudiesChartWithTooltipInclude(StudiesChart.MOVING_AVERAGE) && (
                     <MovingAverageTooltip
                         textFill={getDesignTokens(themeMode).palette.text.primary}
-                        onClick={() => setOpenMovingAverageModal(true)}
+                        onClick={handleClickMovingAveragePop}
+                        // onClick={() => setOpenMovingAverageModal(true)}
                         origin={getStudiesChartTooltipOrigin(StudiesChart.MOVING_AVERAGE)}
                         options={[
                             {
@@ -703,7 +1275,47 @@ export const MainChart = (props: MainChartProps) => {
                     />
                 )}
 
-                <Modal
+                <Popover
+                    id={movingAveragePopId}
+                    open={openMovingAveragePop}
+                    anchorEl={movingAveragePopanchorEl}
+                    onClose={handleCloseMovingAveragePop}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'center',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'center',
+                    }}
+                >
+                    <ClickAwayListener onClickAway={handleCloseMovingAveragePop}>
+                        <Box sx={{
+                            bgcolor: getDesignTokens(themeMode).palette.chartBackground,
+                            boxShadow: 24,
+                            p: 2,
+                            textAlign: 'center'
+                        }}>
+                            <Typography variant="h6" component="h2" sx={{ marginBottom: 2, fontSize: '1rem' }}>
+                                changing
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                color='error'
+                                size='small'
+                                title='disable MovingAverage'
+                                onClick={() => {
+                                    setStudiesChartsWithTooltip(studiesChartsWithTooltip.filter(item => item !== StudiesChart.MOVING_AVERAGE));
+                                    handleCloseMovingAveragePop();
+                                }}
+                                sx={{ textTransform: 'none' }}
+                            >
+                                Disable MovingAverage
+                            </Button>
+                        </Box>
+                    </ClickAwayListener>
+                </Popover>
+                {/*<Modal
                     open={openMovingAverageModal}
                     onClose={() => setOpenMovingAverageModal(false)}
                     sx={{maxHeight: '95%'}}
@@ -729,7 +1341,7 @@ export const MainChart = (props: MainChartProps) => {
                         }}> disable MovingAverage </Button>
                     </Box>
                 </Modal>
-
+*/}
                 <ZoomButtons onReset={handleReset}/>
                 <OHLCTooltip origin={[8, 16]} textFill={getDesignTokens(themeMode).palette.text.primary}/>
 
@@ -781,10 +1393,11 @@ export const MainChart = (props: MainChartProps) => {
                 )}
 
                 /*##### Interactive #####*/
+                <div onContextMenu={handleContextMenu}>
                 <TrendLine
                     // ref={saveInteractiveNodes("Trendline", 1)}
                     enabled={enableTrendLine}
-                    type="RAY"
+                    type="LINE"
                     snap={false}
                     snapTo={d => [d.high, d.low]}
                     onStart={() => console.log("START", trends)}
@@ -800,7 +1413,101 @@ export const MainChart = (props: MainChartProps) => {
                     // onComplete={() => console.log("End", trends)}
                     trends={trends}
                 />
+                    <Menu
+                        keepMounted
+                        open={contextMenuVisible}
+                        onClose={handleClose}
+                        anchorReference="anchorPosition"
+                        anchorPosition={
+                            menuPosition.mouseY !== null && menuPosition.mouseX !== null
+                                ? {top: menuPosition.mouseY, left: menuPosition.mouseX}
+                                : undefined
+                        }
+                    >
+                        <ListItem button onClick={handleOpenColorPicker}>
+                            <ListItemIcon>
+                                <BorderColor fontSize="small"/>
+                            </ListItemIcon>
+                            <ListItemText onClick={handleOpenColorPicker}>Change Color</ListItemText>
+                        </ListItem>
+                        <ListItem button onClick={handleSubmenuClick}>
+                            <ListItemIcon>
+                                <EditIcon fontSize="small"/>
+                            </ListItemIcon>
+                            <ListItemText>StrokeWidth</ListItemText>
+                        </ListItem>
+                        <ListItem button onClick={handleTypeClick}>
+                            <ListItemIcon>
+                                <HorizontalRuleRoundedIcon fontSize="small"/>
+                            </ListItemIcon>
+                            <ListItemText>Type</ListItemText>
+                        </ListItem>
+                        <Menu
+                            anchorEl={typeAnchorEl}
+                            open={Boolean(typeAnchorEl)}
+                            onClose={handleTypeClose}
+                        >
+                            <MenuItem>
+                                <ListItemIcon onClick={handleTypeClose("XLINE")}>
+                                    <HorizontalRuleRoundedIcon fontSize="small"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleTypeClose("XLINE")}>XLINE</ListItemText>
+                            </MenuItem>
+                            <MenuItem>
+                                <ListItemIcon onClick={handleTypeClose("RAY")}>
+                                    <HorizontalRuleRoundedIcon fontSize="small"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleTypeClose("RAY")}>RAY</ListItemText>
+                            </MenuItem>
+                            <MenuItem>
+                                <ListItemIcon onClick={handleTypeClose("LINE")}>
+                                    <HorizontalRuleRoundedIcon fontSize="small"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleTypeClose("LINE")}>LINE</ListItemText>
+                            </MenuItem>
+                        </Menu>
+                        <Menu
+                            anchorEl={submenuAnchorEl}
+                            open={Boolean(submenuAnchorEl)}
+                            onClose={handleSubmenuClose}
+                        >
+                            <MenuItem>
+                                <ListItemIcon onClick={handleSubmenuClose(1)}>
+                                    <EditIcon fontSize="small"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleSubmenuClose(1)}>1</ListItemText>
+                            </MenuItem>
+                            <MenuItem>
+                                <ListItemIcon onClick={handleSubmenuClose(3)}>
+                                    <EditIcon fontSize="medium"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleSubmenuClose(3)}>3</ListItemText>
+                            </MenuItem>
+                            <MenuItem>
+                                <ListItemIcon onClick={handleSubmenuClose(5)}>
+                                    <EditIcon fontSize="large"/>
+                                </ListItemIcon>
+                                <ListItemText onClick={handleSubmenuClose(5)}>5</ListItemText>
+                            </MenuItem>
+                        </Menu>
+                    </Menu>
 
+
+                    <Popover
+                        open={colorPickerVisible}
+                        anchorEl={colorPickerAnchorEl}
+                        onClose={handleCloseColorPicker}
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'left',
+                        }}
+                    >
+                        <SketchPicker
+                            color={selectedTrend?.appearance?.edgeFill || '#000'}
+                            onChangeComplete={handleColorChange}
+                        />
+                    </Popover>
+                </div>
                 <FibonacciRetracement
                     // ref={saveInteractiveNodes("FibonacciRetracement", 1)}
                     enabled={enableFib}
@@ -841,6 +1548,47 @@ export const MainChart = (props: MainChartProps) => {
                     }}
                 />
 
+                <StandardDeviationChannel
+                    // ref={this.saveInteractiveNodes("StandardDeviationChannel", 1)}
+                    enabled={enableStandardDeviationChannel}
+                    onSelect={onDrawCompleteStandardDeviationChannel}
+                    onStart={() => console.log("START")}
+                    onComplete={onDrawCompleteStandardDeviationChannel}
+                    channels={standardDeviationChannel}
+                    appearance={{
+                        stroke: getDesignTokens(themeMode).palette.lineColor,
+                        strokeOpacity: 1,
+                        strokeWidth: 1,
+                        fill: "rgba(112, 176, 217, 0.4)",
+                        fillOpacity: 0.1,
+                        edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
+                        edgeFill: getDesignTokens(themeMode).palette.lineColor,
+                        edgeStrokeWidth: 1,
+                        r: 5,
+                    }}
+                ></StandardDeviationChannel>
+
+                <GannFan
+                    // ref={this.saveInteractiveNodes("GannFan", 1)}
+                    enabled={enableGanFan}
+                    onStart={() => console.log("START")}
+                    onComplete={GanFanOnDrawComplete}
+                    fans={fans}
+                    appearance={{
+                        stroke: "#000000",
+                        fillOpacity: 1,
+                        strokeOpacity: 1,
+                        strokeWidth: 1,
+                        edgeStroke: "#000000",
+                        edgeFill: "#FFFFFF",
+                        edgeStrokeWidth: 1,
+                        r: 5,
+                        fill: colorsWithTransparency,
+                        fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
+                        fontSize: 12,
+                        fontFill: getDesignTokens(themeMode).palette.edgeStroke,
+                    }}
+                />
                 <Brush
                     // ref={this.saveInteractiveNode(1)}
                     interactiveState={handleBrush1}
@@ -1265,7 +2013,119 @@ export const MainChart = (props: MainChartProps) => {
             {!disableCrossHair && (
                 <CrossHairCursor/>
             )}
+            {/* {rsi.active && (
+                <Chart
+                    id={4}
+                    yExtents={[0, 100]}
+                    height={rsi.height}
+                    origin={(w, h) => [
+                        0,
+                        h - rsi.height - (atr.active ? atr.height : 0) - (forceIndex.active ? forceIndex.height : 0)
+                    ]}
+                    padding={{ top: 10, bottom: 10 }}
+                >
+                    <XAxis
+                        axisAt="bottom"
+                        orient="bottom"
+                        showTicks={!atr.active && !forceIndex.active}
+                        {...xGrid}
+                        {...axisAppearance}
+                        outerTickSize={0}
+                    />
 
+                    <YAxis axisAt="right" orient="right" tickValues={[30, 50, 70]} {...yGrid} {...axisAppearance} />
+
+                    {!atr.active &&
+                    !forceIndex.active && (
+                        <MouseCoordinateX
+                            at="bottom"
+                            orient="bottom"
+                            displayFormat={timeFormat('%Y-%m-%d')}
+                            {...mouseEdgeAppearance}
+                        />
+                    )}
+                    <MouseCoordinateY at="right" orient="right" displayFormat={format('.2f')} {...mouseEdgeAppearance} />
+
+                    <RSISeries yAccessor={d => d.rsi} />
+
+                    <RSITooltip origin={[-28, 15]} yAccessor={d => d.rsi} options={rsiCalculator.options()} />
+                </Chart>
+            )}*/}
+            {/*            {atr.active && (
+                <Chart
+                    id={5}
+                    yExtents={atr14.accessor()}
+                    height={atr.height}
+                    origin={(w, h) => [0, h - atr.height - (forceIndex.active ? forceIndex.height : 0)]}
+                    padding={{ top: 10, bottom: 10 }}
+                >
+                    <XAxis
+                        axisAt="bottom"
+                        orient="bottom"
+                        {...xGrid}
+                        {...axisAppearance}
+                        outerTickSize={0}
+                        showTicks={!forceIndex.active}
+                    />
+                    <YAxis axisAt="right" orient="right" {...yGrid} {...axisAppearance} ticks={2} />
+
+                    {!forceIndex.active && (
+                        <MouseCoordinateX
+                            at="bottom"
+                            orient="bottom"
+                            displayFormat={timeFormat('%Y-%m-%d')}
+                            {...mouseEdgeAppearance}
+                        />
+                    )}
+                    <MouseCoordinateY at="right" orient="right" displayFormat={format('.2f')} {...mouseEdgeAppearance} />
+
+                    <LineSeries yAccessor={atr14.accessor()} {...atrAppearance} />
+                    <SingleValueTooltip
+                        yAccessor={atr14.accessor()}
+                        yLabel={`ATR (${atr14.options().windowSize})`}
+                        yDisplayFormat={format('.2f')}
+                        origin={[-40, 15]}
+                    />
+                </Chart>
+            )}*/}
+
+            {/* {forceIndex.active && (
+                <Chart
+                    id={6}
+                    height={150}
+                    yExtents={fi.accessor()}
+                    origin={(w, h) => [0, h - 150]}
+                    padding={{ top: 30, right: 0, bottom: 10, left: 0 }}
+                >
+                    <XAxis axisAt="bottom" orient="bottom" {...xGrid} {...axisAppearance} outerTickSize={0} />
+                    <YAxis
+                        axisAt="right"
+                        orient="right"
+                        {...yGrid}
+                        ticks={4}
+                        tickFormat={format('.2s')}
+                        {...axisAppearance}
+                    />
+                    <MouseCoordinateX
+                        at="bottom"
+                        orient="bottom"
+                        displayFormat={timeFormat('%Y-%m-%d')}
+                        {...mouseEdgeAppearance}
+                    />
+                    <MouseCoordinateY at="right" orient="right" displayFormat={format('.4s')} {...mouseEdgeAppearance} />
+
+                    <AreaSeries baseAt={scale => scale(0)} yAccessor={fi.accessor()} />
+                    <StraightLine yValue={0} />
+
+                    <SingleValueTooltip
+                        yAccessor={fi.accessor()}
+                        yLabel="ForceIndex (1)"
+                        yDisplayFormat={format('.4s')}
+                        origin={[-40, 15]}
+                    />
+                </Chart>
+            )}
+*/}
             {/*<Chart id={1} height={400}*/}
             {/*       // yExtents={[(d: any) => [d.high, d.low], ema26.accessor(), ema12.accessor()]}*/}
             {/*       yExtents={[(d: any) => [d.high, d.low], ema26.accessor(), ema12.accessor()]}*/}
