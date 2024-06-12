@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_cors import CORS
 import time
 import json
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://db_user:db_user_pass@adi.dev.modernisc.com/app_db'
+CORS(app, resources={r'*': {'origins': '*'}})
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:mysql@adi.dev.modernisc.com/app_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -21,7 +23,8 @@ class Chart(db.Model):
     resolution = db.Column(db.String(255), nullable=False)
 
 
-db.create_all()
+# app.app_context().push()
+# db.create_all()
 
 
 def common_response(data):
@@ -37,7 +40,7 @@ def parseRequest(request):
     return {'error': None, 'response': None, 'clientId': 'someClientId', 'userId': 'someUserId'}
 
 
-@app.route('/processRequest', methods=['GET', 'POST', 'DELETE'])
+@app.route('/1.0/charts', methods=['GET', 'POST', 'DELETE'])
 def process_request():
     # parsed_request = parseRequest(request)
 
@@ -51,33 +54,34 @@ def process_request():
     # userId = parsed_request['userId']
     # chartId = request.args.get('chart', '')
 
-    request_data = request.json
-    clientId = request_data.get('clientId')
-    userId = request_data.get('userId')
-    chartId = request_data.get('chart')
+    # request_data = request.json
+    clientId = request.args.get('client')
+    userId = request.args.get('user')
+    # chartId = request_data.get('chart')
 
 
     if request.method == 'GET':
-        if chartId == '':
-            return get_all_user_charts(clientId, userId)
-        else:
-            return get_chart_content(clientId, userId, chartId)
+        # if chartId == '':
+        #     return get_all_user_charts(clientId, userId)
+        # else:
+        #     return get_chart_content(clientId, userId, chartId)
+       return get_chart_content(clientId, userId)
 
-    elif request.method == 'DELETE':
-        if chartId == '':
-            return common_error('Wrong chart id')
-        else:
-            return remove_chart(clientId, userId, chartId)
+    # if request.method == 'DELETE':
+        # if chartId == '':
+        #     return common_error('Wrong chart id')
+        # else:
+        #     return remove_chart(clientId, userId, chartId)
 
-    elif request.method == 'POST':
+    if request.method == 'POST':
         chartName = request.form.get('name')
         symbol = request.form.get('symbol')
         resolution = request.form.get('resolution')
         content = request.form.get('content')
-        if chartId == '':
-            return save_chart(clientId, userId, chartName, symbol, resolution, content)
-        else:
-            return rewrite_chart(clientId, userId, chartId, chartName, symbol, resolution, content)
+        # if chartId == '':
+        return save_chart(clientId, userId, chartName, symbol, resolution, content)
+        # else:
+        #     return rewrite_chart(clientId, userId, chartId, chartName, symbol, resolution, content)
 
     else:
         return common_error('Wrong request')
@@ -90,8 +94,10 @@ def get_all_user_charts(clientId, userId):
     return common_response({'status': "ok", 'data': result})
 
 
-def get_chart_content(clientId, userId, chartId):
-    chart = Chart.query.filter_by(ownerSource=clientId, ownerId=userId, id=chartId).first()
+# def get_chart_content(clientId, userId, chartId):
+def get_chart_content(clientId, userId):
+    # chart = Chart.query.filter_by(ownerSource=clientId, ownerId=userId, id=chartId).first()
+    chart = Chart.query.filter_by(ownerSource=clientId, ownerId=userId).first()
     if chart:
         result = {'status': 'ok',
                   'data': {'id': chart.id, 'name': chart.name, 'timestamp': time.mktime(chart.lastModified.timetuple()),
@@ -142,4 +148,7 @@ def rewrite_chart(clientId, userId, chartId, chartName, symbol, resolution, cont
 
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
+    # app.run(port=6000, debug=True)
