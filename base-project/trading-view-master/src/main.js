@@ -8,8 +8,8 @@ window.tvWidget = new TradingView.widget({
 	datafeed: Datafeed,
 	library_path: '../charting_library_cloned_data/charting_library/',
 	theme: "Dark",
-	charts_storage_api_version: "1.1", // Ensure this is set correctly
-	charts_storage_url: 'http://saveload.tradingview.com',
+	charts_storage_api_version: "1.0", // Ensure this is set correctly
+	charts_storage_url: 'http://127.0.0.1:5000',
 	client_id: 'tradingview.com',
 	user_id: 'public_user',
 	symbol_search_request_delay: 1,
