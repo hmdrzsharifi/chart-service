@@ -147,7 +147,7 @@ export default {
         onResolveErrorCallback,
         extension
     ) => {
-        console.log('[resolveSymbol]: Method call', symbolName);
+        // console.log('[resolveSymbol]: Method call', symbolName);
         // Symbol information object
         let symbolCategory;
         if (symbolMap.has(symbolName)) {
