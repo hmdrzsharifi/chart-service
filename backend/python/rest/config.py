@@ -4,3 +4,5 @@ class Config:
     HOST = '0.0.0.0'
     PORT = 5000
     DEBUG = False
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:mysql@adi.dev.modernisc.com/app_db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
