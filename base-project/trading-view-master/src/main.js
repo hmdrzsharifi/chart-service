@@ -27,8 +27,8 @@ window.tvWidget = new TradingView.widget({
 		"left_toolbar",
 		"header_layouttoggle",
 		"support_multicharts",
-		"chart_template_storage"
-
+		"chart_template_storage",
+		"insert_indicator_dialog_shortcut"
 	],
 	/*	disabled_features: ["use_localstorage_for_settings"
 		, "header_symbol_search",
