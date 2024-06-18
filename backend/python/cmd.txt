@@ -25,3 +25,7 @@ http://localhost:8001
 
 
 docker run --name mysql-container -p 3306:3306 -h adi.dev.modernisc.com -e MYSQL_ROOT_PASSWORD=mysql -v /home/abis/mySql/data:/var/lib/mysql -d mysql:latest
+
+
+pip install cryptography
+
