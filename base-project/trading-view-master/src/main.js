@@ -13,6 +13,7 @@ window.tvWidget = new TradingView.widget({
 	client_id: 'tradingview.com',
 	user_id: 'public_user',
 	symbol_search_request_delay: 1,
+	auto_save_delay: 5,
 	enabled_features: [
 		'use_localstorage_for_settings',
 		'volume_force_overlay',
