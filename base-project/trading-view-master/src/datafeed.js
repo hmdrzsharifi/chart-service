@@ -59,6 +59,7 @@ const configurationData = {
     supports_group_request: false,
     supports_marks: true,
     supports_timescale_marks: true,
+    supports_time: true,
 
     // The `exchanges` arguments are used for the `searchSymbols` method if a user selects the exchange
     exchanges: [{
@@ -345,57 +346,75 @@ export default {
     //     ];
     //     onDataCallback(marks);
     // },
-    getMarks: async (symbolInfo, startDate, endDate, onDataCallback, resolution) => {
-        try {
-            const response = await fetch(url + '/fetchMarks', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    symbol: "BINANCE:BTCUSDT",
-                    from: startDate,
-                    to: endDate,
-                    resolution: "D"
-                }),
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const marks = await response.json();
-            onDataCallback(marks);
-        } catch (error) {
-            console.error('There was an error fetching the marks:', error);
-            onDataCallback([]);
-        }
-    },
+    // getMarks: async (symbolInfo, startDate, endDate, onDataCallback, resolution) => {
+    //     try {
+    //         const response = await fetch(url + '/fetchMarks', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({
+    //                 symbol: "BINANCE:BTCUSDT",
+    //                 from: startDate,
+    //                 to: endDate,
+    //                 resolution: "D"
+    //             }),
+    //         });
+    //         if (!response.ok) {
+    //             throw new Error(`HTTP error! status: ${response.status}`);
+    //         }
+    //
+    //         const marks = await response.json();
+    //         onDataCallback(marks);
+    //     } catch (error) {
+    //         console.error('There was an error fetching the marks:', error);
+    //         onDataCallback([]);
+    //     }
+    // },
 
 
 
     getTimescaleMarks(symbolInfo, startDate, endDate, onDataCallback, resolution) {
         if (configurationData.supports_timescale_marks) {
-            const marks = [
-                {
-                    id: '1',
-                    time: 1718683616,
-                    color: 'red',
-                    text: 'Aasdadffgdfgdfg',
-                    label: 'Y',
-                    labelFontColor: '#ffffff',
-                    minSize: 14
-                },
-                {
-                    id: '2',
-                    time: 1717388035,
-                    color: 'blue',
-                    text: 'sfgertgfetgegg',
-                    label: 'B',
-                    labelFontColor: '#ffffff',
-                    minSize: 25
-                }
-            ];
-            onDataCallback(marks);
+            let Arr = [];
+            Arr.push({
+                id: 1,
+                time: 1718710709,
+                color: 'green',
+                label: 'Buy',
+                tooltip: 'Aasdadffgdfgdfg',
+                minSize: 25
+            })
+            // const marks = [
+            //     {
+            //         id: 1,
+            //         time: 1718683616,
+            //         color: 'red',
+            //         text: 'Aasdadffgdfgdfg',
+            //         label: 'Y',
+            //         labelFontColor: '#ffffff',
+            //         minSize: 14
+            //     },
+            //     {
+            //         id: 2,
+            //         time: 1717388035,
+            //         color: 'blue',
+            //         text: 'sfgertgfetgegg',
+            //         label: 'B',
+            //         labelFontColor: '#ffffff',
+            //         minSize: 25
+            //     }
+            // ];
+            onDataCallback(Arr);
         }
-    }
+    },
+
+    // getServerTime(callback) {
+    //     if (configurationData.supports_time) {
+    //         const self = this
+    //         setTimeout(function () {
+    //             callback(self.getServerTime())
+    //         }, 10)
+    //     }
+    // }
 };
