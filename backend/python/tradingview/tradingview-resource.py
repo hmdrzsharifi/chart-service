@@ -240,52 +240,10 @@ def fetch_marks_data():
     from_time = request_data.get('from')
     to_time = request_data.get('to')
 
-    response = urlopen("https://financialmodelingprep.com/api/v3/press-releases/AAPL?apikey=fng76oNvOTV9fiNj1QlDCoU1gbZCNtrh", cafile=certifi.where())
+    response = urlopen("https://financialmodelingprep.com/api/v3/press-releases/AAPL?page=0&apikey=fng76oNvOTV9fiNj1QlDCoU1gbZCNtrh", cafile=certifi.where())
     print(response)
     data = response.read().decode("utf-8")
-    print(data)
     return json.loads(data)
-
-
-    if time_frame == '1M': time_frame = '1'
-    if time_frame == '5M': time_frame = '5'
-    if time_frame == '15M': time_frame = '15'
-    if time_frame == '30M': time_frame = '30'
-    if time_frame == '1H': time_frame = '60'
-
-    finnhub_client = finnhub.Client(api_key=current_app.config['FINNHUB_API_KEY'])
-    # Stock candles
-    res = finnhub_client.company_news(symbol, _from=from_time, to=to_time)
-    print(res)
-
-    if res.get('s') == "ok":
-        df = pd.DataFrame(res)
-        # Convert to JSON
-        json_data = df.to_json(orient='records')
-    else:
-        json_data = json.dumps(res)
-    return json_data
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @app.route('/clearCache', methods=['GET'])
 def clear_cache():

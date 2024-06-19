@@ -373,39 +373,64 @@ export default {
     // },
 
 
-
-    getTimescaleMarks(symbolInfo, startDate, endDate, onDataCallback, resolution) {
+    async getTimescaleMarks(symbolInfo, startDate, endDate, onDataCallback, resolution) {
         if (configurationData.supports_timescale_marks) {
-            let Arr = [];
-            Arr.push({
-                id: 1,
-                time: 1718710709,
-                color: 'green',
-                label: 'Buy',
-                tooltip: 'Aasdadffgdfgdfg',
-                minSize: 25
-            })
-            // const marks = [
-            //     {
-            //         id: 1,
-            //         time: 1718683616,
-            //         color: 'red',
-            //         text: 'Aasdadffgdfgdfg',
-            //         label: 'Y',
-            //         labelFontColor: '#ffffff',
-            //         minSize: 14
-            //     },
-            //     {
-            //         id: 2,
-            //         time: 1717388035,
-            //         color: 'blue',
-            //         text: 'sfgertgfetgegg',
-            //         label: 'B',
-            //         labelFontColor: '#ffffff',
-            //         minSize: 25
-            //     }
-            // ];
-            onDataCallback(Arr);
+            try {
+                const response = await fetch(url + '/fetchMarks', {
+                    method: 'POST', headers: {
+                        'Content-Type': 'application/json',
+                    }, body: JSON.stringify({
+                        symbol: "BINANCE:BTCUSDT", from: startDate, to: endDate, resolution: "D"
+                    }),
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const colors = ['green', 'red', 'yellow', 'blue'];
+                const timeScaleMarkShape = ["circle" , "earningUp" , "earningDown" , "earning"];
+                const marks = await response.json();
+
+                // گروه‌بندی بر اساس روز و ماه
+                const groupedMarks = marks.reduce((acc, mark) => {
+                    const date = new Date(mark.date);
+                    const dayMonth = `${date.getUTCMonth() + 1}/${date.getUTCDate()}`; // گرفتن ماه و روز
+                    if (!acc[dayMonth]) {
+                        acc[dayMonth] = [];
+                    }
+                    acc[dayMonth].push(mark);
+                    return acc;
+                }, {});
+
+                // ایجاد لیست نهایی
+                const newMarks = Object.keys(groupedMarks).map((dayMonth, index) => {
+                    const combinedText = groupedMarks[dayMonth]
+                        .map(mark => mark.text)
+                        .join('\n\n--------------------\n\n'); // اضافه کردن خط جداکننده بین متن‌ها
+
+                    const combinedTitle = groupedMarks[dayMonth]
+                        .map(mark => mark.title)
+                        .join('\n\n--------------------\n\n'); // اضافه کردن خط جداکننده بین عناوین
+                    // استفاده از اولین تاریخ در گروه برای تبدیل به timestamp
+                    const firstDate = groupedMarks[dayMonth][0].date;
+
+                    return {
+                        id: index + 1,
+                        time: Math.floor(new Date(firstDate).getTime() / 1000), // تبدیل تاریخ به timestamp
+                        color: colors[Math.floor(Math.random() * colors.length)], // تولید رنگ تصادفی از میان چهار رنگ
+                        label: groupedMarks[dayMonth][0].symbol, // فرض می‌کنیم همه مارک‌ها دارای یک سیمبل هستند
+                        tooltip: [combinedTitle, combinedText], // قرار دادن title و text ترکیب شده در tooltip
+                        minSize: 25,
+                        shape:timeScaleMarkShape[Math.floor(Math.random() * timeScaleMarkShape.length)]
+                    };
+                });
+
+                onDataCallback(newMarks);
+
+            } catch (error) {
+                console.error('There was an error fetching the marks:', error);
+                onDataCallback([]);
+            }
         }
     },
 
