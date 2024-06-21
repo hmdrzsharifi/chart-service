@@ -1,8 +1,13 @@
 import {create} from 'zustand';
 import {TimeFrame, Series, StudiesChart} from "../type/Enum";
 import {SymbolType} from "../type/SymbolType";
+import {useState} from "react";
 
 type Store = {
+
+    equidistantChannels:any[]
+    setEquidistantChannels:(equidistantChannels:any[]) => void
+
     timeFrame: TimeFrame
     setTimeFrame: (duration: TimeFrame) => void
 
@@ -50,6 +55,11 @@ type Store = {
 
 
 const useStore = create<Store>((set) => ({
+
+    equidistantChannels:[],
+    setEquidistantChannels:(equidistantChannels: any[]) => set((state) => ({equidistantChannels:equidistantChannels})),
+
+
     timeFrame: TimeFrame.D,
     setTimeFrame: (duration: TimeFrame) => set((state) => ({ timeFrame: duration })),
 

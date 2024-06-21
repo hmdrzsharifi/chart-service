@@ -4,10 +4,10 @@ import MenuItem from '@mui/material/MenuItem';
 import useStore from "../util/store";
 import {
     Autocomplete,
-    CircularProgress,
+    CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
     IconButton, InputAdornment,
     List,
-    ListItem,
+    ListItem, ListItemText,
     Menu,
     Switch,
     Tab,
@@ -33,11 +33,12 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
-import {Add, CameraEnhance, Close, Message, RefreshTwoTone, Search} from "@mui/icons-material";
+import {Add, CameraEnhance, Close, Message, RefreshTwoTone, Save, Search} from "@mui/icons-material";
 import {SymbolList} from "../type/SymbolType";
 import {fetchCexSymbols} from "../util/utils";
 import html2canvas from 'html2canvas';
 import getDesignTokens from "../config/theme";
+import {MainChart} from "../chart/MainChart";
 
 const Toolbar = (props: any) => {
 
@@ -62,9 +63,32 @@ const Toolbar = (props: any) => {
     const {disableCrossHair, setDisableCrossHair} = useStore();
     const {setError} = useStore();
     const {setFixedPosition} = useStore()
+    const {equidistantChannels , setEquidistantChannels} = useStore()
+    const [isOpenSave, setIsOpenSave] = useState(false);
+    const [localStorageItems, setLocalStorageItems] = useState<string[]>([]);
     const {chartDimensions} = useStore()
     // const {disableMACD, setDisableMACD} = useStore();
     const [loading, setLoading] = useState(false);
+
+
+    const openSaveModal = () => {
+        const items: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) {
+                items.push(key);
+            }
+        }
+        setLocalStorageItems(items);
+        setIsOpenSave(true);
+    };
+
+    const closeSaveModal = () => {
+        setIsOpenSave(false);
+    };
+
+
+
 
 
     const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -93,6 +117,18 @@ const Toolbar = (props: any) => {
     const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue)
     };
+
+    const handleItemClick = (item: string) => {
+        const savedState: any = localStorage.getItem(item)
+        if (savedState) {
+            const chartState: any = JSON.parse(savedState)
+            // const newT: any[] = chartState.trends
+            // setTrends(chartState.trends)
+            setEquidistantChannels(chartState.equidistantChannels || [])
+            // const moreProps = {};
+        }
+        closeSaveModal()
+    }
     const handleSearch = (event: React.ChangeEvent<{}>, value: string) => {
         console.log({event})
         console.log({value})
@@ -610,11 +646,12 @@ const Toolbar = (props: any) => {
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='ELDER_IMPULSE' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() =>{ handleChangeStudiesChartWithTooltip(StudiesChart.ELDER_IMPULSE)
-                              setDisableVolume(!disableVolume)
-                              handleChangeStudiesChart(StudiesChart.MACD)
-                              // setDisableMACD(!disableMACD)
-                    }}>
+                              onClick={() => {
+                                  handleChangeStudiesChartWithTooltip(StudiesChart.ELDER_IMPULSE)
+                                  setDisableVolume(!disableVolume)
+                                  handleChangeStudiesChart(StudiesChart.MACD)
+                                  // setDisableMACD(!disableMACD)
+                              }}>
                         <span>Elder Impulse</span>
                         <Switch
                             checked={isStudiesChartWithTooltipInclude(StudiesChart.ELDER_IMPULSE)}
@@ -664,7 +701,34 @@ const Toolbar = (props: any) => {
                             color="primary"
                         /></MenuItem>*/}
                 </Menu>
-
+                <div>
+                    <Tooltip title="Save Chart" placement="bottom" arrow>
+                        <IconButton onClick={openSaveModal}>
+                            <Save/>
+                        </IconButton>
+                    </Tooltip>
+                    <Dialog open={isOpenSave} onClose={closeSaveModal}>
+                        <DialogTitle>Local Storage Items</DialogTitle>
+                        <DialogContent>
+                            <List>
+                                {localStorageItems.length > 0 ? (
+                                    localStorageItems.map((item) => (
+                                        <ListItem button key={item} onClick={() => handleItemClick(item)}>
+                                            <ListItemText primary={item} />
+                                        </ListItem>
+                                    ))
+                                ) : (
+                                    <ListItem>
+                                        <ListItemText primary="No items in Local Storage" />
+                                    </ListItem>
+                                )}
+                            </List>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={closeSaveModal} color="primary">Close</Button>
+                        </DialogActions>
+                    </Dialog>
+                </div>
             </div>
         </div>
     )

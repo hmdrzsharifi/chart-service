@@ -147,7 +147,8 @@ export const MainChart = (props: MainChartProps) => {
         seriesType,
         disableHoverTooltip,
         disableVolume, setDisableVolume,
-        setError
+        setError,
+        equidistantChannels,setEquidistantChannels
     } = useStore();
 
     const {
@@ -186,7 +187,6 @@ export const MainChart = (props: MainChartProps) => {
     const [displayXAccessor, setDisplayXAccessor] = useState<any>()
     const [xExtents, setXExtents] = useState([0, 0])
     const [trends, setTrends] = useState<TrendLineType[]>([])
-    const [equidistantChannels, setEquidistantChannels] = useState<any[]>([])
     const [retracements, setRetracements] = useState<any[]>([]);
     // const {fixedPosition, setFixedPosition} = useStore()
     // const muiTheme = useTheme();
@@ -265,6 +265,15 @@ export const MainChart = (props: MainChartProps) => {
         tickStrokeStyle: getDesignTokens(themeMode).palette.lineColor,
         strokeStyle: getDesignTokens(themeMode).palette.lineColor,
         gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
+    }
+
+
+    const saveChartState = () =>{
+        const  chartState = {
+            trends,
+            equidistantChannels,
+        }
+        localStorage.setItem('chartState3' , JSON.stringify(chartState));
     }
 
     const openCloseColor = (data: IOHLCData) => {
@@ -502,6 +511,15 @@ export const MainChart = (props: MainChartProps) => {
 
     useEffect(() => {
 
+        // const savedState : any = localStorage.getItem("chartState3")
+        // if (savedState){
+        //     const chartState : any = JSON.parse(savedState)
+        //     const newT : any[] = chartState.trends
+        //     setTrends(chartState.trends)
+        //     setEquidistantChannels(chartState.equidistantChannels || [])
+        //     const moreProps = {};
+        // }
+
         // change Indicators according to themeMode
         changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements)
 
@@ -731,7 +749,6 @@ export const MainChart = (props: MainChartProps) => {
         console.log({newTrends});
         setEnableTrendLine(false);
         setTrends(newTrends);
-
         setMenuPosition({
             mouseX: e.clientX - 2,
             mouseY: e.clientY - 4,
@@ -1188,6 +1205,7 @@ export const MainChart = (props: MainChartProps) => {
                     fontSize={18}
                     yDisplayFormat={format(".2f")}
                     valueFill={getlastPriceForColor()}
+                    onClick={saveChartState}
                     /* labelStroke="#4682B4" - optional prop */
                     origin={[TOOLTIP_PADDING_LEFT, 35]}/>
                 <XAxis showGridLines {...xAndYColors} />
