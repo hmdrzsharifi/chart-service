@@ -2,11 +2,24 @@ import {create} from 'zustand';
 import {TimeFrame, Series, StudiesChart} from "../type/Enum";
 import {SymbolType} from "../type/SymbolType";
 import {useState} from "react";
+import {TrendLineType} from "../type/TrendLineType";
 
 type Store = {
 
+    trends:TrendLineType[]
+    setTrends: (trends:TrendLineType[]) => void
+
+    retracements: any[]
+    setRetracements:(retracements:any[]) => void
+
     equidistantChannels:any[]
     setEquidistantChannels:(equidistantChannels:any[]) => void
+
+    standardDeviationChannel:any[],
+    setStandardDeviationChannel:(standardDeviationChannel:any[]) => void
+
+    fans:any[]
+    setFans:(fans:any[]) => void
 
     timeFrame: TimeFrame
     setTimeFrame: (duration: TimeFrame) => void
@@ -56,11 +69,23 @@ type Store = {
 
 const useStore = create<Store>((set) => ({
 
+    trends:[],
+    setTrends:(trends: TrendLineType[]) => set((state) => ({trends:trends})),
+
+    retracements: [],
+    setRetracements:(retracements: any[]) => set((state) => ({retracements:retracements})),
+
     equidistantChannels:[],
     setEquidistantChannels:(equidistantChannels: any[]) => set((state) => ({equidistantChannels:equidistantChannels})),
 
+    standardDeviationChannel:[],
+    setStandardDeviationChannel:(standardDeviationChannel: any[]) => set((state) => ({standardDeviationChannel:standardDeviationChannel})),
 
-    timeFrame: TimeFrame.D,
+    fans:[] ,
+    setFans:(fans: any[]) => set((state) => ({fans:fans})),
+
+
+        timeFrame: TimeFrame.D,
     setTimeFrame: (duration: TimeFrame) => set((state) => ({ timeFrame: duration })),
 
     symbol: 'BINANCE:BTCUSDT',

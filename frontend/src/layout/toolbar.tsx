@@ -56,7 +56,6 @@ const Toolbar = (props: any) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
     const {disableVolume, setDisableVolume} = useStore();
-    const {studiesCharts, setStudiesCharts} = useStore();
     const {studiesChartsWithTooltip, setStudiesChartsWithTooltip} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
@@ -64,6 +63,11 @@ const Toolbar = (props: any) => {
     const {setError} = useStore();
     const {setFixedPosition} = useStore()
     const {equidistantChannels , setEquidistantChannels} = useStore()
+    const {trends , setTrends} = useStore()
+    const {retracements , setRetracements} = useStore()
+    const {standardDeviationChannel , setStandardDeviationChannel} = useStore()
+    const {fans , setFans} = useStore()
+    const {studiesCharts , setStudiesCharts} = useStore()
     const [isOpenSave, setIsOpenSave] = useState(false);
     const [localStorageItems, setLocalStorageItems] = useState<string[]>([]);
     const {chartDimensions} = useStore()
@@ -107,7 +111,12 @@ const Toolbar = (props: any) => {
     const handleSave = () => {
         console.log({saveName})
         const chartState = {
+            trends,
+            retracements,
             equidistantChannels,
+            standardDeviationChannel,
+            fans,
+            studiesCharts
         }
         localStorage.setItem(saveName , JSON.stringify(chartState));
         closeSaveDialog();
@@ -155,10 +164,12 @@ const Toolbar = (props: any) => {
         const savedState: any = localStorage.getItem(item)
         if (savedState) {
             const chartState: any = JSON.parse(savedState)
-            // const newT: any[] = chartState.trends
-            // setTrends(chartState.trends)
+            setTrends(chartState.trends || [])
+            setRetracements(chartState.retracements || [])
             setEquidistantChannels(chartState.equidistantChannels || [])
-            // const moreProps = {};
+            setStandardDeviationChannel(chartState.standardDeviationChannel || [])
+            setFans(chartState.fans || [])
+            setStudiesCharts(chartState.studiesCharts)
         }
         setSaveName(item)
         closeSaveModal()

@@ -148,7 +148,11 @@ export const MainChart = (props: MainChartProps) => {
         disableHoverTooltip,
         disableVolume, setDisableVolume,
         setError,
-        equidistantChannels,setEquidistantChannels
+        equidistantChannels,setEquidistantChannels,
+        trends,setTrends,
+        retracements,setRetracements,
+        standardDeviationChannel , setStandardDeviationChannel,
+        fans , setFans
     } = useStore();
 
     const {
@@ -186,8 +190,6 @@ export const MainChart = (props: MainChartProps) => {
     const [xAccessor, setXAccessor] = useState<any>()
     const [displayXAccessor, setDisplayXAccessor] = useState<any>()
     const [xExtents, setXExtents] = useState([0, 0])
-    const [trends, setTrends] = useState<TrendLineType[]>([])
-    const [retracements, setRetracements] = useState<any[]>([]);
     // const {fixedPosition, setFixedPosition} = useStore()
     // const muiTheme = useTheme();
 
@@ -212,8 +214,7 @@ export const MainChart = (props: MainChartProps) => {
         type: "XLINE",
         selected: undefined
     }])*/
-    const [standardDeviationChannel, setStandardDeviationChannel] = useState<any[]>([]);
-    const [fans, setFans] = useState<any[]>([]);
+
     const [brushes, setBrushes] = useState<any[]>([])
 
     const numberFormat = format(".2f");
