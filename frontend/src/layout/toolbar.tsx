@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {ChangeEvent, useState} from 'react';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import useStore from "../util/store";
@@ -33,7 +33,7 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
-import {Add, CameraEnhance, Close, Message, RefreshTwoTone, Save, Search} from "@mui/icons-material";
+import {Add, CameraEnhance, Close, CloudDownload, Message, RefreshTwoTone, Save, Search} from "@mui/icons-material";
 import {SymbolList} from "../type/SymbolType";
 import {fetchCexSymbols} from "../util/utils";
 import html2canvas from 'html2canvas';
@@ -69,6 +69,19 @@ const Toolbar = (props: any) => {
     const {chartDimensions} = useStore()
     // const {disableMACD, setDisableMACD} = useStore();
     const [loading, setLoading] = useState(false);
+    const [saveMenuOpen, setSaveMenuOpen] = useState(false);
+    const [saveAnchorEl, setSaveAnchorEl] = useState<any>(null);
+    const [saveName, setSaveName] = useState('');
+    const [openSaveDialog, setOpenSaveDialog] = useState<boolean>(false);
+    const [saveSearchTerm, setSAveSearchTerm] = useState('');
+
+    const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setSAveSearchTerm(event.target.value);
+    };
+
+    const filteredItems = localStorageItems.filter((item) =>
+        item.toLowerCase().includes(saveSearchTerm.toLowerCase())
+    );
 
 
     const openSaveModal = () => {
@@ -87,13 +100,33 @@ const Toolbar = (props: any) => {
         setIsOpenSave(false);
     };
 
+    const closeSaveDialog = () => {
+        setOpenSaveDialog(false);
+    };
 
+    const handleSave = () => {
+        console.log({saveName})
+        const chartState = {
+            equidistantChannels,
+        }
+        localStorage.setItem(saveName , JSON.stringify(chartState));
+        closeSaveDialog();
+    };
 
+    const handleCancel = () => {
+        setSaveName('');
+        closeSaveDialog();
+    };
 
 
     const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
         setMenuOpen(!menuOpen);
         setAnchorEl(event.currentTarget);
+    };
+
+    const handleSaveMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setSaveMenuOpen(!saveMenuOpen);
+        setSaveAnchorEl(event.currentTarget);
     };
 
     const handleOpen = async () => {
@@ -127,7 +160,9 @@ const Toolbar = (props: any) => {
             setEquidistantChannels(chartState.equidistantChannels || [])
             // const moreProps = {};
         }
+        setSaveName(item)
         closeSaveModal()
+        setSaveMenuOpen(false)
     }
     const handleSearch = (event: React.ChangeEvent<{}>, value: string) => {
         console.log({event})
@@ -672,63 +707,92 @@ const Toolbar = (props: any) => {
                             name="enableDisableMovingAverage"
                             color="primary"
                         /></MenuItem>
-                    {/*<MenuItem value='COMPARE' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>Compare</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>
-                    <MenuItem value='VOLUME_PROFILE' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>Volume profile</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>
-                    <MenuItem value='VOLUME_PROFILE_BY_SESSION'
-                              style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>Volume profile by Session</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>*/}
                 </Menu>
-                <div>
-                    <Tooltip title="Save Chart" placement="bottom" arrow>
-                        <IconButton onClick={openSaveModal}>
-                            <Save/>
-                        </IconButton>
-                    </Tooltip>
-                    <Dialog open={isOpenSave} onClose={closeSaveModal}>
-                        <DialogTitle>Local Storage Items</DialogTitle>
-                        <DialogContent>
-                            <List>
-                                {localStorageItems.length > 0 ? (
-                                    localStorageItems.map((item) => (
-                                        <ListItem button key={item} onClick={() => handleItemClick(item)}>
-                                            <ListItemText primary={item} />
-                                        </ListItem>
-                                    ))
-                                ) : (
-                                    <ListItem>
-                                        <ListItemText primary="No items in Local Storage" />
+                <IconButton
+                    aria-label="Save Chart"
+                    aria-haspopup="true"
+                    aria-expanded={saveMenuOpen ? 'true' : undefined}
+                    onClick={handleSaveMenuToggle}
+                    color="inherit"
+                >
+                    <Typography variant="caption" sx={{mr: 1}} classes={{root: 'toolbar-select'}}>
+                        {saveName === '' ? 'Save Chart' : saveName}
+                        <Box component="span" sx={{ ml: 1 }}>
+                            <CloudDownload />
+                        </Box>
+                    </Typography>
+                    <ExpandMoreIcon/>
+                </IconButton>
+                <Menu
+                    anchorEl={saveAnchorEl}
+                    open={saveMenuOpen}
+                    onClose={() => setSaveMenuOpen(false)}
+                >
+                    <MenuItem value='Save Layout' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setOpenSaveDialog(true)}>
+                        <span>Save Layout</span>
+                        <Save/>
+                    </MenuItem>
+                    <MenuItem value='Load Layout' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => openSaveModal()}>
+                        <span>Load Layout</span>
+                        <CloudDownload/>
+                    </MenuItem>
+                </Menu>
+                <Dialog open={openSaveDialog} onClose={closeSaveDialog}>
+                    <DialogTitle>Save Layout</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            label="name"
+                            type="text"
+                            fullWidth
+                            variant="standard"
+                            value={saveName}
+                            onChange={(e) => setSaveName(e.target.value)}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCancel} color="secondary">
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSave} color="primary">
+                            Save
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+                <Dialog open={isOpenSave} onClose={closeSaveModal}>
+                    <DialogTitle sx={{bgcolor: getDesignTokens(themeMode).palette.chartBackground}}>Local Storage Items</DialogTitle>
+                    <DialogContent sx={{bgcolor: getDesignTokens(themeMode).palette.chartBackground}}>
+                        <Box mb={2}  sx={{minWidth:500 , bgcolor: getDesignTokens(themeMode).palette.chartBackground}}>
+                            <br/>
+                                <TextField
+                                fullWidth
+                                label="Search"
+                                value={saveSearchTerm}
+                                onChange={handleSearchChange}
+                                variant="outlined"
+                            />
+                        </Box>
+                        <List  sx={{minHeight:400}}>
+                            {filteredItems.length > 0 ? (
+                                filteredItems.map((item) => (
+                                    <ListItem button key={item} onClick={() => handleItemClick(item)}>
+                                        <ListItemText primary={item} />
                                     </ListItem>
-                                )}
-                            </List>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={closeSaveModal} color="primary">Close</Button>
-                        </DialogActions>
-                    </Dialog>
-                </div>
+                                ))
+                            ) : (
+                                <ListItem>
+                                    <ListItemText primary="No items in Local Storage" />
+                                </ListItem>
+                            )}
+                        </List>
+                    </DialogContent>
+                    <DialogActions sx={{bgcolor: getDesignTokens(themeMode).palette.chartBackground}}>
+                        <Button onClick={closeSaveModal} color="primary">Close</Button>
+                    </DialogActions>
+                </Dialog>
             </div>
         </div>
     )

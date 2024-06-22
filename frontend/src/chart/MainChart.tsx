@@ -267,15 +267,6 @@ export const MainChart = (props: MainChartProps) => {
         gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
     }
 
-
-    const saveChartState = () =>{
-        const  chartState = {
-            trends,
-            equidistantChannels,
-        }
-        localStorage.setItem('chartState3' , JSON.stringify(chartState));
-    }
-
     const openCloseColor = (data: IOHLCData) => {
         return data.close > data.open ? "#8cc176" : "#b82c0c";
     };
@@ -510,16 +501,6 @@ export const MainChart = (props: MainChartProps) => {
     // ----------------- useEffects ----------------- //
 
     useEffect(() => {
-
-        // const savedState : any = localStorage.getItem("chartState3")
-        // if (savedState){
-        //     const chartState : any = JSON.parse(savedState)
-        //     const newT : any[] = chartState.trends
-        //     setTrends(chartState.trends)
-        //     setEquidistantChannels(chartState.equidistantChannels || [])
-        //     const moreProps = {};
-        // }
-
         // change Indicators according to themeMode
         changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements)
 
@@ -1205,7 +1186,6 @@ export const MainChart = (props: MainChartProps) => {
                     fontSize={18}
                     yDisplayFormat={format(".2f")}
                     valueFill={getlastPriceForColor()}
-                    onClick={saveChartState}
                     /* labelStroke="#4682B4" - optional prop */
                     origin={[TOOLTIP_PADDING_LEFT, 35]}/>
                 <XAxis showGridLines {...xAndYColors} />
