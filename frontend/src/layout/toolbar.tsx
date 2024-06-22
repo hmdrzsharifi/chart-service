@@ -171,7 +171,7 @@ const Toolbar = (props: any) => {
             setEquidistantChannels(chartState.equidistantChannels || [])
             setStandardDeviationChannel(chartState.standardDeviationChannel || [])
             setFans(chartState.fans || [])
-            setStudiesCharts(chartState.studiesCharts)
+            setStudiesCharts(chartState.studiesCharts || [])
             setXExtents(chartState.xExtents)
         }
         setSaveName(item)
