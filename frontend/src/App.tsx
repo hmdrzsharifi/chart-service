@@ -26,6 +26,7 @@ function App() {
 
     const [data, setData] = useState<any>([]);
     const [lastTime, setLastTime] = useState<any>(new Date());
+    const [reloadFromSymbol, setReloadFromSymbol] = useState(false);
     const {symbol, timeFrame} = useStore();
     const {openSideBar, themeMode} = useDesignStore();
     const {loading, setLoading} = useDesignStore();
@@ -421,6 +422,7 @@ function App() {
             // console.log(candleData)
 
             setData(candleData)
+            setReloadFromSymbol(!reloadFromSymbol)
             setLoading(false)
 
         } catch (error) {
@@ -595,6 +597,7 @@ function App() {
                             </div>}
                             {error ? <div className="error-message">Failed to fetch</div> :
                                 data.length > 0 && <MainChart dataList={data} width={width ? width - (openSideBar ? 45 : 10) : 0} ratio={3}
+                                                              reloadFromSymbol={reloadFromSymbol}
                                                            theme={theme} height={height ? height : 0}
                             />}
 

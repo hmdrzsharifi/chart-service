@@ -42,9 +42,10 @@ import {MainChart} from "../chart/MainChart";
 
 const Toolbar = (props: any) => {
 
-    const {setSymbol} = useStore();
-    const {setSeriesType} = useStore();
+    const {symbol , setSymbol} = useStore();
+    const {seriesType , setSeriesType} = useStore();
     const {setThemeSecondaryColor} = useDesignStore();
+    const [checkedThemeSwitch , setCheckedThemeSwitch] = useState<boolean>(true);
     const {themeMode, setThemeMode, openSideBar, setOpenSideBar} = useDesignStore();
     const [open, setOpen] = useState<boolean>(false);
     const [openInfoModal, setOpenInfoModal] = useState<boolean>(false);
@@ -118,7 +119,13 @@ const Toolbar = (props: any) => {
             standardDeviationChannel,
             fans,
             studiesCharts,
-            xExtents
+            xExtents,
+            symbol,
+            selectedSymbol,
+            seriesType,
+            timeFrame,
+            themeMode,
+            checkedThemeSwitch
         }
         localStorage.setItem(saveName , JSON.stringify(chartState));
         closeSaveDialog();
@@ -173,6 +180,12 @@ const Toolbar = (props: any) => {
             setFans(chartState.fans || [])
             setStudiesCharts(chartState.studiesCharts || [])
             setXExtents(chartState.xExtents)
+            setSymbol(chartState.symbol)
+            setSelectedSymbol(chartState.selectedSymbol)
+            setSeriesType(chartState.seriesType)
+            setTimeFrame(chartState.timeFrame)
+            setThemeMode(chartState.themeMode)
+            setCheckedThemeSwitch(chartState.checkedThemeSwitch)
         }
         setSaveName(item)
         closeSaveModal()
@@ -543,9 +556,10 @@ const Toolbar = (props: any) => {
                 </Modal>
             </div>
             <div className="toolbar-right-box">
-                <Switch onChange={() => {
+                <Switch checked={checkedThemeSwitch} onChange={() => {
                     setThemeSecondaryColor(themeMode === 'dark' ? '#000' : '#fff')
                     setThemeMode(themeMode === 'dark' ? 'light' : 'dark')
+                    setCheckedThemeSwitch(!checkedThemeSwitch)
                 }
                 }
                         icon={<LightModeIcon/>}

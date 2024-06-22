@@ -112,6 +112,7 @@ interface MainChartProps {
     readonly width: number;
     readonly ratio: number;
     readonly theme?: any;
+    readonly reloadFromSymbol?: boolean;
 }
 
 const bbStroke = {
@@ -130,7 +131,7 @@ export const MainChart = (props: MainChartProps) => {
         (d: IOHLCData) => d.date,
     );*/
 
-    const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList} = props;
+    const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList, reloadFromSymbol} = props;
 
 
 
@@ -515,6 +516,8 @@ export const MainChart = (props: MainChartProps) => {
 
         console.log({props})
 
+        const data = dataList;
+
         const ema26Indicator = ema()
             .id(0)
             .options({ windowSize: 26 })
@@ -581,7 +584,7 @@ export const MainChart = (props: MainChartProps) => {
         setXScale(() => xScale)
         setXAccessor(()=>xAccessor)
         setDisplayXAccessor(()=>displayXAccessor)
-    },[])
+    },[reloadFromSymbol])
 
     const handleDataLoadAfter = async (start: any, end: any) => {
         // setFixedPosition(true);
