@@ -21,6 +21,9 @@ type Store = {
     fans:any[]
     setFans:(fans:any[]) => void
 
+    xExtents:any,
+    setXExtents:(xExtents:any) => void
+
     timeFrame: TimeFrame
     setTimeFrame: (duration: TimeFrame) => void
 
@@ -84,8 +87,10 @@ const useStore = create<Store>((set) => ({
     fans:[] ,
     setFans:(fans: any[]) => set((state) => ({fans:fans})),
 
+    xExtents:[0 , 0],
+    setXExtents:(xExtents: any) => set((state) => ({xExtents:xExtents})),
 
-        timeFrame: TimeFrame.D,
+    timeFrame: TimeFrame.D,
     setTimeFrame: (duration: TimeFrame) => set((state) => ({ timeFrame: duration })),
 
     symbol: 'BINANCE:BTCUSDT',

@@ -152,7 +152,8 @@ export const MainChart = (props: MainChartProps) => {
         trends,setTrends,
         retracements,setRetracements,
         standardDeviationChannel , setStandardDeviationChannel,
-        fans , setFans
+        fans , setFans,
+        xExtents , setXExtents
     } = useStore();
 
     const {
@@ -189,7 +190,7 @@ export const MainChart = (props: MainChartProps) => {
     const [xScale, setXScale] = useState<any>()
     const [xAccessor, setXAccessor] = useState<any>()
     const [displayXAccessor, setDisplayXAccessor] = useState<any>()
-    const [xExtents, setXExtents] = useState([0, 0])
+
     // const {fixedPosition, setFixedPosition} = useStore()
     // const muiTheme = useTheme();
 

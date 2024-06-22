@@ -68,6 +68,7 @@ const Toolbar = (props: any) => {
     const {standardDeviationChannel , setStandardDeviationChannel} = useStore()
     const {fans , setFans} = useStore()
     const {studiesCharts , setStudiesCharts} = useStore()
+    const {xExtents , setXExtents} = useStore()
     const [isOpenSave, setIsOpenSave] = useState(false);
     const [localStorageItems, setLocalStorageItems] = useState<string[]>([]);
     const {chartDimensions} = useStore()
@@ -116,7 +117,8 @@ const Toolbar = (props: any) => {
             equidistantChannels,
             standardDeviationChannel,
             fans,
-            studiesCharts
+            studiesCharts,
+            xExtents
         }
         localStorage.setItem(saveName , JSON.stringify(chartState));
         closeSaveDialog();
@@ -170,6 +172,7 @@ const Toolbar = (props: any) => {
             setStandardDeviationChannel(chartState.standardDeviationChannel || [])
             setFans(chartState.fans || [])
             setStudiesCharts(chartState.studiesCharts)
+            setXExtents(chartState.xExtents)
         }
         setSaveName(item)
         closeSaveModal()
