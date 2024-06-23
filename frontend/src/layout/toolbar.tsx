@@ -1,13 +1,13 @@
-import React, {useState} from 'react';
+import React, {ChangeEvent, useState} from 'react';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import useStore from "../util/store";
 import {
     Autocomplete,
-    CircularProgress,
+    CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
     IconButton, InputAdornment,
     List,
-    ListItem,
+    ListItem, ListItemText,
     Menu,
     Switch,
     Tab,
@@ -33,17 +33,19 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Scrollbar from 'react-scrollbars-custom';
-import {Add, CameraEnhance, Close, Message, RefreshTwoTone, Search} from "@mui/icons-material";
+import {Add, CameraEnhance, Close, CloudDownload, Message, RefreshTwoTone, Save, Search} from "@mui/icons-material";
 import {SymbolList} from "../type/SymbolType";
 import {fetchCexSymbols} from "../util/utils";
 import html2canvas from 'html2canvas';
 import getDesignTokens from "../config/theme";
+import {MainChart} from "../chart/MainChart";
 
 const Toolbar = (props: any) => {
 
-    const {setSymbol} = useStore();
-    const {setSeriesType} = useStore();
+    const {symbol , setSymbol} = useStore();
+    const {seriesType , setSeriesType} = useStore();
     const {setThemeSecondaryColor} = useDesignStore();
+    const [checkedThemeSwitch , setCheckedThemeSwitch] = useState<boolean>(true);
     const {themeMode, setThemeMode, openSideBar, setOpenSideBar} = useDesignStore();
     const [open, setOpen] = useState<boolean>(false);
     const [openInfoModal, setOpenInfoModal] = useState<boolean>(false);
@@ -55,21 +57,94 @@ const Toolbar = (props: any) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
     const {disableVolume, setDisableVolume} = useStore();
-    const {studiesCharts, setStudiesCharts} = useStore();
     const {studiesChartsWithTooltip, setStudiesChartsWithTooltip} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
     const {disableCrossHair, setDisableCrossHair} = useStore();
     const {setError} = useStore();
     const {setFixedPosition} = useStore()
+    const {equidistantChannels , setEquidistantChannels} = useStore()
+    const {trends , setTrends} = useStore()
+    const {retracements , setRetracements} = useStore()
+    const {standardDeviationChannel , setStandardDeviationChannel} = useStore()
+    const {fans , setFans} = useStore()
+    const {studiesCharts , setStudiesCharts} = useStore()
+    const {xExtents , setXExtents} = useStore()
+    const [isOpenSave, setIsOpenSave] = useState(false);
+    const [localStorageItems, setLocalStorageItems] = useState<string[]>([]);
     const {chartDimensions} = useStore()
     // const {disableMACD, setDisableMACD} = useStore();
     const [loading, setLoading] = useState(false);
+    const [saveMenuOpen, setSaveMenuOpen] = useState(false);
+    const [saveAnchorEl, setSaveAnchorEl] = useState<any>(null);
+    const [saveName, setSaveName] = useState('');
+    const [openSaveDialog, setOpenSaveDialog] = useState<boolean>(false);
+    const [saveSearchTerm, setSAveSearchTerm] = useState('');
+
+    const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setSAveSearchTerm(event.target.value);
+    };
+
+    const filteredItems = localStorageItems.filter((item) =>
+        item.toLowerCase().includes(saveSearchTerm.toLowerCase())
+    );
+
+
+    const openSaveModal = () => {
+        const items: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) {
+                items.push(key);
+            }
+        }
+        setLocalStorageItems(items);
+        setIsOpenSave(true);
+    };
+
+    const closeSaveModal = () => {
+        setIsOpenSave(false);
+    };
+
+    const closeSaveDialog = () => {
+        setOpenSaveDialog(false);
+    };
+
+    const handleSave = () => {
+        console.log({saveName})
+        const chartState = {
+            trends,
+            retracements,
+            equidistantChannels,
+            standardDeviationChannel,
+            fans,
+            studiesCharts,
+            xExtents,
+            symbol,
+            selectedSymbol,
+            seriesType,
+            timeFrame,
+            themeMode,
+            checkedThemeSwitch
+        }
+        localStorage.setItem(saveName , JSON.stringify(chartState));
+        closeSaveDialog();
+    };
+
+    const handleCancel = () => {
+        setSaveName('');
+        closeSaveDialog();
+    };
 
 
     const handleMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
         setMenuOpen(!menuOpen);
         setAnchorEl(event.currentTarget);
+    };
+
+    const handleSaveMenuToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setSaveMenuOpen(!saveMenuOpen);
+        setSaveAnchorEl(event.currentTarget);
     };
 
     const handleOpen = async () => {
@@ -93,6 +168,29 @@ const Toolbar = (props: any) => {
     const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue)
     };
+
+    const handleItemClick = (item: string) => {
+        const savedState: any = localStorage.getItem(item)
+        if (savedState) {
+            const chartState: any = JSON.parse(savedState)
+            setTrends(chartState.trends || [])
+            setRetracements(chartState.retracements || [])
+            setEquidistantChannels(chartState.equidistantChannels || [])
+            setStandardDeviationChannel(chartState.standardDeviationChannel || [])
+            setFans(chartState.fans || [])
+            setStudiesCharts(chartState.studiesCharts || [])
+            setXExtents(chartState.xExtents)
+            setSymbol(chartState.symbol)
+            setSelectedSymbol(chartState.selectedSymbol)
+            setSeriesType(chartState.seriesType)
+            setTimeFrame(chartState.timeFrame)
+            setThemeMode(chartState.themeMode)
+            setCheckedThemeSwitch(chartState.checkedThemeSwitch)
+        }
+        setSaveName(item)
+        closeSaveModal()
+        setSaveMenuOpen(false)
+    }
     const handleSearch = (event: React.ChangeEvent<{}>, value: string) => {
         console.log({event})
         console.log({value})
@@ -458,9 +556,10 @@ const Toolbar = (props: any) => {
                 </Modal>
             </div>
             <div className="toolbar-right-box">
-                <Switch onChange={() => {
+                <Switch checked={checkedThemeSwitch} onChange={() => {
                     setThemeSecondaryColor(themeMode === 'dark' ? '#000' : '#fff')
                     setThemeMode(themeMode === 'dark' ? 'light' : 'dark')
+                    setCheckedThemeSwitch(!checkedThemeSwitch)
                 }
                 }
                         icon={<LightModeIcon/>}
@@ -610,11 +709,12 @@ const Toolbar = (props: any) => {
                             color="primary"
                         /></MenuItem>
                     <MenuItem value='ELDER_IMPULSE' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() =>{ handleChangeStudiesChartWithTooltip(StudiesChart.ELDER_IMPULSE)
-                              setDisableVolume(!disableVolume)
-                              handleChangeStudiesChart(StudiesChart.MACD)
-                              // setDisableMACD(!disableMACD)
-                    }}>
+                              onClick={() => {
+                                  handleChangeStudiesChartWithTooltip(StudiesChart.ELDER_IMPULSE)
+                                  setDisableVolume(!disableVolume)
+                                  handleChangeStudiesChart(StudiesChart.MACD)
+                                  // setDisableMACD(!disableMACD)
+                              }}>
                         <span>Elder Impulse</span>
                         <Switch
                             checked={isStudiesChartWithTooltipInclude(StudiesChart.ELDER_IMPULSE)}
@@ -635,36 +735,92 @@ const Toolbar = (props: any) => {
                             name="enableDisableMovingAverage"
                             color="primary"
                         /></MenuItem>
-                    {/*<MenuItem value='COMPARE' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>Compare</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>
-                    <MenuItem value='VOLUME_PROFILE' style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>Volume profile</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>
-                    <MenuItem value='VOLUME_PROFILE_BY_SESSION'
-                              style={{display: 'flex', justifyContent: 'space-between'}}
-                              onClick={() => setMenuOpen(false)}>
-                        <span>Volume profile by Session</span>
-                        <Switch
-                            // checked={!isDisableMovingAverage}
-                            // onClick={() => setDisableElderRay(!disableElderRay)}
-                            name="enableDisableMovingAverage"
-                            color="primary"
-                        /></MenuItem>*/}
                 </Menu>
-
+                <IconButton
+                    aria-label="Save Chart"
+                    aria-haspopup="true"
+                    aria-expanded={saveMenuOpen ? 'true' : undefined}
+                    onClick={handleSaveMenuToggle}
+                    color="inherit"
+                >
+                    <Typography variant="caption" sx={{mr: 1}} classes={{root: 'toolbar-select'}}>
+                        {saveName === '' ? 'Save Chart' : saveName}
+                        <Box component="span" sx={{ ml: 1 }}>
+                            <CloudDownload />
+                        </Box>
+                    </Typography>
+                    <ExpandMoreIcon/>
+                </IconButton>
+                <Menu
+                    anchorEl={saveAnchorEl}
+                    open={saveMenuOpen}
+                    onClose={() => setSaveMenuOpen(false)}
+                >
+                    <MenuItem value='Save Layout' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => setOpenSaveDialog(true)}>
+                        <span>Save Layout</span>
+                        <Save/>
+                    </MenuItem>
+                    <MenuItem value='Load Layout' style={{display: 'flex', justifyContent: 'space-between'}}
+                              onClick={() => openSaveModal()}>
+                        <span>Load Layout</span>
+                        <CloudDownload/>
+                    </MenuItem>
+                </Menu>
+                <Dialog open={openSaveDialog} onClose={closeSaveDialog}>
+                    <DialogTitle>Save Layout</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            label="name"
+                            type="text"
+                            fullWidth
+                            variant="standard"
+                            value={saveName}
+                            onChange={(e) => setSaveName(e.target.value)}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCancel} color="secondary">
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSave} color="primary">
+                            Save
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+                <Dialog open={isOpenSave} onClose={closeSaveModal}>
+                    <DialogTitle sx={{bgcolor: getDesignTokens(themeMode).palette.chartBackground}}>Local Storage Items</DialogTitle>
+                    <DialogContent sx={{bgcolor: getDesignTokens(themeMode).palette.chartBackground}}>
+                        <Box mb={2}  sx={{minWidth:500 , bgcolor: getDesignTokens(themeMode).palette.chartBackground}}>
+                            <br/>
+                                <TextField
+                                fullWidth
+                                label="Search"
+                                value={saveSearchTerm}
+                                onChange={handleSearchChange}
+                                variant="outlined"
+                            />
+                        </Box>
+                        <List  sx={{minHeight:400}}>
+                            {filteredItems.length > 0 ? (
+                                filteredItems.map((item) => (
+                                    <ListItem button key={item} onClick={() => handleItemClick(item)}>
+                                        <ListItemText primary={item} />
+                                    </ListItem>
+                                ))
+                            ) : (
+                                <ListItem>
+                                    <ListItemText primary="No items in Local Storage" />
+                                </ListItem>
+                            )}
+                        </List>
+                    </DialogContent>
+                    <DialogActions sx={{bgcolor: getDesignTokens(themeMode).palette.chartBackground}}>
+                        <Button onClick={closeSaveModal} color="primary">Close</Button>
+                    </DialogActions>
+                </Dialog>
             </div>
         </div>
     )
