@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './App.css';
 import {StockChart} from "./chart/StockChart";
 
@@ -16,7 +16,6 @@ import Decimal from 'decimal.js';
 import {MainChart} from "./chart/MainChart";
 // @ts-ignore
 import useDimensions from 'react-use-dimensions'
-import { CirclesWithBar } from 'react-loader-spinner'
 // @ts-ignore
 import {BlinkBlur, Slab} from "react-loading-indicators";
 
