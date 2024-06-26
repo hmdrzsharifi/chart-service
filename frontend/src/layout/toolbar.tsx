@@ -606,7 +606,10 @@ const Toolbar = (props: any) => {
                     classes={{root: 'toolbar-select'}}
                     IconComponent={ExpandMore}
                     // @ts-ignore
-                    onChange={(event) => setTimeFrame(event?.target?.value)}
+                    onChange={(event) => {
+                        setTimeFrame(event?.target?.value as TimeFrame);
+                        setError(false);
+                    }}
                 >
                     <MenuItem value={TimeFrame.D}><span className='toolbar-chart-item'>D</span></MenuItem>
                     <MenuItem value={TimeFrame.M1}><span className='toolbar-chart-item'>1M</span></MenuItem>
