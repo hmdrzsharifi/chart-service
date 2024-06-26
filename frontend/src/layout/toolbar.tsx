@@ -362,6 +362,7 @@ const Toolbar = (props: any) => {
                                 options={options}
                                 renderInput={(params) => <TextField
                                     {...params}
+                                    autoFocus={true}
                                     label="Search"
                                     variant="outlined"
                                     InputProps={{
@@ -799,6 +800,7 @@ const Toolbar = (props: any) => {
                         <Box mb={2}  sx={{minWidth:500 , bgcolor: getDesignTokens(themeMode).palette.chartBackground}}>
                             <br/>
                                 <TextField
+                                autoFocus={true}
                                 fullWidth
                                 label="Search"
                                 value={saveSearchTerm}
