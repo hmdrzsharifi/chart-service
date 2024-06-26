@@ -933,6 +933,9 @@ export const MainChart = (props: MainChartProps) => {
             setFans(newGanFan)
         }else if (ctrlKey && key === 's') {
             setOpenSaveDialog(true)
+            event.preventDefault()
+            event.stopPropagation()
+
         }
         else if (key === 'Escape') {
             // @ts-ignore
