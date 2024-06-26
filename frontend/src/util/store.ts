@@ -63,6 +63,13 @@ type Store = {
     chartDimensions: {width: number, height: number},
     setChartDimensions:(dimensions: {width: number, height: number}) => void
 
+    saveMenuOpen:boolean,
+    setSaveMenuOpen:(saveMenuOpen: boolean) => void;
+
+    openSaveDialog:boolean,
+    setOpenSaveDialog:(openSaveDialog: boolean) => void;
+
+
     // disableOHLCSeries:boolean
     // setDisableOHLCSeries : (disableOHLCSeries: boolean) => void
     // selectedSymbol : string
@@ -129,6 +136,13 @@ const useStore = create<Store>((set) => ({
 
     chartDimensions: {width:0, height:0},
     setChartDimensions: (dimensions: {width: number, height: number}) => set((state) => ({chartDimensions:dimensions})),
+
+    saveMenuOpen:false,
+    setSaveMenuOpen:(saveMenuOpen: boolean) => set((state) => ({saveMenuOpen:saveMenuOpen})),
+
+    openSaveDialog:false,
+    setOpenSaveDialog:(openSaveDialog: boolean) => set((state) => ({openSaveDialog:openSaveDialog})),
+
 
     // disableOHLCSeries : true,
     // setDisableOHLCSeries : (disableOHLCSeries: boolean) => set((state) => ({disableOHLCSeries:disableOHLCSeries}))
