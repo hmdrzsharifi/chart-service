@@ -52,6 +52,9 @@ import {
     XAxis,
     YAxis,
     ZoomButtons,
+    Annotate,
+    LabelAnnotation, LabelAnnotationProps
+
 } from "react-financial-charts";
 import {IOHLCData} from "../data";
 
@@ -154,7 +157,8 @@ export const MainChart = (props: MainChartProps) => {
         retracements,setRetracements,
         standardDeviationChannel , setStandardDeviationChannel,
         fans , setFans,
-        xExtents , setXExtents
+        xExtents , setXExtents,
+        openSaveDialog,setOpenSaveDialog
     } = useStore();
 
     const {
@@ -923,7 +927,8 @@ export const MainChart = (props: MainChartProps) => {
         // console.log({test})
     }
 
-    const handler = ({key}: any) => {
+    const handler = (event: KeyboardEvent) => {
+        const { key, ctrlKey } = event;
         if (key === 'Delete') {
             const newTrends = trends.filter(each => !each.selected)
 
@@ -944,7 +949,10 @@ export const MainChart = (props: MainChartProps) => {
             const newGanFan = fans.filter(each => !each.selected)
 
             setFans(newGanFan)
-        } else if (key === 'Escape') {
+        }else if (ctrlKey && key === 's') {
+            setOpenSaveDialog(true)
+        }
+        else if (key === 'Escape') {
             // @ts-ignore
             canvasRef?.current?.cancelDrag()
             setEnableTrendLine(false)
@@ -1114,6 +1122,21 @@ export const MainChart = (props: MainChartProps) => {
     // const barChartHeight = gridHeight / 4;
     // const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
     const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length + 1) * STUDIES_CHART_HEIGHT - 5];
+
+    // const defaultAnnotationProps = {
+    //     fontFamily: "Glyphicons Halflings",
+    //     fontSize: 20,
+    //     opacity: 0.8,
+    // };
+    //
+    // // @ts-ignore
+    // const longAnnotationProps = {
+    //     ...defaultAnnotationProps,
+    //     fill: "#006517",
+    //     text: "\ue093",
+    //     y: ({ yScale, datum }: { yScale: any; datum: any }) => yScale(datum.low) + 20,
+    //     tooltip: "test-mahdi",
+    // };
     // const {disableVolume, setDisableVolume} = useStore();
     // const {disableHoverTooltip} = useStore();
 
@@ -1660,6 +1683,15 @@ export const MainChart = (props: MainChartProps) => {
                         />
                     </>
                 )}
+
+                {/*<Annotate*/}
+                {/*    with={LabelAnnotation}*/}
+                {/*    when={(d:any) => {*/}
+                {/*        return d.date.getDate() ===1; // شرط شما*/}
+                {/*    }}*/}
+                {/*    usingProps={longAnnotationProps}*/}
+                {/*/>*/}
+
 
 
             </Chart>

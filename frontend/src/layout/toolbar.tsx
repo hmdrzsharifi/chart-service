@@ -75,10 +75,10 @@ const Toolbar = (props: any) => {
     const {chartDimensions} = useStore()
     // const {disableMACD, setDisableMACD} = useStore();
     const [loading, setLoading] = useState(false);
-    const [saveMenuOpen, setSaveMenuOpen] = useState(false);
+    const {saveMenuOpen, setSaveMenuOpen} = useStore()
     const [saveAnchorEl, setSaveAnchorEl] = useState<any>(null);
     const [saveName, setSaveName] = useState('');
-    const [openSaveDialog, setOpenSaveDialog] = useState<boolean>(false);
+    const {openSaveDialog, setOpenSaveDialog}= useStore();
     const [saveSearchTerm, setSAveSearchTerm] = useState('');
 
     const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
