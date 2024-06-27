@@ -1,7 +1,7 @@
-import {format} from "d3-format";
-import {timeFormat} from "d3-time-format";
+import { format } from "d3-format";
+import { timeFormat } from "d3-time-format";
 import * as React from "react";
-import {useEffect, useMemo, useRef, useState} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
     AlternatingFillAreaSeries,
     AreaSeries,
@@ -53,7 +53,7 @@ import {
     YAxis,
     ZoomButtons,
 } from "react-financial-charts";
-import {IOHLCData} from "../data";
+import { IOHLCData } from "../data";
 
 import {
     accelerationFactor,
@@ -68,17 +68,18 @@ import {
     smaVolume50,
 } from "../indicator/indicators";
 import useStore from "../util/store";
-import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
+import {changeIndicatorsColor, fetchCandleDataFinnhub, fetchCandleDataFMP, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {
     NO_OF_CANDLES,
+    LENGTH_TO_SHOW,
     STUDIES_CHART_HEIGHT,
     TOOLTIP_HEIGHT,
     TOOLTIP_PADDING_LEFT,
     TOOLTIP_PADDING_TOP
 } from "../config/constants";
 import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
-import {HourAndMinutesTimeFrames, StudiesChart, TimeFrame} from "../type/Enum";
+import { HourAndMinutesTimeFrames, StudiesChart, TimeFrame } from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
 import Modal from "@mui/material/Modal";
@@ -103,10 +104,10 @@ import {BorderColor} from "@mui/icons-material";
 import EditIcon from '@mui/icons-material/Edit';
 // @ts-ignore
 import {ColorResult, SketchPicker} from "react-color";
+import finnhubSymbols from "../finnhub-symbols.json";
 
 interface MainChartProps {
     readonly dataList: IOHLCData[];
-    // readonly setData: any;
     readonly height: number;
     readonly dateTimeFormat?: string;
     readonly width: number;
@@ -123,8 +124,6 @@ const bbStroke = {
 
 const bbFill = "rgba(70,130,180,0.24)";
 
-const LENGTH_TO_SHOW = 150;
-
 export const MainChart = (props: MainChartProps) => {
 
    /* const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
@@ -132,9 +131,6 @@ export const MainChart = (props: MainChartProps) => {
     );*/
 
     const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList, reloadFromSymbol} = props;
-
-
-
 
     // ----------------- store ----------------- //
 
@@ -171,17 +167,10 @@ export const MainChart = (props: MainChartProps) => {
     } = useDesignStore();
 
 
-
-
     // ----------------- refs ----------------- //
-
     const canvasRef = useRef(null);
 
-
-
-
     // ----------------- states ----------------- //
-
     const [data, setData] = useState<any>(dataList)
     const [ema12, setEma12] = useState<any>()
     const [ema26, setEma26] = useState<any>()
@@ -610,19 +599,6 @@ export const MainChart = (props: MainChartProps) => {
 
 
         const prevData = data
-        // const { data: inputData } = props;
-
-        // const inputData = dataList;
-
-
-        // const maxWindowSize = getMaxUndefined([ema26,
-        // 	ema12,
-        // 	macdCalculator,
-        // 	smaVolume50
-        // ]);
-
-        // console.log({maxWindowSize})
-
         const endDate = new Date(data[0].date);
 
         let from;
@@ -640,13 +616,19 @@ export const MainChart = (props: MainChartProps) => {
                 from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600)
         }
 
-        // const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
-        // Fetch more data
 
         let moreData = []
 
         try {
-            moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+            if (finnhubSymbols.hasOwnProperty(symbol)) {
+                console.log("fetchInitialDataFinnhub",symbol)
+                moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+            } else {
+                let ticker = symbol.replace('_USD', 'USD').toLowerCase();
+                console.log("fetchInitialDataFMP",ticker)
+                moreData = await fetchCandleDataFMP(ticker, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+            }
+            // moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
         } catch (error) {
             console.error('Error fetching candle data:', error);
             setError(true)

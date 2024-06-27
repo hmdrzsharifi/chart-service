@@ -66,7 +66,7 @@ import {
     smaVolume50,
 } from "../indicator/indicators";
 import useStore from "../util/store";
-import {changeIndicatorsColor, fetchCandleData, useEventListener} from "../util/utils";
+import {changeIndicatorsColor, fetchCandleDataFinnhub, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {
     NO_OF_CANDLES,
@@ -403,7 +403,7 @@ export const StockChart = (props: StockChartProps) => {
 
             // const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // Fetch more data
-            const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+            const moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
 
             console.log({moreData})
             // Combine new data with existing data

@@ -93,7 +93,8 @@ const useStore = create<Store>((set) => ({
     timeFrame: TimeFrame.D,
     setTimeFrame: (duration: TimeFrame) => set((state) => ({ timeFrame: duration })),
 
-    symbol: 'BINANCE:BTCUSDT',
+    // symbol: 'BINANCE:BTCUSDT', // for finnhub
+    symbol: 'BTC_USD', // for fmp
     setSymbol: (symbol: string) => set((state) => ({ symbol: symbol })),
 
     loadingMoreData: false,

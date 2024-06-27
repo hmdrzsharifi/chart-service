@@ -57,6 +57,7 @@ const Toolbar = (props: any) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<any>(null);
     const {disableVolume, setDisableVolume} = useStore();
+    const {studiesCharts, setStudiesCharts} = useStore();
     const {studiesChartsWithTooltip, setStudiesChartsWithTooltip} = useStore();
     const {timeFrame, setTimeFrame} = useStore();
     const {disableHoverTooltip, setDisableHoverTooltip} = useStore();
@@ -68,7 +69,6 @@ const Toolbar = (props: any) => {
     const {retracements , setRetracements} = useStore()
     const {standardDeviationChannel , setStandardDeviationChannel} = useStore()
     const {fans , setFans} = useStore()
-    const {studiesCharts , setStudiesCharts} = useStore()
     const {xExtents , setXExtents} = useStore()
     const [isOpenSave, setIsOpenSave] = useState(false);
     const [localStorageItems, setLocalStorageItems] = useState<string[]>([]);
@@ -192,8 +192,8 @@ const Toolbar = (props: any) => {
         setSaveMenuOpen(false)
     }
     const handleSearch = (event: React.ChangeEvent<{}>, value: string) => {
-        console.log({event})
-        console.log({value})
+        // console.log({event})
+        // console.log({value})
         setSearchTerm(value);
     };
 
@@ -202,26 +202,26 @@ const Toolbar = (props: any) => {
         let selectedText = '';
         var name = item.symbol;
         if (item.categoryName === 'CRT') {
-            name = name.replace('_USD', 'USDT');
-            selectedText = `BINANCE:${name}`;
-        }
-        if(item.categoryName == "FX"){
-            name = `OANDA:${name}`;
+            name = name.replace('_USD', 'USD');
             selectedText = name;
         }
-        if(item.categoryName == "STC"){
+        if (item.categoryName === "FX") {
+            name = `${name}`;
+            selectedText = name;
+        }
+        if (item.categoryName === "STC") {
             name = `${name}`;
             selectedText = name
         }
-        if(item.categoryName == "ETF"){
+        if (item.categoryName === "ETF") {
             name = `${name}`;
             selectedText = name
         }
-        if(item.categoryName == "CMD"){
+        if (item.categoryName === "CMD") {
             name = `OANDA:${name}`;
             selectedText = name
         }
-        if(item.categoryName == "IND"){
+        if (item.categoryName === "IND") {
             name = `OANDA:${name}`;
             selectedText = name
         }
@@ -239,7 +239,7 @@ const Toolbar = (props: any) => {
         canvas.width = chartDimensions.width;
         canvas.height = chartDimensions.height;
 
-        if(element) {
+        if (element) {
             html2canvas(element, {
                 canvas: canvas,
                 scale: 1,
@@ -358,7 +358,7 @@ const Toolbar = (props: any) => {
                             </IconButton>
                             <Autocomplete
                                 freeSolo
-                                style={{ marginTop: '16px' }}
+                                style={{marginTop: '16px'}}
                                 options={options}
                                 renderInput={(params) => <TextField
                                     {...params}
@@ -368,7 +368,7 @@ const Toolbar = (props: any) => {
                                         ...params.InputProps,
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <Search />
+                                                <Search/>
                                             </InputAdornment>
                                         ),
                                     }}
@@ -386,7 +386,7 @@ const Toolbar = (props: any) => {
                                 <Tab label="IND"/>
                                 <Tab label="FUND"/>
                             </Tabs>
-                            <Scrollbar style={{height: 300}} >
+                            <Scrollbar style={{height: 300}}>
                                 {tabValue === 0 && (
                                     <List>
                                         {symbolList.filter((item: SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm)).sort((a: SymbolList, b: SymbolList) => a.categoryName.localeCompare(b.categoryName))

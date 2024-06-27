@@ -1,11 +1,12 @@
-import {DATA_ADDRESS} from "../config/constants";
+import {SYMBOLS_API_URL} from "../config/constants";
 import {useEffect, useRef} from "react";
 import {TrendLineType} from "../type/TrendLineType";
 import {SymbolList} from "../type/SymbolType";
 import getDesignTokens from "../config/theme";
 
-const url = DATA_ADDRESS;
-export async function fetchCandleData(symbol:any, tf:any, from:any, to:any) {
+const API_URL_FMP = process.env.REACT_APP_FMP_DATA_ADDRESS;
+const API_URL_FINNHUB = process.env.REACT_APP_FINNHUB_DATA_ADDRESS;
+export async function fetchCandleDataFinnhub(symbol:any, tf:any, from:any, to:any) {
     const requestBody = {
         "Ticker": symbol,
         "TimeFrame": tf,
@@ -14,7 +15,7 @@ export async function fetchCandleData(symbol:any, tf:any, from:any, to:any) {
     };
     const resultData:any = [];
     try {
-        const response = await fetch(url+'/fetchCandleData', {
+        const response = await fetch(API_URL_FINNHUB +'/fetchCandleData', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -26,10 +27,6 @@ export async function fetchCandleData(symbol:any, tf:any, from:any, to:any) {
         }
 
         const json = await response.json();
-        // if (json.) {
-        //
-        // }
-        // const jsonData = JSON.parse(json);
         json.forEach((entry:any) => {
             resultData.push(mapObjectFinnhub(entry));
         });
@@ -42,13 +39,16 @@ export async function fetchCandleData(symbol:any, tf:any, from:any, to:any) {
 
 }
 
-export async function fetchSymbolData(symbol:string) {
+export async function fetchCandleDataFMP(symbol:any, tf:any, from:any, to:any) {
     const requestBody = {
-        symbol
+        "Ticker": symbol,
+        "TimeFrame": tf,
+        "from": from,
+        "to": to
     };
     const resultData:any = [];
     try {
-        const response = await fetch(url+'/getSymbol', {
+        const response = await fetch(API_URL_FMP +'/fetchCandleData', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -60,10 +60,8 @@ export async function fetchSymbolData(symbol:string) {
         }
 
         const json = await response.json();
-
-        // const jsonData = JSON.parse(json);
         json.forEach((entry:any) => {
-            resultData.push(mapObjectFinnhub(entry));
+            resultData.push(mapObjectFMP(entry));
         });
 
         return resultData;
@@ -71,14 +69,12 @@ export async function fetchSymbolData(symbol:string) {
         console.error('There was an error fetching the candle data:', error);
         throw error; // Re-throw the error for the calling code to handle
     }
-
 }
 
 export async function fetchCexSymbols(){
-    // http://185.148.147.219:3333/api/v1/services/all/symbols
     const resultData:SymbolList[] = [];
     try {
-        const response = await fetch('http://91.92.108.4:4444/api/v1/services/all/symbols', {
+        const response = await fetch(SYMBOLS_API_URL, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -96,28 +92,13 @@ export async function fetchCexSymbols(){
         json.forEach((entry:any) => {
             resultData.push(<SymbolList>mapSymbolResult(entry));
         });
-        console.log({resultData})
+        // console.log({resultData})
         return resultData;
     } catch (error) {
         console.error('There was an error fetching the candle data:', error);
         throw error; // Re-throw the error for the calling code to handle
     }
 
-}
-
-function mapObject(originalObject:any) {
-    return {
-        date: new Date(originalObject.date),
-        open: originalObject.open,
-        high: originalObject.high,
-        low: originalObject.low,
-        close: originalObject.close,
-        volume: originalObject.volume,
-        split: "",
-        dividend: "",
-        absoluteChange: "",
-        percentChange:""
-    };
 }
 
 function mapObjectFinnhub(originalObject:any) {
@@ -132,6 +113,17 @@ function mapObjectFinnhub(originalObject:any) {
         dividend: "",
         absoluteChange: "",
         percentChange:""
+    };
+}
+
+function mapObjectFMP(originalObject:any) {
+    return {
+        date: new Date(originalObject.date),
+        open: originalObject.open,
+        high: originalObject.high,
+        low: originalObject.low,
+        close: originalObject.close,
+        volume: originalObject.volume,
     };
 }
 
@@ -191,25 +183,6 @@ export const changeIndicatorsColor =
     setRetracements(tempRetracements)
 }
 
-function isWithinOneMinute(websocketCandleDate: any, lastCandleDate: any) {
-    let lastTimeMinute = lastCandleDate.getMinutes().toString();
-    let websocketCandleDateMinute = websocketCandleDate.getMinutes().toString();
-    if (websocketCandleDateMinute.length === 1) websocketCandleDateMinute = '0' + websocketCandleDateMinute // if less than 10 ( 2 => 02)
-
-    // generate current second for websocket data (ex: 12 or 05)
-    let second = websocketCandleDate.getSeconds().toString();
-    if (second.length === 1) second = '0' + second // if less than 10 ( 2 => 02)\
-
-    if (lastTimeMinute == +websocketCandleDateMinute) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-function convert_to_datetime(dateStr: string): Date {
-    return new Date(dateStr);
-}
 
 export const xAndYColors = (
     themeMode: 'dark' | 'light',

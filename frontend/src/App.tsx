@@ -8,20 +8,23 @@ import Sidebar from "./layout/sidebar";
 import {NO_OF_CANDLES, WEBSOCKET_ADDRESS} from "./config/constants";
 import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import useStore from "./util/store";
-import {fetchCandleData} from "./util/utils";
+import {fetchCandleDataFinnhub, fetchCandleDataFMP} from "./util/utils";
 import io from 'socket.io-client';
 import useDesignStore from "./util/designStore";
 import getDesignTokens from "./config/theme";
 import Decimal from 'decimal.js';
 import {MainChart} from "./chart/MainChart";
+
 // @ts-ignore
 import useDimensions from 'react-use-dimensions'
 // @ts-ignore
-import {BlinkBlur, Slab} from "react-loading-indicators";
+import {BlinkBlur} from "react-loading-indicators";
+import finnhubSymbols from './finnhub-symbols.json';
+
 
 function App() {
 
-    const [ref, { width, height }] = useDimensions()
+    const [ref, { width, height }] = useDimensions();
 
     const [data, setData] = useState<any>([]);
     const [lastTime, setLastTime] = useState<any>(new Date());
@@ -57,7 +60,7 @@ function App() {
         // Cleanup function
         return () => {
             console.log("******************* cleanup")
-            newSocket.disconnect(); // Disconnect the socket
+            newSocket.disconnect();
         };
     }, [symbol, timeFrame]);
 
@@ -80,69 +83,31 @@ function App() {
             // console.log('Received message:', message);
             const convertedMessage = {...message, p: new Decimal(message.p).toNumber()}
             if (message.s === symbol) {
-                handleRealTimeCandle(convertedMessage)
+                handleRealTimeCandle(convertedMessage);
             }
         });
 
         // CEX
         socket.on('symbolUpdate', (message: any) => {
-            // console.log(message)
             const convertedMessage = {...message, ask: new Decimal(message.ask).toNumber()}
 
             let rawData = symbol.split(':')
             let rawSymbol
-            if (rawData[0] == 'BINANCE') {
+            if (rawData[0] === 'BINANCE') {
                 rawSymbol = rawData[1].replace('USDT','_USD')
             }
-            if (rawData[0] == 'OANDA') {
+            if (rawData[0] === 'OANDA') {
                 rawSymbol = rawData[1]
             }
             if (message.symbol === rawSymbol) {
-                handleRealTimeCandleCex(convertedMessage)
+                handleRealTimeCandleCex(convertedMessage);
             }
         });
-
     };
 
     const handleRealTimeCandleCex = (dataFeed: any) => {
         const lastCandlestick = stateDataRef.current[stateDataRef.current.length - 1];
-
-        let resolution
-
-        switch (timeFrame) {
-            case "1M":
-                resolution = 1
-                break;
-            case "5M":
-                resolution = 5
-                break;
-            case "15M":
-                resolution = 15
-                break;
-            case "30M":
-                resolution = 30
-                break;
-            case "1H":
-                resolution = 60
-                break;
-            case "D":
-                // 1 day in minutes === 1440
-                resolution = 1440
-                break;
-            case "W":
-                // 1 week in minutes === 10080
-                resolution = 10080
-                break;
-            case "M":
-                // 1 month (31 days) in minutes === 44640
-                //todo for month 30 and 31 days
-                resolution = 44640
-                break;
-
-            default:
-                // 1 day in minutes === 1440
-                resolution = 1440
-        }
+        const resolution = getResolution(timeFrame);
 
         // @ts-ignore
         let coeff = resolution * 60
@@ -173,49 +138,26 @@ function App() {
             _lastBar = lastCandlestick
 
             setData([...stateDataRef.current.slice(0, -1), _lastBar]);
-
         }
     }
 
+    const getResolution = (timeFrame: string) => {
+        switch (timeFrame) {
+            case "1M": return 1;
+            case "5M": return 5;
+            case "15M": return 15;
+            case "30M": return 30;
+            case "1H": return 60;
+            case "D": return 1440; // 1 day in minutes === 1440
+            case "W": return 10080;
+            case "M": return 44640;
+            default: return 1440;
+        }
+    };
+
     const handleRealTimeCandle = (dataFeed: any) => {
         const lastCandlestick = stateDataRef.current[stateDataRef.current.length - 1];
-
-        let resolution
-
-        switch (timeFrame) {
-            case "1M":
-                resolution = 1
-                break;
-            case "5M":
-                resolution = 5
-                break;
-            case "15M":
-                resolution = 15
-                break;
-            case "30M":
-                resolution = 30
-                break;
-            case "1H":
-                resolution = 60
-                break;
-            case "D":
-                // 1 day in minutes === 1440
-                resolution = 1440
-                break;
-            case "W":
-                // 1 week in minutes === 10080
-                resolution = 10080
-                break;
-            case "M":
-                // 1 month (31 days) in minutes === 44640
-                //todo for month 30 and 31 days
-                resolution = 44640
-                break;
-
-            default:
-                // 1 day in minutes === 1440
-                resolution = 1440
-        }
+        const resolution = getResolution(timeFrame);
 
         // @ts-ignore
         let coeff = resolution * 60
@@ -246,13 +188,54 @@ function App() {
             _lastBar = lastCandlestick
 
             setData([...stateDataRef.current.slice(0, -1), _lastBar]);
-
         }
     }
 
     const fetchInitialData = async () => {
+        if (finnhubSymbols.hasOwnProperty(symbol)) {
+            console.log("fetchInitialDataFinnhub",symbol)
+            await fetchInitialDataFinnhub(symbol)
+        } else {
+            let ticker = symbol.replace('_USD', 'USD').toLowerCase();
+            console.log("fetchInitialDataFMP",ticker)
+            await fetchInitialDataFMP(ticker)
+        }
+    };
+
+    const fetchInitialDataFinnhub = async (ticker:any) => {
         try {
             let from;
+            setLoading(true)
+
+            switch (timeFrame) {
+                case "1M":
+                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 60);
+                    break;
+                case "D":
+                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600);
+                    break;
+
+                //todo add other time frame
+
+                default:
+                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
+            }
+
+            const candleData = await fetchCandleDataFinnhub(ticker, timeFrame, from, Math.floor(new Date().getTime() / 1000));
+
+            setData(candleData)
+            setLoading(false)
+
+        } catch (error) {
+            console.error('Error fetching candle data:', error);
+            setError(true)
+        }
+    };
+
+    const fetchInitialDataFMP = async (ticker:any) => {
+        try {
+            let from;
+            let to = Math.floor(new Date().getTime() / 1000);
 
             setLoading(true)
 
@@ -270,11 +253,10 @@ function App() {
                     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
             }
 
-            console.log({symbol})
-            const candleData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
+            const candleData = await fetchCandleDataFMP(ticker, timeFrame, from, to);
+            console.log(candleData)
 
             setData(candleData)
-            setReloadFromSymbol(!reloadFromSymbol)
             setLoading(false)
 
         } catch (error) {
@@ -282,6 +264,7 @@ function App() {
             setError(true)
         }
     };
+
 
     const theme = React.useMemo(() => createTheme(getDesignTokens(themeMode)), [themeMode]);
 
