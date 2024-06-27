@@ -3,23 +3,12 @@ import {
     unsubscribeFromStream,
 } from './streaming.js';
 
-import {DATA_ADDRESS} from "./constants.js";
-
-const url = DATA_ADDRESS;
+import {FMP_DATA_ADDRESS} from "./constants.js";
+import {fetchCandleDataFinnhub, fetchInitialDataFMP} from "./helpers.js";
+import { finnhubSymbols } from './finnhub-symbols.js';
 
 const lastBarsCache = new Map();
 export {lastBarsCache};
-
-function mapObjectFinnhub(originalObject) {
-    return {
-        time: new Date(originalObject.t * 1000),
-        open: originalObject.o,
-        high: originalObject.h,
-        low: originalObject.l,
-        close: originalObject.c,
-        volume: originalObject.v,
-    };
-}
 
 function mapSymbolResult(originalObject) {
     let type;
@@ -94,7 +83,7 @@ let symbolMap = new Map();
 
 async function getAllSymbols() {
     try {
-        const response = await fetch(url + '/getAllSymbols', {
+        const response = await fetch(FMP_DATA_ADDRESS + '/getAllSymbols', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -162,7 +151,7 @@ export default {
             symbolCategory = 'CRT'
         }
         const symbolInfo = {
-            ticker: symbolName.replace('_USD', 'USDT'),
+            ticker: symbolName.replace('_USD', 'USD'),
             name: symbolName,
             description: symbolName,
             type: symbolCategory,
@@ -187,27 +176,19 @@ export default {
 
     getBars: async (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
         const {from, to, firstDataRequest, countBack} = periodParams;
-        let reqResolution;
 
-        if (resolution === '1') {
-            reqResolution = '1M';
-        } else if (resolution === '5') {
-            reqResolution = '5M';
-        } else if (resolution === '15') {
-            reqResolution = '15M';
-        } else if (resolution === '30') {
-            reqResolution = '30M';
-        } else if (resolution === '60') {
-            reqResolution = '1H';
-        } else if (resolution === '1D') {
-            reqResolution = 'D';
-        } else if (resolution === '1W') {
-            reqResolution = 'W';
-        } else if (resolution === '1M') {
-            reqResolution = 'M';
-        } else {
-            console.log("Unsupported resolution!");
-        }
+        const resolutionMapping = {
+            '1': '1M',
+            '5': '5M',
+            '15': '15M',
+            '30': '30M',
+            '60': '1H',
+            '1D': 'D',
+            '1W': 'W',
+            '1M': 'M'
+        };
+
+        const reqResolution = resolutionMapping[resolution];
 
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
@@ -215,64 +196,49 @@ export default {
             rawSymbol = rawData[0];
         }
         if (rawData.length == 2) {
-            rawSymbol = rawData[1].replace('_USD', 'USDT')
+            rawSymbol = rawData[1].replace('_USD', 'USD')
         }
         if (rawData.length == 3) {
-            rawSymbol = rawData[2].replace('_USD', 'USDT')
+            rawSymbol = rawData[2].replace('_USD', 'USD')
         }
 
         const symbolCategory = symbolInfo.type;
         let ticker = '';
         if (symbolCategory === 'CRT') {
-            ticker = 'BINANCE' + ':' + rawSymbol
-        }
-        if (symbolCategory == "FX") {
-            ticker = 'OANDA' + ':' + rawSymbol
-        }
-        if (symbolCategory == "STC") {
             ticker = rawSymbol
         }
-        if (symbolCategory == "ETF") {
+        if (symbolCategory == "FX" || symbolCategory == "STC" || symbolCategory == "ETF") {
             ticker = rawSymbol
         }
+
         if (symbolCategory == "CMD") {
             ticker = 'OANDA' + ':' + rawSymbol
         }
         if (symbolCategory == "IND") {
-            if (rawSymbol == "DJIUSDT") {
-                ticker = "^DJI"
+            console.log({rawSymbol})
+            if (rawSymbol == "DJIUSD") {
+                ticker = "OANDA:DJI_USD"
             }
         }
 
-        const requestBody = {
-            "Ticker": ticker,
-            "TimeFrame": reqResolution,
-            "from": from,
-            "to": to
-        };
         let resultData = [];
-        try {
-            const response = await fetch(url + '/fetchCandleData', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody),
-            })
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
 
-            const json = await response.json();
-            // if (json.s == 'no_data')
-            if (json.length > 0) {
-                json.forEach((entry) => {
-                    resultData.push(mapObjectFinnhub(entry));
-                });
+        try {
+            if (finnhubSymbols.hasOwnProperty(ticker)) {
+                console.log({ticker})
+                if (rawSymbol == "DJIUSD") {
+                    ticker = "^DJI"
+                }
+                resultData = await fetchCandleDataFinnhub(ticker, reqResolution, from, to);
+            } else {
+                console.log("FMP")
+                console.log({ticker})
+                resultData = await fetchInitialDataFMP(ticker, reqResolution, from, to);
+
             }
 
             if (firstDataRequest) {
-                lastBarsCache.set(symbolCategory + ':' + rawSymbol.replace('USDT', '_USD'), {
+                lastBarsCache.set(symbolCategory + ':' + rawSymbol.replace('USD', '_USD'), {
                     ...resultData[resultData.length - 1],
                 });
             }
@@ -314,7 +280,7 @@ export default {
             onRealtimeCallback,
             subscriberUID,
             onResetCacheNeededCallback,
-            lastBarsCache.get(symbolCategory + ':' + rawSymbol.replace('USDT', '_USD')),
+            lastBarsCache.get(symbolCategory + ':' + rawSymbol.replace('USD', '_USD')),
         );
     },
 
@@ -372,11 +338,11 @@ export default {
     //     }
     // },
 
-
+/*
     async getTimescaleMarks(symbolInfo, startDate, endDate, onDataCallback, resolution) {
         if (configurationData.supports_timescale_marks) {
             try {
-                const response = await fetch(url + '/fetchMarks', {
+                const response = await fetch(FMP_DATA_ADDRESS + '/fetchMarks', {
                     method: 'POST', headers: {
                         'Content-Type': 'application/json',
                     }, body: JSON.stringify({
@@ -433,6 +399,7 @@ export default {
             }
         }
     },
+*/
 
     // getServerTime(callback) {
     //     if (configurationData.supports_time) {

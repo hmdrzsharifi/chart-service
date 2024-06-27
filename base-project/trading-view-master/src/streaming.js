@@ -16,7 +16,7 @@ function initializeWebSocket() {
         let rawData = window.tvWidget.symbolInterval().symbol.split(':');
         let rawSymbol;
         if (rawData.length === 1) {
-            rawSymbol = rawData[0].replace('USDT', '_USD');
+            rawSymbol = rawData[0].replace('USD', '_USD');
         }
 
         if (message.symbol === rawSymbol) {
@@ -33,7 +33,7 @@ function handleRealTimeCandleCex(message, rawSymbol) {
     const parsedSymbol = {
         exchange: 'crypto',
         fromSymbol: message.symbol,
-        toSymbol: 'USDT',
+        toSymbol: 'USD',
     };
     const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
     const subscriptionItem = channelToSubscription.get(channelString);
@@ -144,7 +144,7 @@ export function subscribeOnStream(
     const parsedSymbol = {
         exchange: 'crypto',
         fromSymbol: symbolInfo.name,
-        toSymbol: 'USDT',
+        toSymbol: 'USD',
     };
     const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
     let subscriptionItem = channelToSubscription.get(channelString);
