@@ -112,6 +112,7 @@ interface MainChartProps {
     readonly width: number;
     readonly ratio: number;
     readonly theme?: any;
+    readonly reloadFromSymbol?: boolean;
 }
 
 const bbStroke = {
@@ -130,7 +131,7 @@ export const MainChart = (props: MainChartProps) => {
         (d: IOHLCData) => d.date,
     );*/
 
-    const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList} = props;
+    const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList, reloadFromSymbol} = props;
 
 
 
@@ -147,7 +148,13 @@ export const MainChart = (props: MainChartProps) => {
         seriesType,
         disableHoverTooltip,
         disableVolume, setDisableVolume,
-        setError
+        setError,
+        equidistantChannels,setEquidistantChannels,
+        trends,setTrends,
+        retracements,setRetracements,
+        standardDeviationChannel , setStandardDeviationChannel,
+        fans , setFans,
+        xExtents , setXExtents
     } = useStore();
 
     const {
@@ -184,10 +191,7 @@ export const MainChart = (props: MainChartProps) => {
     const [xScale, setXScale] = useState<any>()
     const [xAccessor, setXAccessor] = useState<any>()
     const [displayXAccessor, setDisplayXAccessor] = useState<any>()
-    const [xExtents, setXExtents] = useState([0, 0])
-    const [trends, setTrends] = useState<TrendLineType[]>([])
-    const [equidistantChannels, setEquidistantChannels] = useState<any[]>([])
-    const [retracements, setRetracements] = useState<any[]>([]);
+
     // const {fixedPosition, setFixedPosition} = useStore()
     // const muiTheme = useTheme();
 
@@ -212,8 +216,7 @@ export const MainChart = (props: MainChartProps) => {
         type: "XLINE",
         selected: undefined
     }])*/
-    const [standardDeviationChannel, setStandardDeviationChannel] = useState<any[]>([]);
-    const [fans, setFans] = useState<any[]>([]);
+
     const [brushes, setBrushes] = useState<any[]>([])
 
     const numberFormat = format(".2f");
@@ -501,7 +504,6 @@ export const MainChart = (props: MainChartProps) => {
     // ----------------- useEffects ----------------- //
 
     useEffect(() => {
-
         // change Indicators according to themeMode
         changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements)
 
@@ -513,6 +515,8 @@ export const MainChart = (props: MainChartProps) => {
         // const inputData = props.data;
 
         console.log({props})
+
+        const data = dataList;
 
         const ema26Indicator = ema()
             .id(0)
@@ -580,7 +584,7 @@ export const MainChart = (props: MainChartProps) => {
         setXScale(() => xScale)
         setXAccessor(()=>xAccessor)
         setDisplayXAccessor(()=>displayXAccessor)
-    },[])
+    },[reloadFromSymbol])
 
     const handleDataLoadAfter = async (start: any, end: any) => {
         // setFixedPosition(true);
@@ -731,7 +735,6 @@ export const MainChart = (props: MainChartProps) => {
         console.log({newTrends});
         setEnableTrendLine(false);
         setTrends(newTrends);
-
         setMenuPosition({
             mouseX: e.clientX - 2,
             mouseY: e.clientY - 4,
