@@ -154,6 +154,28 @@ def fetch_candle_data():
     else:
         return jsonify({"error": "Failed to retrieve data"}), response.status_code
 
+@app.route('/fetchEarnings', methods=['POST'])
+def fetch_earnings():
+    request_data = request.json
+    symbol = request_data.get('Ticker').lower()
+    from_date = request_data.get('from')
+    to_date = request_data.get('to')
+
+    formatted_from_date = convert_timestamp_to_date(from_date)
+    formatted_to_date = convert_timestamp_to_date(to_date)
+    api_key = current_app.config['FMP_API_KEY']
+
+    url = f"https://financialmodelingprep.com/api/v3/historical/earning_calendar/{symbol}&apikey={api_key}"
+
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        #filter data based on from_date and to_date
+        return jsonify(data)
+    else:
+        return jsonify({"error": "Failed to retrieve data"}), response.status_code
+
 @app.route('/clearCache', methods=['GET'])
 def clear_cache():
     cache.clear()

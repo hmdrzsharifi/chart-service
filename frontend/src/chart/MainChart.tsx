@@ -1,7 +1,7 @@
-import { format } from "d3-format";
-import { timeFormat } from "d3-time-format";
+import {format} from "d3-format";
+import {timeFormat} from "d3-time-format";
 import * as React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {
     AlternatingFillAreaSeries,
     AreaSeries,
@@ -52,11 +52,13 @@ import {
     XAxis,
     YAxis,
     ZoomButtons,
-    Annotate,
-    LabelAnnotation, LabelAnnotationProps
+    LabelAnnotationProps
 
 } from "react-financial-charts";
-import { IOHLCData } from "../data";
+
+import {Annotate, SvgPathAnnotation, LabelAnnotation} from 'react-financial-charts';
+
+import {IOHLCData} from "../data";
 
 import {
     accelerationFactor,
@@ -71,7 +73,13 @@ import {
     smaVolume50,
 } from "../indicator/indicators";
 import useStore from "../util/store";
-import {changeIndicatorsColor, fetchCandleDataFinnhub, fetchCandleDataFMP, useEventListener} from "../util/utils";
+import {
+    changeIndicatorsColor,
+    fetchCandleDataFinnhub,
+    fetchCandleDataFMP,
+    fetchEarningsFMP,
+    useEventListener
+} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {
     NO_OF_CANDLES,
@@ -82,7 +90,7 @@ import {
     TOOLTIP_PADDING_TOP
 } from "../config/constants";
 import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
-import { HourAndMinutesTimeFrames, StudiesChart, TimeFrame } from "../type/Enum";
+import {HourAndMinutesTimeFrames, StudiesChart, TimeFrame} from "../type/Enum";
 import SelectedSeries from "./SelectedSeries";
 import useDesignStore from "../util/designStore";
 import Modal from "@mui/material/Modal";
@@ -119,6 +127,12 @@ interface MainChartProps {
     readonly reloadFromSymbol?: boolean;
 }
 
+interface Earnings {
+    date: string;
+    earnings: number;
+    est_earnings: number;
+}
+
 const bbStroke = {
     top: "#964B00",
     middle: "#000000",
@@ -128,10 +142,6 @@ const bbStroke = {
 const bbFill = "rgba(70,130,180,0.24)";
 
 export const MainChart = (props: MainChartProps) => {
-
-   /* const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
-        (d: IOHLCData) => d.date,
-    );*/
 
     const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList, reloadFromSymbol} = props;
 
@@ -148,13 +158,13 @@ export const MainChart = (props: MainChartProps) => {
         disableHoverTooltip,
         disableVolume, setDisableVolume,
         setError,
-        equidistantChannels,setEquidistantChannels,
-        trends,setTrends,
-        retracements,setRetracements,
-        standardDeviationChannel , setStandardDeviationChannel,
-        fans , setFans,
-        xExtents , setXExtents,
-        openSaveDialog,setOpenSaveDialog
+        equidistantChannels, setEquidistantChannels,
+        trends, setTrends,
+        retracements, setRetracements,
+        standardDeviationChannel, setStandardDeviationChannel,
+        fans, setFans,
+        xExtents, setXExtents,
+        openSaveDialog, setOpenSaveDialog
     } = useStore();
 
     const {
@@ -202,6 +212,7 @@ export const MainChart = (props: MainChartProps) => {
     const [hover, setHover] = useState<boolean>();
     const [selected, setSelected] = useState<boolean>(false);
     const BRUSH_TYPE = "2D";
+    const [earnings, setEarnings] = useState<Earnings[]>([]);
     /*const [trends, setTrends] = useState([{
         start: [37, 193.5119667590028],
         end: [107, 180.54797783933518],
@@ -227,9 +238,9 @@ export const MainChart = (props: MainChartProps) => {
     const xGrid = showGrid ? {innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1} : {};
 
 
-    const getlastPriceForColor = () : string => {
+    const getlastPriceForColor = (): string => {
         const lastItem = dataList[dataList.length - 1];
-        if (!lastItem){
+        if (!lastItem) {
             return '#ccc'
         }
         return lastItem.close > lastItem.open ? "#8cc176" : "#b82c0c";
@@ -278,6 +289,7 @@ export const MainChart = (props: MainChartProps) => {
     function handleReset() {
         setSuffix(suffix + 1)
     }
+
     function handleHover(_: React.MouseEvent, moreProps: any) {
         if (hover !== moreProps.hovering) {
             setHover(moreProps.hovering);
@@ -288,47 +300,47 @@ export const MainChart = (props: MainChartProps) => {
         onHover: handleHover,
         onUnHover: handleHover,
     };
-   /* const onDrawCompleteChart = (event: any, trends: any) => {
-        // this gets called on
-        // 1. draw complete of trendline
-        setEnableTrendLine(false);
-        setTrends(trends)
-    }*/
+    /* const onDrawCompleteChart = (event: any, trends: any) => {
+         // this gets called on
+         // 1. draw complete of trendline
+         setEnableTrendLine(false);
+         setTrends(trends)
+     }*/
 
-   /* const onDrawCompleteChart = (e: React.MouseEvent, newTrends: any[], moreProps: any) => {
-        console.log({newTrends});
-        setEnableTrendLine(false);
-        setTrends(newTrends);
+    /* const onDrawCompleteChart = (e: React.MouseEvent, newTrends: any[], moreProps: any) => {
+         console.log({newTrends});
+         setEnableTrendLine(false);
+         setTrends(newTrends);
 
-        setMenuPosition({
-            mouseX: e.clientX - 2,
-            mouseY: e.clientY - 4,
-        });
-        setContextMenuVisible(true);
-        setSelectedTrend(newTrends[newTrends.length - 1]);
-    };*/
+         setMenuPosition({
+             mouseX: e.clientX - 2,
+             mouseY: e.clientY - 4,
+         });
+         setContextMenuVisible(true);
+         setSelectedTrend(newTrends[newTrends.length - 1]);
+     };*/
 
 
-   /* const onFibComplete = (event: any, retracements: any) => {
-        setEnableFib(false)
-        setRetracements(retracements)
-    }
+    /* const onFibComplete = (event: any, retracements: any) => {
+         setEnableFib(false)
+         setRetracements(retracements)
+     }
 
-    const onDrawCompleteEquidistantChannel = (event: any, equidistantChannels: any) => {
-        // this gets called on
-        // 1. draw complete of trendline
-        setEnableEquidistant(false);
-        setEquidistantChannels(equidistantChannels)
-    }*/
+     const onDrawCompleteEquidistantChannel = (event: any, equidistantChannels: any) => {
+         // this gets called on
+         // 1. draw complete of trendline
+         setEnableEquidistant(false);
+         setEquidistantChannels(equidistantChannels)
+     }*/
 
-/*    const onDrawCompleteEquidistantChannel = (event: any, equidistantChannels: any) => {
-        // this gets called on
-        // 1. draw complete of trendline
-        // @ts-ignore
-        console.log({equidistantChannels});
-        setEnableEquidistant(false);
-        setEquidistantChannels(equidistantChannels)
-    }*/
+    /*    const onDrawCompleteEquidistantChannel = (event: any, equidistantChannels: any) => {
+            // this gets called on
+            // 1. draw complete of trendline
+            // @ts-ignore
+            console.log({equidistantChannels});
+            setEnableEquidistant(false);
+            setEquidistantChannels(equidistantChannels)
+        }*/
 
     const onDrawComplete = (textList: any, moreProps: any) => {
         // this gets called on
@@ -392,27 +404,27 @@ export const MainChart = (props: MainChartProps) => {
 
     // const {data: initialData, dateTimeFormat = "%d %b", height, ratio, width, theme, setData} = props;
 
-/*
-    const handleBrush1 = (brushCoords: any, moreProps: any) => {
-        const {start, end} = brushCoords;
-        const left = Math.min(start.xValue, end.xValue);
-        const right = Math.max(start.xValue, end.xValue);
+    /*
+        const handleBrush1 = (brushCoords: any, moreProps: any) => {
+            const {start, end} = brushCoords;
+            const left = Math.min(start.xValue, end.xValue);
+            const right = Math.max(start.xValue, end.xValue);
 
-        const low = Math.min(start.yValue, end.yValue);
-        const high = Math.max(start.yValue, end.yValue);
+            const low = Math.min(start.yValue, end.yValue);
+            const high = Math.max(start.yValue, end.yValue);
 
-        // uncomment the line below to make the brush to zoom
-        setXExtents([left, right])
-        setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
-        setEnableBrush(false)
+            // uncomment the line below to make the brush to zoom
+            setXExtents([left, right])
+            setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
+            setEnableBrush(false)
 
-        setXExtents([left, right])
-        setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
-        setEnableBrush(false)
-    }
-*/
+            setXExtents([left, right])
+            setYExtents1(BRUSH_TYPE === "2D" ? [low, high] : yExtents1)
+            setEnableBrush(false)
+        }
+    */
 
-   /* const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length) * STUDIES_CHART_HEIGHT - barChartHeight];*/
+    /* const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length) * STUDIES_CHART_HEIGHT - barChartHeight];*/
 
     const barChartExtents = (data: IOHLCData) => {
         return data.volume;
@@ -491,7 +503,8 @@ export const MainChart = (props: MainChartProps) => {
         })
         .accessor((d: any) => d.sar);
     const calculatedData1 = defaultSar(data);
-
+    // const parseDate = timeParse("%Y-%m-%d");
+    // const buyPath = "M0,-10 L5,0 L0,10 L-5,0 Z";
 
 
     // ----------------- useEffects ----------------- //
@@ -502,6 +515,26 @@ export const MainChart = (props: MainChartProps) => {
 
     }, [themeMode])
 
+    useEffect(() => {
+        const getEarnings = async () => {
+            // const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
+            const earningsData = [
+                {
+                    "date": "2024-06-25",
+                    "earnings": 2.5,
+                    "est_earnings": 2.3
+                },
+            ]
+            console.log({earningsData});
+            // @ts-ignore
+            setEarnings(earningsData);
+        };
+
+        if (data.length > 0) {
+            getEarnings();
+        }
+
+    }, [symbol])
 
     useMemo(() => {
         // const { data: inputData } = props;
@@ -513,14 +546,18 @@ export const MainChart = (props: MainChartProps) => {
 
         const ema26Indicator = ema()
             .id(0)
-            .options({ windowSize: 26 })
-            .merge((d: any, c: any) => {d.ema26 = c;})
+            .options({windowSize: 26})
+            .merge((d: any, c: any) => {
+                d.ema26 = c;
+            })
             .accessor((d: any) => d.ema26);
 
         const ema12Indicator = ema()
             .id(1)
-            .options({ windowSize: 12 })
-            .merge((d: any, c: any) => {d.ema12 = c;})
+            .options({windowSize: 12})
+            .merge((d: any, c: any) => {
+                d.ema12 = c;
+            })
             .accessor((d: any) => d.ema12);
 
         const macdCalculatorIndicator = macd()
@@ -529,7 +566,9 @@ export const MainChart = (props: MainChartProps) => {
                 slow: 26,
                 signal: 9,
             })
-            .merge((d: any, c: any) => {d.macd = c;})
+            .merge((d: any, c: any) => {
+                d.macd = c;
+            })
             .accessor((d: any) => d.macd);
 
         const smaVolume50Indicator = sma()
@@ -538,7 +577,9 @@ export const MainChart = (props: MainChartProps) => {
                 windowSize: 50,
                 sourcePath: "volume",
             })
-            .merge((d: any, c: any) => {d.smaVolume50 = c;})
+            .merge((d: any, c: any) => {
+                d.smaVolume50 = c;
+            })
             .accessor((d: any) => d.smaVolume50);
 
         // const maxWindowSize = getMaxUndefined([ema26,
@@ -554,30 +595,34 @@ export const MainChart = (props: MainChartProps) => {
         const indexCalculator = discontinuousTimeScaleProviderBuilder().indexCalculator();
 
         // console.log(inputData.length, dataToCalculate.length, maxWindowSize)
-        const { index } = indexCalculator(calculatedData);
+        const {index} = indexCalculator(calculatedData);
         /* SERVER - END */
-
 
 
         const xScaleProvider = discontinuousTimeScaleProviderBuilder()
             .withIndex(index);
-        const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData.slice(-LENGTH_TO_SHOW));
+        const {
+            data: linearData,
+            xScale,
+            xAccessor,
+            displayXAccessor
+        } = xScaleProvider(calculatedData.slice(-LENGTH_TO_SHOW));
 
         const max = xAccessor(linearData[linearData.length - 1]);
         const min = xAccessor(linearData[Math.max(0, linearData.length - LENGTH_TO_SHOW)]);
 
         setXExtents([min, max + 10])
 
-        setEma26(()=>ema26Indicator)
-        setEma12(()=>ema12Indicator)
-        setMacdCalculator(()=>macdCalculatorIndicator)
-        setSmaVolume50(()=>smaVolume50Indicator)
+        setEma26(() => ema26Indicator)
+        setEma12(() => ema12Indicator)
+        setMacdCalculator(() => macdCalculatorIndicator)
+        setSmaVolume50(() => smaVolume50Indicator)
         setLinearData(linearData)
         setData(linearData)
         setXScale(() => xScale)
-        setXAccessor(()=>xAccessor)
-        setDisplayXAccessor(()=>displayXAccessor)
-    },[reloadFromSymbol])
+        setXAccessor(() => xAccessor)
+        setDisplayXAccessor(() => displayXAccessor)
+    }, [reloadFromSymbol])
 
     const handleDataLoadAfter = async (start: any, end: any) => {
         // setFixedPosition(true);
@@ -625,11 +670,11 @@ export const MainChart = (props: MainChartProps) => {
 
         try {
             if (finnhubSymbols.hasOwnProperty(symbol)) {
-                console.log("fetchInitialDataFinnhub",symbol)
+                console.log("fetchInitialDataFinnhub", symbol)
                 moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
             } else {
                 let ticker = symbol.replace('_USD', 'USD').toLowerCase();
-                console.log("fetchInitialDataFMP",ticker)
+                console.log("fetchInitialDataFMP", ticker)
                 moreData = await fetchCandleDataFMP(ticker, timeFrame, from, Math.floor(endDate.getTime() / 1000));
             }
             // moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
@@ -638,6 +683,7 @@ export const MainChart = (props: MainChartProps) => {
             setError(true)
             return
         }
+
         // let calculatedData = calculateData(moreData)
 
         function calculateData(inputData: any) {
@@ -670,13 +716,12 @@ export const MainChart = (props: MainChartProps) => {
         // // const calculatedData = ema26(ema12(macdCalculator(smaVolume50(dataToCalculate))));
 
 
-
         const calculatedData = ema26(ema12(macdCalculator(smaVolume50(moreData.slice(0, moreData.length - 1)))));
         const indexCalculator = discontinuousTimeScaleProviderBuilder()
             .initialIndex(Math.ceil(start))
             .indexCalculator();
 
-        const { index } = indexCalculator(
+        const {index} = indexCalculator(
             calculatedData
                 .slice(-rowsToDownload)
                 .concat(prevData));
@@ -685,7 +730,12 @@ export const MainChart = (props: MainChartProps) => {
             .initialIndex(Math.ceil(start))
             .withIndex(index);
 
-        const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculateData(calculatedData.slice(-rowsToDownload).concat(prevData)));
+        const {
+            data: linearData,
+            xScale,
+            xAccessor,
+            displayXAccessor
+        } = xScaleProvider(calculateData(calculatedData.slice(-rowsToDownload).concat(prevData)));
         // const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
         // setDisplayXAccessor(displayXAccessor)
         // setXScale(xScale)
@@ -695,11 +745,10 @@ export const MainChart = (props: MainChartProps) => {
         setLoading(false)
 
         setXScale(() => xScale)
-        setXAccessor(()=>xAccessor)
-        setDisplayXAccessor(()=>displayXAccessor)
+        setXAccessor(() => xAccessor)
+        setDisplayXAccessor(() => displayXAccessor)
 
     }
-
 
 
     /* if (calculatedData.length <= 1) {
@@ -888,13 +937,13 @@ export const MainChart = (props: MainChartProps) => {
     ];
 
 
-  /*  const isStudiesChartInclude = (chart: StudiesChart): boolean => {
-        return studiesCharts.includes(chart)
-    }
+    /*  const isStudiesChartInclude = (chart: StudiesChart): boolean => {
+          return studiesCharts.includes(chart)
+      }
 
-    const isStudiesChartWithTooltipInclude = (chart: StudiesChart): boolean => {
-        return studiesChartsWithTooltip.includes(chart)
-    }*/
+      const isStudiesChartWithTooltipInclude = (chart: StudiesChart): boolean => {
+          return studiesChartsWithTooltip.includes(chart)
+      }*/
 
     const handleSelection = (interactives: any) => {
         /* const state = toObject(interactives, each => {
@@ -910,7 +959,7 @@ export const MainChart = (props: MainChartProps) => {
     }
 
     const handler = (event: KeyboardEvent) => {
-        const { key, ctrlKey } = event;
+        const {key, ctrlKey} = event;
         if (key === 'Delete') {
             const newTrends = trends.filter(each => !each.selected)
 
@@ -931,13 +980,12 @@ export const MainChart = (props: MainChartProps) => {
             const newGanFan = fans.filter(each => !each.selected)
 
             setFans(newGanFan)
-        }else if (ctrlKey && key === 's') {
+        } else if (ctrlKey && key === 's') {
             setOpenSaveDialog(true)
             event.preventDefault()
             event.stopPropagation()
 
-        }
-        else if (key === 'Escape') {
+        } else if (key === 'Escape') {
             // @ts-ignore
             canvasRef?.current?.cancelDrag()
             setEnableTrendLine(false)
@@ -952,7 +1000,7 @@ export const MainChart = (props: MainChartProps) => {
     useEventListener("keydown", handler);
 
 
-    if(ema12 == undefined || ema26 == undefined || macdCalculator == undefined || smaVolume50 == undefined || xScale == undefined
+    if (ema12 == undefined || ema26 == undefined || macdCalculator == undefined || smaVolume50 == undefined || xScale == undefined
         //  || xAccessor == undefined
     )
         return <></>
@@ -979,126 +1027,125 @@ export const MainChart = (props: MainChartProps) => {
     // }
 
 
+    /* useEffect(() => {
+         if (!fixedPosition) {
+             const max = xAccessor(data[data.length - 1]);
+             const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
+             setXExtents([min, max + 10])
+         }
+     }, [props, fixedPosition])
 
-   /* useEffect(() => {
-        if (!fixedPosition) {
-            const max = xAccessor(data[data.length - 1]);
-            const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
-            setXExtents([min, max + 10])
-        }
-    }, [props, fixedPosition])
+     useEffect(() => {
 
-    useEffect(() => {
+         // change Indicators according to themeMode
+         changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements)
 
-        // change Indicators according to themeMode
-        changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements)
+     }, [themeMode])
+ */
+    /*    const gridHeight = height - margin.top - margin.bottom;*/
 
-    }, [themeMode])
-*/
-/*    const gridHeight = height - margin.top - margin.bottom;*/
-
-/*    const defaultSar = sar()
-        .options({
-            accelerationFactor, maxAccelerationFactor
-        })
-        .merge((d: any, c: any) => {
-            d.sar = c;
-        })
-        .accessor((d: any) => d.sar);
-    const calculatedData1 = defaultSar(initialData);
-
-
-    const rsiCalculator = rsi()
-        .options({windowSize: 14})
-        .merge((d: any, c: any) => {
-            d.rsi = c;
-        })
-        .accessor((d: any) => d.rsi);
-    const calculatedData2 = rsiCalculator(initialData);
-
-    const atr14 = atr()
-        .options({windowSize: 14})
-        .merge((d: any, c: any) => {
-            d.atr14 = c;
-        })
-        .accessor((d: any) => d.atr14);
-    const calculatedData3 = atr14(initialData);*/
-
-/*    const fi = forceIndex()
-        .merge((d: any, c: any) => {
-            d.fi = c;
-        })
-        .accessor((d: any) => d.fi);
-    const calculatedData4 = fi(initialData);
-
-    const fiEMA13 = ema()
-        .id(1)
-        .options({windowSize: 13, sourcePath: "fi"})
-        .merge((d: any, c: any) => {
-            d.fiEMA13 = c;
-        })
-        .accessor((d: any) => d.fiEMA13);
-    const calculatedData5 = fiEMA13(initialData);
-
-    const elder = elderRay();
-
-    const changeCalculator = change();
-    const calculatedData6 = changeCalculator(elder(initialData));*/
+    /*    const defaultSar = sar()
+            .options({
+                accelerationFactor, maxAccelerationFactor
+            })
+            .merge((d: any, c: any) => {
+                d.sar = c;
+            })
+            .accessor((d: any) => d.sar);
+        const calculatedData1 = defaultSar(initialData);
 
 
-/*    const slowSTO = stochasticOscillator()
-        .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
-        .merge((d: any, c: any) => {
-            d.slowSTO = c;
-        })
-        .accessor((d: any) => d.slowSTO);
-    const calculatedData7 = slowSTO(elder(initialData));
+        const rsiCalculator = rsi()
+            .options({windowSize: 14})
+            .merge((d: any, c: any) => {
+                d.rsi = c;
+            })
+            .accessor((d: any) => d.rsi);
+        const calculatedData2 = rsiCalculator(initialData);
 
-    const fastSTO = stochasticOscillator()
-        .options({windowSize: 14, kWindowSize: 1, dWindowSize: 4})
-        .merge((d: any, c: any) => {
-            d.fastSTO = c;
-        })
-        .accessor((d: any) => d.fastSTO);
-    const calculatedData8 = fastSTO(elder(initialData));
+        const atr14 = atr()
+            .options({windowSize: 14})
+            .merge((d: any, c: any) => {
+                d.atr14 = c;
+            })
+            .accessor((d: any) => d.atr14);
+        const calculatedData3 = atr14(initialData);*/
 
-    const fullSTO = stochasticOscillator()
-        .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
-        .merge((d: any, c: any) => {
-            d.fullSTO = c;
-        })
-        .accessor((d: any) => d.fullSTO);
-    const calculatedData9 = fullSTO(elder(initialData));*/
+    /*    const fi = forceIndex()
+            .merge((d: any, c: any) => {
+                d.fi = c;
+            })
+            .accessor((d: any) => d.fi);
+        const calculatedData4 = fi(initialData);
+
+        const fiEMA13 = ema()
+            .id(1)
+            .options({windowSize: 13, sourcePath: "fi"})
+            .merge((d: any, c: any) => {
+                d.fiEMA13 = c;
+            })
+            .accessor((d: any) => d.fiEMA13);
+        const calculatedData5 = fiEMA13(initialData);
+
+        const elder = elderRay();
+
+        const changeCalculator = change();
+        const calculatedData6 = changeCalculator(elder(initialData));*/
+
+
+    /*    const slowSTO = stochasticOscillator()
+            .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
+            .merge((d: any, c: any) => {
+                d.slowSTO = c;
+            })
+            .accessor((d: any) => d.slowSTO);
+        const calculatedData7 = slowSTO(elder(initialData));
+
+        const fastSTO = stochasticOscillator()
+            .options({windowSize: 14, kWindowSize: 1, dWindowSize: 4})
+            .merge((d: any, c: any) => {
+                d.fastSTO = c;
+            })
+            .accessor((d: any) => d.fastSTO);
+        const calculatedData8 = fastSTO(elder(initialData));
+
+        const fullSTO = stochasticOscillator()
+            .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
+            .merge((d: any, c: any) => {
+                d.fullSTO = c;
+            })
+            .accessor((d: any) => d.fullSTO);
+        const calculatedData9 = fullSTO(elder(initialData));*/
 
     // const calculatedData10 = elderImpulseCalculator(macdCalculator(ema12(changeCalculator(initialData))));
 
-/*    const showGrid = false;
-    const xGrid = showGrid ? {innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1} : {};
+    /*    const showGrid = false;
+        const xGrid = showGrid ? {innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1} : {};
 
-    const getStudiesChartOrigin = (chart: StudiesChart) => {
-        return (studiesCharts.indexOf(chart) + 1) * STUDIES_CHART_HEIGHT
-    }
-
-    const getStudiesChartTooltipOrigin = (chart: StudiesChart, yPosition = TOOLTIP_PADDING_LEFT, paddingTop = TOOLTIP_PADDING_TOP, height = TOOLTIP_HEIGHT) => {
-        return [yPosition, studiesChartsWithTooltip.indexOf(chart) * height + paddingTop]
-    }*/
-
-   /* const getlastPrice = (d: any): number => {
-        return initialData[initialData.length - 1].close;
-    };*/
-
-  /*  const getlastPriceForColor = () : string => {
-        const lastItem = initialData[initialData.length - 1];
-        if (!lastItem){
-            return '#ccc'
+        const getStudiesChartOrigin = (chart: StudiesChart) => {
+            return (studiesCharts.indexOf(chart) + 1) * STUDIES_CHART_HEIGHT
         }
-        return lastItem.close > lastItem.open ? "#8cc176" : "#b82c0c";
-    };*/
 
-   /* const showTickLabel = (chart: StudiesChart) => {
-        return studiesCharts.indexOf(chart) === 0
-    }
-*/
+        const getStudiesChartTooltipOrigin = (chart: StudiesChart, yPosition = TOOLTIP_PADDING_LEFT, paddingTop = TOOLTIP_PADDING_TOP, height = TOOLTIP_HEIGHT) => {
+            return [yPosition, studiesChartsWithTooltip.indexOf(chart) * height + paddingTop]
+        }*/
+
+    /* const getlastPrice = (d: any): number => {
+         return initialData[initialData.length - 1].close;
+     };*/
+
+    /*  const getlastPriceForColor = () : string => {
+          const lastItem = initialData[initialData.length - 1];
+          if (!lastItem){
+              return '#ccc'
+          }
+          return lastItem.close > lastItem.open ? "#8cc176" : "#b82c0c";
+      };*/
+
+    /* const showTickLabel = (chart: StudiesChart) => {
+         return studiesCharts.indexOf(chart) === 0
+     }
+ */
     // const elderRayOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.ELDER_RAY)];
     // const macdOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.MACD)];
     // const rsiAndAtrOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.RSI_AND_ATR)];
@@ -1129,12 +1176,12 @@ export const MainChart = (props: MainChartProps) => {
     // const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
 
 
-   /* const xAndYColors = {
-        tickLabelFill: getDesignTokens(themeMode).palette.lineColor,
-        tickStrokeStyle: getDesignTokens(themeMode).palette.lineColor,
-        strokeStyle: getDesignTokens(themeMode).palette.lineColor,
-        gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
-    }*/
+    /* const xAndYColors = {
+         tickLabelFill: getDesignTokens(themeMode).palette.lineColor,
+         tickStrokeStyle: getDesignTokens(themeMode).palette.lineColor,
+         strokeStyle: getDesignTokens(themeMode).palette.lineColor,
+         gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
+     }*/
 
     const handleBrush1 = (brushCoords: any, moreProps: any) => {
         const {start, end} = brushCoords;
@@ -1165,21 +1212,24 @@ export const MainChart = (props: MainChartProps) => {
     const openMovingAveragePop = Boolean(movingAveragePopanchorEl);
     const movingAveragePopId = openMovingAveragePop ? 'simple-popover' : undefined;
     // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
     return (
         <ChartCanvas
             ref={canvasRef}
             ratio={ratio} width={width} height={height}
-                     margin={margin}
-                     seriesName={`chart_${suffix}`}
-                     data={data}
-                     xScale={xScale}
-                     xAccessor={xAccessor}
-                     displayXAccessor={displayXAccessor}
-                     xExtents={xExtents}
-                     zoomAnchor={lastVisibleItemBasedZoomAnchor}
-                     useCrossHairStyleCursor={!disableCrossHair}
-                     onLoadBefore={handleDownloadMore}
-           >
+            margin={margin}
+            seriesName={`chart_${suffix}`}
+            data={data}
+            xScale={xScale}
+            xAccessor={xAccessor}
+            displayXAccessor={displayXAccessor}
+            xExtents={xExtents}
+            zoomAnchor={lastVisibleItemBasedZoomAnchor}
+            useCrossHairStyleCursor={!disableCrossHair}
+            onLoadBefore={handleDownloadMore}
+        >
 
 
             /*##### Main Chart #####*/
@@ -1307,7 +1357,7 @@ export const MainChart = (props: MainChartProps) => {
                             p: 2,
                             textAlign: 'center'
                         }}>
-                            <Typography variant="h6" component="h2" sx={{ marginBottom: 2, fontSize: '1rem' }}>
+                            <Typography variant="h6" component="h2" sx={{marginBottom: 2, fontSize: '1rem'}}>
                                 changing
                             </Typography>
                             <Button
@@ -1319,7 +1369,7 @@ export const MainChart = (props: MainChartProps) => {
                                     setStudiesChartsWithTooltip(studiesChartsWithTooltip.filter(item => item !== StudiesChart.MOVING_AVERAGE));
                                     handleCloseMovingAveragePop();
                                 }}
-                                sx={{ textTransform: 'none' }}
+                                sx={{textTransform: 'none'}}
                             >
                                 Disable MovingAverage
                             </Button>
@@ -1393,9 +1443,9 @@ export const MainChart = (props: MainChartProps) => {
                         <LineSeries yAccessor={sma20.accessor()} strokeStyle={sma20.stroke()}/>
                         <LineSeries yAccessor={ema20.accessor()} strokeStyle={ema20.stroke()}/>
                         <LineSeries yAccessor={ema50.accessor()} strokeStyle={ema50.stroke()}/>
-                        <CurrentCoordinate yAccessor={sma20.accessor()} fillStyle={sma20.stroke()} />
-                        <CurrentCoordinate yAccessor={ema20.accessor()} fillStyle={ema20.stroke()} />
-                        <CurrentCoordinate yAccessor={ema50.accessor()} fillStyle={ema50.stroke()} />
+                        <CurrentCoordinate yAccessor={sma20.accessor()} fillStyle={sma20.stroke()}/>
+                        <CurrentCoordinate yAccessor={ema20.accessor()} fillStyle={ema20.stroke()}/>
+                        <CurrentCoordinate yAccessor={ema50.accessor()} fillStyle={ema50.stroke()}/>
 
                         <BollingerSeries yAccessor={d => d.bb}
                                          strokeStyle={bbStroke}
@@ -1405,25 +1455,25 @@ export const MainChart = (props: MainChartProps) => {
 
                 /*##### Interactive #####*/
                 <div onContextMenu={handleContextMenu}>
-                <TrendLine
-                    // ref={saveInteractiveNodes("Trendline", 1)}
-                    enabled={enableTrendLine}
-                    type="LINE"
-                    snap={false}
-                    snapTo={d => [d.high, d.low]}
-                    onStart={() => console.log("START", trends)}
-                    onComplete={onDrawCompleteChart}
-                    appearance={{
-                        strokeStyle: getDesignTokens(themeMode).palette.lineColor,
-                        strokeWidth: 1,
-                        strokeDasharray: "Solid",
-                        edgeStrokeWidth: 1,
-                        edgeFill: getDesignTokens(themeMode).palette.lineColor,
-                        edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
-                    }}
-                    // onComplete={() => console.log("End", trends)}
-                    trends={trends}
-                />
+                    <TrendLine
+                        // ref={saveInteractiveNodes("Trendline", 1)}
+                        enabled={enableTrendLine}
+                        type="LINE"
+                        snap={false}
+                        snapTo={d => [d.high, d.low]}
+                        onStart={() => console.log("START", trends)}
+                        onComplete={onDrawCompleteChart}
+                        appearance={{
+                            strokeStyle: getDesignTokens(themeMode).palette.lineColor,
+                            strokeWidth: 1,
+                            strokeDasharray: "Solid",
+                            edgeStrokeWidth: 1,
+                            edgeFill: getDesignTokens(themeMode).palette.lineColor,
+                            edgeStroke: getDesignTokens(themeMode).palette.edgeStroke,
+                        }}
+                        // onComplete={() => console.log("End", trends)}
+                        trends={trends}
+                    />
                     <Menu
                         keepMounted
                         open={contextMenuVisible}
@@ -1669,15 +1719,64 @@ export const MainChart = (props: MainChartProps) => {
                     </>
                 )}
 
-                {/*<Annotate*/}
-                {/*    with={LabelAnnotation}*/}
-                {/*    when={(d:any) => {*/}
-                {/*        return d.date.getDate() ===1; // شرط شما*/}
-                {/*    }}*/}
-                {/*    usingProps={longAnnotationProps}*/}
-                {/*/>*/}
+                // Earnings
+                <>
+                    {console.log(earnings.map(ea => dateFormat(new Date(ea.date))))}
+                    {/*{console.log(earnings.map(ea => ea.date))}*/}
 
+                    {earnings.map((ea, idx) => (
+                        <Annotate
+                            key={idx}
+                            with={SvgPathAnnotation}
+                            //     return dateFormat(d.date) === dateFormat(new Date(ea.date))}}
+                            // when={d => dateFormat(d.date) === dateFormat(new Date(ea.date))}
+                            // console.log("d.date == ", dateFormat(d.date) === dateFormat(new Date(ea.date)))
+                            when={(d: any) => {
+                                const dataDate = dateFormat(new Date(d.date));
+                                const earningsDate = dateFormat(new Date(ea.date));
+                                // console.log(`Comparing ${dataDate} with ${earningsDate}`);
+                                return dataDate === earningsDate;
+                            }}
+                            usingProps={{
+                                onClick: console.log.bind(console),
+                                y: ({yScale, datum}: any) => yScale(datum.high),
+                                // y: ({ yScale, datum }: { yScale: any; datum: any }) => yScale(datum.high),
+                                fill: "blue",
+                                tooltip: `Earnings: ${ea.earnings}, Est: ${ea.est_earnings}`,
+                                // path: () =>
+                                //     "M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z",
+                                path: () => `M 16.65,2.59
+           C 16.65,2.59 16.57,2.51 16.57,2.51
+             14.95,0.85 12.42,0.69 10.61,1.99
+             10.61,1.99 11.81,5.62 11.81,5.62
+             11.81,5.62 8.44,7.87 8.44,7.87
+             8.44,7.87 10.12,12.37 10.12,12.37
+             10.12,12.37 5.06,7.31 5.06,7.31
+             5.06,7.31 8.44,5.06 8.44,5.06
+             8.44,5.06 7.43,2.02 7.43,2.02
+             5.61,0.69 3.06,0.84 1.43,2.51
+             1.43,2.51 1.35,2.59 1.35,2.59
+             -0.37,4.35 -0.44,7.13 1.09,9.00
+             1.09,9.00 8.55,16.69 8.55,16.69
+             8.80,16.94 9.20,16.94 9.45,16.69
+             9.45,16.69 16.91,9.00 16.91,9.00
+             18.44,7.13 18.37,4.35 16.65,2.59
+             16.65,2.59 16.65,2.59 16.65,2.59 Z`,
 
+                                pathWidth: 12,
+                                pathHeight: 22,
+                                tooltipContent: () => ({
+                                    x: 10,
+                                    y: 10,
+                                    children: [
+                                        <text key={1}>Earnings: ${ea.earnings}</text>,
+                                        <text key={2}>Estimated: ${ea.est_earnings}</text>
+                                    ]
+                                })
+                            }}
+                        />
+                    ))}
+                </>
 
             </Chart>
 
@@ -1769,7 +1868,6 @@ export const MainChart = (props: MainChartProps) => {
             }
 
 
-
             /*##### MACD Chart #####*/
             {isStudiesChartInclude(StudiesChart.MACD) && (
                 <Chart id={4} height={STUDIES_CHART_HEIGHT}
@@ -1804,7 +1902,6 @@ export const MainChart = (props: MainChartProps) => {
                     />
                 </Chart>
             )}
-
 
 
             /*##### RSI_AND_ATR Chart #####*/
@@ -1866,8 +1963,6 @@ export const MainChart = (props: MainChartProps) => {
                         origin={[TOOLTIP_PADDING_LEFT, 45]}/>
                 </Chart>
             )}
-
-
 
 
             /*##### FORCE_INDEX Chart #####*/
@@ -1932,8 +2027,6 @@ export const MainChart = (props: MainChartProps) => {
                     />
                 </Chart>
             )}
-
-
 
 
             /*##### FORCE_INDEX Chart #####*/
