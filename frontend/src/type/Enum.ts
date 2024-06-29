@@ -54,6 +54,7 @@ export enum StudiesChart {
     FORCE_INDEX = 'ForceIndex',
     STOCHASTIC_OSCILLATOR = 'stochasticOscillator',
     BOLLINGER_BAND = 'BollingerBand',
+    VOLUME = 'Volume'
 }
 
 export const StudiesChartsValues: StudiesChart[] = [

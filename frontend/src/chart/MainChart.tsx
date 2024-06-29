@@ -232,7 +232,12 @@ export const MainChart = (props: MainChartProps) => {
     // ----------------- helpers constants ----------------- //
     const margin = {left: 0, right: 58, top: 10, bottom: 40};
     const gridHeight = height - margin.top - margin.bottom;
-    const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
+    const chartHeight =
+        gridHeight - (studiesCharts.length +
+            (studiesCharts.includes(StudiesChart.STOCHASTIC_OSCILLATOR) ? 2 : 0) +
+            (studiesCharts.includes(StudiesChart.FORCE_INDEX) ? 1 : 0) +
+            (studiesCharts.includes(StudiesChart.RSI_AND_ATR) ? 1 : 0)
+        ) * STUDIES_CHART_HEIGHT;
     const pricesDisplayFormat = format(".2f");
     const dateFormat = timeFormat("%Y-%m-%d");
     const barChartHeight = gridHeight / 4;
@@ -1172,7 +1177,11 @@ export const MainChart = (props: MainChartProps) => {
     // const stochasticOscillatorOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.STOCHASTIC_OSCILLATOR)];
     // const barChartHeight = gridHeight / 4;
     // const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
-    const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length + 1) * STUDIES_CHART_HEIGHT - 5];
+    const barChartOrigin = (_: number, h: number) => [0, h - ((studiesCharts.length +
+        (studiesCharts.includes(StudiesChart.STOCHASTIC_OSCILLATOR) ? 2 : 0) +
+        (studiesCharts.includes(StudiesChart.FORCE_INDEX) ? 1 : 0) +
+        (studiesCharts.includes(StudiesChart.RSI_AND_ATR) ? 1 : 0)
+    ) + 1) * STUDIES_CHART_HEIGHT - 60];
 
     // const defaultAnnotationProps = {
     //     fontFamily: "Glyphicons Halflings",
@@ -1951,7 +1960,7 @@ export const MainChart = (props: MainChartProps) => {
                 <Chart id={5}
                        yExtents={rsiCalculator.accessor()}
                        height={STUDIES_CHART_HEIGHT}
-                       origin={(w, h) => getStudiesChartOrigin(w, h, StudiesChart.RSI_AND_ATR)}
+                       origin={(w, h) => getStudiesChartOrigin(w, h - STUDIES_CHART_HEIGHT, StudiesChart.RSI_AND_ATR)}
                        padding={{top: 10, bottom: 10}}
 
                 >
@@ -1968,7 +1977,7 @@ export const MainChart = (props: MainChartProps) => {
 
                     <RSISeries yAccessor={d => d.rsi}/>
 
-                    <RSITooltip origin={[TOOLTIP_PADDING_LEFT, 30]}
+                    <RSITooltip origin={[TOOLTIP_PADDING_LEFT, 15]}
                                 textFill={getDesignTokens(themeMode).palette.text.primary}
                                 yAccessor={d => d.rsi}
                                 options={rsiCalculator.options()}/>
@@ -2002,7 +2011,7 @@ export const MainChart = (props: MainChartProps) => {
                         yDisplayFormat={format(".2f")}
                         /* valueStroke={atr14.stroke()} - optional prop */
                         /* labelStroke="#4682B4" - optional prop */
-                        origin={[TOOLTIP_PADDING_LEFT, 45]}/>
+                        origin={[TOOLTIP_PADDING_LEFT, 15]}/>
                 </Chart>
             )}
 
@@ -2011,7 +2020,7 @@ export const MainChart = (props: MainChartProps) => {
             {isStudiesChartInclude(StudiesChart.FORCE_INDEX) && (
                 <Chart id={7} height={STUDIES_CHART_HEIGHT}
                        yExtents={fi.accessor()}
-                       origin={(w, h) => getStudiesChartOrigin(w, h, StudiesChart.FORCE_INDEX)}
+                       origin={(w, h) => getStudiesChartOrigin(w, h - STUDIES_CHART_HEIGHT, StudiesChart.FORCE_INDEX)}
                        padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
@@ -2030,7 +2039,7 @@ export const MainChart = (props: MainChartProps) => {
                         valueFill={getDesignTokens(themeMode).palette.text.primary}
                         yLabel="ForceIndex (1)"
                         yDisplayFormat={format(".4s")}
-                        origin={[TOOLTIP_PADDING_LEFT, 30]}
+                        origin={[TOOLTIP_PADDING_LEFT, 15]}
                     />
                 </Chart>
             )}
@@ -2065,7 +2074,7 @@ export const MainChart = (props: MainChartProps) => {
                         valueFill={getDesignTokens(themeMode).palette.text.primary}
                         yLabel={`ForceIndex (${fiEMA13.options().windowSize})`}
                         yDisplayFormat={format(".4s")}
-                        origin={[TOOLTIP_PADDING_LEFT, 45]}
+                        origin={[TOOLTIP_PADDING_LEFT, 15]}
                     />
                 </Chart>
             )}
@@ -2076,7 +2085,7 @@ export const MainChart = (props: MainChartProps) => {
                 <Chart id={9}
                        yExtents={[0, 100]}
                        height={STUDIES_CHART_HEIGHT}
-                       origin={(w, h) => getStudiesChartOrigin(w, h, StudiesChart.STOCHASTIC_OSCILLATOR)}
+                       origin={(w, h) => getStudiesChartOrigin(w, h - (STUDIES_CHART_HEIGHT * 2), StudiesChart.STOCHASTIC_OSCILLATOR)}
                        padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
@@ -2105,7 +2114,7 @@ export const MainChart = (props: MainChartProps) => {
                 <Chart id={10}
                        yExtents={[0, 100]}
                        height={STUDIES_CHART_HEIGHT}
-                       origin={(w, h) => getStudiesChartOrigin(w, h, StudiesChart.STOCHASTIC_OSCILLATOR)}
+                       origin={(w, h) => getStudiesChartOrigin(w, h - STUDIES_CHART_HEIGHT, StudiesChart.STOCHASTIC_OSCILLATOR)}
                        padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
@@ -2124,7 +2133,7 @@ export const MainChart = (props: MainChartProps) => {
                         {...stoAppearance} />
 
                     <StochasticTooltip
-                        origin={[TOOLTIP_PADDING_LEFT, 45]}
+                        origin={[TOOLTIP_PADDING_LEFT, 30]}
                         yAccessor={d => d.fastSTO}
                         options={fastSTO.options()}
                         appearance={stoAppearance}
@@ -2157,7 +2166,7 @@ export const MainChart = (props: MainChartProps) => {
                         {...stoAppearance} />
 
                     <StochasticTooltip
-                        origin={[TOOLTIP_PADDING_LEFT, 60]}
+                        origin={[TOOLTIP_PADDING_LEFT, 30]}
                         yAccessor={d => d.fullSTO}
                         options={fullSTO.options()}
                         appearance={stoAppearance}
