@@ -538,6 +538,11 @@ export const MainChart = (props: MainChartProps) => {
                     "earnings": 2.5,
                     "est_earnings": 2.3
                 },
+                {
+                    "date": "2024-04-20",
+                    "earnings": 3.0,
+                    "est_earnings": 1000.00
+                },
             ]
             console.log({earningsData});
             // @ts-ignore
