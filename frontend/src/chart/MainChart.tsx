@@ -1181,28 +1181,10 @@ export const MainChart = (props: MainChartProps) => {
         (studiesCharts.includes(StudiesChart.STOCHASTIC_OSCILLATOR) ? 2 : 0) +
         (studiesCharts.includes(StudiesChart.FORCE_INDEX) ? 1 : 0) +
         (studiesCharts.includes(StudiesChart.RSI_AND_ATR) ? 1 : 0)
-    ) + 1) * STUDIES_CHART_HEIGHT - 60];
-
-    // const defaultAnnotationProps = {
-    //     fontFamily: "Glyphicons Halflings",
-    //     fontSize: 20,
-    //     opacity: 0.8,
-    // };
-    //
-    // // @ts-ignore
-    // const longAnnotationProps = {
-    //     ...defaultAnnotationProps,
-    //     fill: "#006517",
-    //     text: "\ue093",
-    //     y: ({ yScale, datum }: { yScale: any; datum: any }) => yScale(datum.low) + 20,
-    //     tooltip: "test-mahdi",
-    // };
-    // const {disableVolume, setDisableVolume} = useStore();
-    // const {disableHoverTooltip} = useStore();
+    ) + 1) * STUDIES_CHART_HEIGHT];
 
     // const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     // const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
-
 
     /* const xAndYColors = {
          tickLabelFill: getDesignTokens(themeMode).palette.lineColor,
@@ -1844,6 +1826,7 @@ export const MainChart = (props: MainChartProps) => {
                     {/*<AreaSeries yAccessor={smaVolume50.accessor()} {...volumeAppearance} />*/}
                 </Chart>
             )}
+
 
 
             /*##### ElderRay Chart #####*/
