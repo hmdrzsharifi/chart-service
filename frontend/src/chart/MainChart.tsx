@@ -1269,7 +1269,7 @@ export const MainChart = (props: MainChartProps) => {
             >
                 {/*<OHLCSeries strokeWidth={3}  stroke={d => elderImpulseCalculator.stroke()[d.elderImpulse]} yAccessor={(d) => ({ open: d.open, high: d.high, low: d.low, close: d.close })} />*/}
                 {(isStudiesChartWithTooltipInclude(StudiesChart.ELDER_IMPULSE) || isStudiesChartInclude(StudiesChart.ELDER_RAY)) && (
-                    <OHLCSeries strokeWidth={5}/>
+                    <OHLCSeries strokeWidth={5} stroke={openCloseColor}/>
                 )}
                 <SingleValueTooltip
                     yAccessor={getLastPrice}
