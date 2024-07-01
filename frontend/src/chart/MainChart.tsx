@@ -1177,11 +1177,11 @@ export const MainChart = (props: MainChartProps) => {
     // const stochasticOscillatorOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.STOCHASTIC_OSCILLATOR)];
     // const barChartHeight = gridHeight / 4;
     // const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
-    const barChartOrigin = (_: number, h: number) => [0, h - ((studiesCharts.length +
+    const barChartOrigin = (_: number, h: number) => [0, (gridHeight - barChartHeight) - ((studiesCharts.length +
         (studiesCharts.includes(StudiesChart.STOCHASTIC_OSCILLATOR) ? 2 : 0) +
         (studiesCharts.includes(StudiesChart.FORCE_INDEX) ? 1 : 0) +
         (studiesCharts.includes(StudiesChart.RSI_AND_ATR) ? 1 : 0)
-    ) + 1) * STUDIES_CHART_HEIGHT];
+    )) * STUDIES_CHART_HEIGHT];
 
     // const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     // const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
