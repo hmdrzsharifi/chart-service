@@ -257,6 +257,7 @@ function App() {
             console.log(candleData)
 
             setData(candleData)
+            setReloadFromSymbol(!reloadFromSymbol)
             setLoading(false)
 
         } catch (error) {
