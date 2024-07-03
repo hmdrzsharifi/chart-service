@@ -1,5 +1,5 @@
 class Config:
-    SYMBOLS_API_URL = 'http://91.92.108.4:4444/api/v1/services/all/symbols'
+    SYMBOLS_API_URL = 'http://185.148.147.219:4444/api/v1/services/all/symbols'
     FINNHUB_API_KEY = 'cppbtv9r01qn2da2dd6gcppbtv9r01qn2da2dd70'
     FMP_API_KEY = 'fng76oNvOTV9fiNj1QlDCoU1gbZCNtrh'
     HOST = '0.0.0.0'

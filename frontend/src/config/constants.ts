@@ -1,6 +1,6 @@
 export const DATA_ADDRESS = 'http://127.0.0.1:5000';
 export const WEBSOCKET_ADDRESS = 'http://91.92.108.4:5555';
-export const SYMBOLS_API_URL = 'http://91.92.108.4:4444/api/v1/services/all/symbols'
+export const SYMBOLS_API_URL = 'http://localhost:5000'
 
 export const NO_OF_CANDLES = 300;
 export const LENGTH_TO_SHOW = 300;

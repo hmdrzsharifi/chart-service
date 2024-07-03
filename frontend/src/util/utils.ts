@@ -105,7 +105,7 @@ export async function fetchEarningsFMP(symbol:any, from:any, to:any) {
 export async function fetchCexSymbols(){
     const resultData:SymbolList[] = [];
     try {
-        const response = await fetch(SYMBOLS_API_URL, {
+        const response = await fetch(SYMBOLS_API_URL + '/getAllSymbols', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
