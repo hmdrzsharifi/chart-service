@@ -8,6 +8,11 @@ class Config:
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:mysql@adi.dev.modernisc.com/app_db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    CACHE_TYPE = 'simple'
+    # CACHE_TYPE = 'redis'
+    # CACHE_REDIS_URL = 'redis://:mypassword@adi.dev.modernisc.com:6379/0'
+    # CACHE_DEFAULT_TIMEOUT = 300
+
 # class Config:
 #     SYMBOLS_API_URL = "https://default-url.com/api"
 #

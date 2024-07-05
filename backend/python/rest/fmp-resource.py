@@ -1,85 +1,27 @@
-import logging
 import pandas as pd
-from flask import Flask, request, jsonify, current_app
+from flask import Blueprint, Flask, request, jsonify, current_app
 from flask_cors import CORS
-import json
-from flask_caching import Cache
 import hashlib
 import datetime
 import requests
 from datetime import datetime, timedelta
 import pytz
-import urllib.request as urllib2, json
+import json
 import logging
-
-
-# Create and configure the logger
-logger = logging.getLogger('my_flask_app')
-logger.setLevel(logging.INFO)
-
-# Create a file handler
-file_handler = logging.FileHandler('app.log')
-file_handler.setLevel(logging.INFO)
-
-# Create a console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-
-# Create a formatter and set it for the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
-
-# Add the handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
-
-
-# from waitress import serve
+from cache_config import configure_cache, cache
+from logging_config import setup_logging
 
 
 pd.set_option('display.float_format', '{:.8f}'.format)
+
+logger = setup_logging()
 
 app = Flask(__name__)
 CORS(app, resources={r'*': {'origins': '*'}})
 app.config.from_object('config.Config')  # Load configuration from config.py
 
-# Configure caching
-# cache = Cache(app, config={'CACHE_TYPE': 'simple'})
-cache = Cache()
+configure_cache(app)
 
-
-# redis level 1 caching
-# cache = Cache(app, config={
-# 'CACHE_TYPE': 'redis',
-# 'CACHE_REDIS_URL': 'redis://:mypassword@adi.dev.modernisc.com:6379/0',
-# 'CACHE_DEFAULT_TIMEOUT': 300
-# })
-
-# def make_cache_key():
-#     logging.debug("make_cache_key function called")
-#     request_data = request.get_json()
-#     if request_data:
-#         from_time = request_data.get('from')
-#         to_time = request_data.get('to')
-#
-#         # Convert timestamps to human-readable dates
-#         from_date = datetime.datetime.fromtimestamp(from_time).strftime('%Y-%m-%d')
-#         to_date = datetime.datetime.fromtimestamp(to_time).strftime('%Y-%m-%d')
-#
-#         # Use the dates along with other request parameters to generate the key
-#         key_data = {
-#             'Ticker': request_data.get('Ticker'),
-#             'TimeFrame': request_data.get('TimeFrame'),
-#             'from_date': from_date,
-#             'to_date': to_date
-#         }
-#
-#         key = json.dumps(key_data, sort_keys=True)  # Sort keys for consistency
-#         cache_key = hashlib.md5(key.encode('utf-8')).hexdigest()
-#         logging.debug(f"Generated cache key: {cache_key}")
-#         return cache_key
-#     return None
 
 def generate_cache_key_get_all_symbols():
     logging.debug("Generating cache key.")
@@ -109,39 +51,6 @@ def get_all_symbols():
         logger.error(f"Error fetching symbols: {exp}")
         return jsonify({"error": "Failed to fetch symbols"}), 500
 
-#
-# def generate_cache_key_fetch_candle_data():
-#     logging.debug("make_cache_key function called")
-#     request_data = request.get_json()
-#     if request_data:
-#         from_time = request_data.get('from')
-#         to_time = request_data.get('to')
-#
-#         # Convert timestamps to human-readable dates
-#         from_date = datetime.datetime.fromtimestamp(from_time).strftime('%Y-%m-%d')
-#         to_date = datetime.datetime.fromtimestamp(to_time).strftime('%Y-%m-%d')
-#
-#         # Use the dates along with other request parameters to generate the key
-#         key_data = {
-#             'Ticker': request_data.get('Ticker'),
-#             'TimeFrame': request_data.get('TimeFrame'),
-#             'from_date': from_date,
-#             'to_date': to_date
-#         }
-#
-#         key = json.dumps(key_data, sort_keys=True)  # Sort keys for consistency
-#         cache_key = hashlib.md5(key.encode('utf-8')).hexdigest()
-#         logging.debug(f"Generated cache key: {cache_key}")
-#         return cache_key
-#     return None
-
-# def generate_cache_key_fetch_candle_data():
-#     request_data = request.json
-#     symbol = request_data.get('Ticker').lower()
-#     time_frame = request_data.get('TimeFrame')
-#     from_date = request_data.get('from')
-#     to_date = request_data.get('to')
-#     return f"{symbol}_{time_frame}_{from_date}_{to_date}"
 
 def normalize_dates(from_timestamp, to_timestamp, timeframe):
     from_date = datetime.utcfromtimestamp(from_timestamp)
@@ -176,6 +85,7 @@ def normalize_dates(from_timestamp, to_timestamp, timeframe):
         to_date = to_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     return int(from_date.timestamp()), int(to_date.timestamp())
+
 
 def generate_cache_key_fetch_candle_data():
     request_data = request.json
@@ -224,14 +134,15 @@ def fetch_candle_data():
     if response.status_code == 200:
         data = response.json()
         historical_data = data['historical'] if time_frame == 'D' else data
-        historical_data_sorted = sorted(historical_data, key=lambda x: x['date'])  # Replace 'date' with the appropriate key to sort by
+        historical_data_sorted = sorted(historical_data,
+                                        key=lambda x: x['date'])  # Replace 'date' with the appropriate key to sort by
         if time_frame not in ['D', 'W', 'M']:
             for entry in historical_data_sorted:
                 # entry['date'] = convert_to_utc(entry['date'])
                 entry['date'] = convert_to_utc(entry['date'])
 
-
-        logger.info('Fetch Candles: %s %s %d %s %s', symbol, time_frame, len(historical_data_sorted), from_date, to_date)
+        logger.info('Fetch Candles: %s %s %d %s %s', symbol, time_frame, len(historical_data_sorted), from_date,
+                    to_date)
         return jsonify(historical_data_sorted)
     else:
         return jsonify({"error": "Failed to retrieve data"}), response.status_code
@@ -244,27 +155,114 @@ def convert_to_utc(date_string, timezone='US/Eastern'):
     utc_dt = local_dt.astimezone(pytz.utc)
     return utc_dt.strftime('%Y-%m-%d %H:%M:%S')
 
-@app.route('/fetchEarnings', methods=['POST'])
-def fetch_earnings():
+
+def convert_iso_to_date(iso_string):
+    # Parse the ISO 8601 string to a datetime object
+    dt = datetime.fromisoformat(iso_string.replace('Z', '+00:00'))
+    # Format the datetime object to a date string (YYYY-MM-DD)
+    date_string = dt.strftime('%Y-%m-%d')
+    return date_string
+
+def fetch_earnings_cache_key():
     request_data = request.json
-    symbol = request_data.get('Ticker').lower()
-    from_date = request_data.get('from')
-    to_date = request_data.get('to')
+    return generate_cache_key(
+        prefix='earnings',
+        symbol=request_data.get('Ticker', '').lower(),
+        from_date = (convert_iso_to_date(request_data.get('from'))),
+        to_date = (convert_iso_to_date(request_data.get('to')))
+    )
+@app.route('/fetchEarnings', methods=['POST'])
+@cache.cached(timeout=86400, key_prefix=fetch_earnings_cache_key)
+def fetch_earnings():
+    try:
+        request_data = request.json
+        symbol = request_data.get('Ticker').lower()
+        from_date = request_data.get('from')
+        to_date = request_data.get('to')
 
-    formatted_from_date = convert_timestamp_to_date(from_date)
-    formatted_to_date = convert_timestamp_to_date(to_date)
-    api_key = current_app.config['FMP_API_KEY']
+        if not symbol or not from_date or not to_date:
+            logger.error("Missing required parameters: 'Ticker', 'from', or 'to'")
+            return jsonify({"error": "Missing required parameters: 'Ticker', 'from', or 'to'"}), 400
 
-    url = f"https://financialmodelingprep.com/api/v3/historical/earning_calendar/{symbol}&apikey={api_key}"
+        formatted_from_date = convert_iso_to_date(from_date)
+        formatted_to_date = convert_iso_to_date(to_date)
+        api_key = current_app.config['FMP_API_KEY']
 
-    response = requests.get(url)
+        url = f"https://financialmodelingprep.com/api/v3/historical/earning_calendar/{symbol}?apikey={api_key}"
 
-    if response.status_code == 200:
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            logger.error(f"Failed to retrieve data: {response.status_code} - {response.text}")
+            return jsonify({"error": "Failed to retrieve data"}), response.status_code
+
         data = response.json()
-        #filter data based on from_date and to_date
-        return jsonify(data)
-    else:
-        return jsonify({"error": "Failed to retrieve data"}), response.status_code
+
+        filtered_data = [
+            entry for entry in data
+            if formatted_from_date <= entry['date'] <= formatted_to_date
+        ]
+
+        logger.info(f"Successfully fetched and filtered earnings data for {symbol}")
+        return jsonify(filtered_data)
+    except Exception as e:
+        logger.error(f"An error occurred: {str(e)}")
+        return jsonify({"error": "An internal error occurred"}), 500
+
+
+def generate_cache_key(prefix, symbol, from_date, to_date):
+    key_data = f"{prefix}_{symbol}_{from_date}_{to_date}"
+    return hashlib.md5(key_data.encode('utf-8')).hexdigest()
+
+def fetch_dividends_cache_key():
+    request_data = request.json
+    return generate_cache_key(
+        prefix='dividends',
+        symbol=request_data.get('Ticker', '').lower(),
+        from_date = (convert_iso_to_date(request_data.get('from'))),
+        to_date = (convert_iso_to_date(request_data.get('to')))
+    )
+def normalize_date_to_day(date):
+    return date.replace(hour=0, minute=0, second=0, microsecond=0)
+
+@app.route('/fetchDividends', methods=['POST'])
+@cache.cached(timeout=86400, key_prefix=fetch_dividends_cache_key)
+def fetch_dividends():
+    try:
+        request_data = request.json
+        symbol = request_data.get('Ticker')
+        from_date = request_data.get('from')
+        to_date = request_data.get('to')
+
+        if not symbol or not from_date or not to_date:
+            logger.error("Missing required parameters: 'Ticker', 'from', or 'to'")
+            return jsonify({"error": "Missing required parameters: 'Ticker', 'from', or 'to'"}), 400
+
+        formatted_from_date = convert_iso_to_date(from_date)
+        formatted_to_date = convert_iso_to_date(to_date)
+        api_key = current_app.config['FMP_API_KEY']
+
+        url = f"https://financialmodelingprep.com/api/v3/stock_dividend_calendar?from={formatted_from_date}&to={formatted_to_date}&apikey={api_key}"
+
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            logger.error(f"Failed to retrieve data: {response.status_code} - {response.text}")
+            return jsonify({"error": "Failed to retrieve data"}), response.status_code
+
+        data = response.json()
+
+        filtered_data = [
+            entry for entry in data
+            if symbol == entry['symbol']
+        ]
+
+        logger.info(f"Successfully fetched and filtered earnings data for {symbol}")
+        return jsonify(filtered_data)
+    except Exception as e:
+        logger.error(f"An error occurred: {str(e)}")
+        return jsonify({"error": "An internal error occurred"}), 500
+
 
 @app.route('/clearCache', methods=['GET'])
 def clear_cache():
@@ -272,9 +270,9 @@ def clear_cache():
     logging.debug("Cache cleared")
     return "Cache cleared", 200
 
+
 # Function to convert timestamp to date
 def convert_timestamp_to_date(from_timestamp):
-
     # Check if the timestamp is provided
     if from_timestamp is not None:
         # Convert timestamp to datetime object
@@ -287,22 +285,10 @@ def convert_timestamp_to_date(from_timestamp):
     else:
         return 'Timestamp not provided'
 
-# def convert_to_utc(date_str):
-#     local_tz = pytz.timezone('America/Toronto')  # Assuming the data is in Toronto timezone
-#     local_dt = local_tz.localize(datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S"))  # Adjust the format as needed
-#     utc_dt = local_dt.astimezone(pytz.utc)
-#     return utc_dt.strftime("%Y-%m-%d %H:%M:%S")
 
-# Ensure the cache is properly configured
-def configure_cache(app):
-    cache.init_app(app, config={'CACHE_TYPE': 'simple'})  # Example cache configuration
-    logging.debug("Cache configured.")
-
-# Example usage
 if __name__ == '__main__':
     host = app.config['HOST']
     port = app.config['PORT']
     debug = app.config['DEBUG']
-    configure_cache(app)
 
 app.run(host=host, port=port, debug=debug, use_reloader=True)
