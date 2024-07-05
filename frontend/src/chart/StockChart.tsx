@@ -66,11 +66,11 @@ import {
     smaVolume50,
 } from "../indicator/indicators";
 import useStore from "../util/store";
-import {changeIndicatorsColor, fetchCandleDataFinnhub, useEventListener} from "../util/utils";
+import {changeIndicatorsColor, fetchCandleDataFinnhub, studyChartHeight, useEventListener} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {
     NO_OF_CANDLES,
-    STUDIES_CHART_HEIGHT, TOOLTIP_HEIGHT,
+    TOOLTIP_HEIGHT,
     TOOLTIP_PADDING_LEFT,
     TOOLTIP_PADDING_TOP
 } from "../config/constants";
@@ -937,7 +937,7 @@ export const StockChart = (props: StockChartProps) => {
     const xGrid = showGrid ? {innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1} : {};
 
     const getStudiesChartOrigin = (chart: StudiesChart) => {
-        return (studiesCharts.indexOf(chart) + 1) * STUDIES_CHART_HEIGHT
+        return (studiesCharts.indexOf(chart) + 1) * studyChartHeight(studiesCharts)
     }
 
     const getStudiesChartTooltipOrigin = (chart: StudiesChart, yPosition = TOOLTIP_PADDING_LEFT, paddingTop = TOOLTIP_PADDING_TOP, height = TOOLTIP_HEIGHT) => {
@@ -960,7 +960,7 @@ export const StockChart = (props: StockChartProps) => {
         return studiesCharts.indexOf(chart) === 0
     }
 
-    // const elderRayHeight = STUDIES_CHART_HEIGHT;
+    // const elderRayHeight = studyChartHeight(studiesCharts);
     const elderRayOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.ELDER_RAY)];
     const macdOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.MACD)];
     const rsiAndAtrOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.RSI_AND_ATR)];
@@ -970,8 +970,8 @@ export const StockChart = (props: StockChartProps) => {
     // const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight - elderRayHeight];
     // const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight];
     // const chartHeight = gridHeight - elderRayHeight;
-    const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
-    const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length + 1) * STUDIES_CHART_HEIGHT - 5];
+    const chartHeight = gridHeight - studiesCharts.length * studyChartHeight(studiesCharts);
+    const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length + 1) * studyChartHeight(studiesCharts) - 5];
     const {disableVolume, setDisableVolume} = useStore();
     // const {disableElderRay, setDisableElderRay} = useStore();
     // const {disableMACD} = useStore();
@@ -1533,7 +1533,7 @@ export const StockChart = (props: StockChartProps) => {
             // />
 
             (
-                <Chart id={3} height={STUDIES_CHART_HEIGHT} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
+                <Chart id={3} height={studyChartHeight(studiesCharts)} yExtents={[0, elder.accessor()]} origin={elderRayOrigin}
                        padding={{top: 8, bottom: 8}}>
                     {/*<XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>*/}
                     <XAxis showGridLines {...xAndYColors}/>
@@ -1593,7 +1593,7 @@ export const StockChart = (props: StockChartProps) => {
 
             /*##### MACD Chart #####*/
             {isStudiesChartInclude(StudiesChart.MACD) && (
-                <Chart id={4} height={STUDIES_CHART_HEIGHT}
+                <Chart id={4} height={studyChartHeight(studiesCharts)}
                        yExtents={macdCalculator.accessor()}
                        origin={macdOrigin} padding={{top: 10, bottom: 10}}
                 >
@@ -1627,7 +1627,7 @@ export const StockChart = (props: StockChartProps) => {
             {isStudiesChartInclude(StudiesChart.RSI_AND_ATR) && (
                 <Chart id={5}
                        yExtents={rsiCalculator.accessor()}
-                       height={STUDIES_CHART_HEIGHT}
+                       height={studyChartHeight(studiesCharts)}
                        origin={rsiAndAtrOrigin} padding={{top: 10, bottom: 10}}
 
                 >
@@ -1653,7 +1653,7 @@ export const StockChart = (props: StockChartProps) => {
             {isStudiesChartInclude(StudiesChart.RSI_AND_ATR) && (
                 <Chart id={6}
                        yExtents={atr14.accessor()}
-                       height={STUDIES_CHART_HEIGHT} origin={rsiAndAtrOrigin} padding={{top: 10, bottom: 10}}
+                       height={studyChartHeight(studiesCharts)} origin={rsiAndAtrOrigin} padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" {...xAndYColors}
                            showTickLabel={showTickLabel(StudiesChart.RSI_AND_ATR)}/>
@@ -1680,7 +1680,7 @@ export const StockChart = (props: StockChartProps) => {
                 </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.FORCE_INDEX) && (
-                <Chart id={7} height={STUDIES_CHART_HEIGHT}
+                <Chart id={7} height={studyChartHeight(studiesCharts)}
                        yExtents={fi.accessor()}
                        origin={forceIndexOrigin}
                        padding={{top: 10, bottom: 10}}
@@ -1706,7 +1706,7 @@ export const StockChart = (props: StockChartProps) => {
                 </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.FORCE_INDEX) && (
-                <Chart id={8} height={STUDIES_CHART_HEIGHT}
+                <Chart id={8} height={studyChartHeight(studiesCharts)}
                        yExtents={fiEMA13.accessor()}
                        origin={forceIndexOrigin}
                        padding={{top: 10, bottom: 10}}
@@ -1743,7 +1743,7 @@ export const StockChart = (props: StockChartProps) => {
             {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
                 <Chart id={9}
                        yExtents={[0, 100]}
-                       height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{top: 10, bottom: 10}}
+                       height={studyChartHeight(studiesCharts)} origin={stochasticOscillatorOrigin} padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
                            showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
@@ -1770,7 +1770,7 @@ export const StockChart = (props: StockChartProps) => {
             {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
                 <Chart id={10}
                        yExtents={[0, 100]}
-                       height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{top: 10, bottom: 10}}
+                       height={studyChartHeight(studiesCharts)} origin={stochasticOscillatorOrigin} padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
                            showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>
@@ -1798,7 +1798,7 @@ export const StockChart = (props: StockChartProps) => {
             {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
                 <Chart id={11}
                        yExtents={[0, 100]}
-                       height={STUDIES_CHART_HEIGHT} origin={stochasticOscillatorOrigin} padding={{top: 10, bottom: 10}}
+                       height={studyChartHeight(studiesCharts)} origin={stochasticOscillatorOrigin} padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" {...xGrid} {...xAndYColors}
                            showTickLabel={showTickLabel(StudiesChart.STOCHASTIC_OSCILLATOR)}/>

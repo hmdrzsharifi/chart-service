@@ -3,6 +3,7 @@ import {useEffect, useRef} from "react";
 import {TrendLineType} from "../type/TrendLineType";
 import {SymbolList} from "../type/SymbolType";
 import getDesignTokens from "../config/theme";
+import {StudiesChart} from "../type/Enum";
 
 const API_URL_FMP = process.env.REACT_APP_FMP_DATA_ADDRESS;
 const API_URL_FINNHUB = process.env.REACT_APP_FINNHUB_DATA_ADDRESS;
@@ -252,4 +253,13 @@ export const xAndYColors = (
         strokeStyle: getDesignTokens(themeMode).palette.lineColor,
         gridLinesStrokeStyle: getDesignTokens(themeMode).palette.grindLineColor,
     }
+}
+
+export const studyChartHeight = (studiesCharts: any[]):number => {
+    const size = 9 - (studiesCharts.length +
+        (studiesCharts.includes(StudiesChart.STOCHASTIC_OSCILLATOR) ? 2 : 0) +
+        (studiesCharts.includes(StudiesChart.FORCE_INDEX) ? 1 : 0) +
+        (studiesCharts.includes(StudiesChart.RSI_AND_ATR) ? 1 : 0))
+
+    return 50 + (size * 10)
 }
