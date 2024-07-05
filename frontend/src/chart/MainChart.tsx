@@ -665,16 +665,11 @@ export const MainChart = (props: MainChartProps) => {
 
         if (Math.ceil(start) === end) return;
 
-
         setLoading(true)
-
         setFixedPosition(false)
-
 
         const prevData = data
         const endDate = new Date(data[0].date);
-        // console.log({endDate})
-        // let from;
         let to = Math.floor(endDate.getTime() / 1000);
 
         const multipliers = {
@@ -690,37 +685,6 @@ export const MainChart = (props: MainChartProps) => {
 
         const multiplier = multipliers[timeFrame];
         const from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * multiplier);
-
-        /*switch (timeFrame) {
-            case "1M":
-                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 60);
-                break;
-            case "5M":
-                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 5 * 60);
-                break;
-            case "15M":
-                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 15 * 60);
-                break;
-            case "30M":
-                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 30 * 60);
-                break;
-            case "1H":
-                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 60 * 60);
-                break;
-            case "D":
-                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600);
-                break;
-            case "W":
-                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 7 * 24 * 3600);
-                break;
-            case "M":
-                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 30 * 24 * 3600);
-                break;
-
-            default:
-                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600)
-        }*/
-
 
         let moreData = []
 
@@ -1784,35 +1748,21 @@ export const MainChart = (props: MainChartProps) => {
                                 // y: ({yScale, datum}: any) => yScale(datum.high),
                                 y: ({ yScale } : any) => yScale.range()[0],
                                 // y: ({ yScale, datum }: { yScale: any; datum: any }) => yScale(datum.high),
-                                fill: "green",
+                                // fill: "green",
+                                fill: ea.earnings >= 0 ? "green" : "red", // Conditional fill color
                                 tooltip: `Earnings: ${ea.earnings}, Est: ${ea.est_earnings}`,
                                 // path: () =>
                                 //     "M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z",
-                                path: () => ` M 6.5,1.5 
-    C 18.3244,-0.176399 23.1577,4.8236 21,16.5 
-    C 17.3449,21.2745 12.5116,22.7745 6.5,21 
-    C 1.72548,17.3449 0.225485,12.5116 2,6.5 
-    C 3.36569,4.63834 4.86569,2.97167 6.5,1.5 Z 
-    M 8.5,4.5 
-    C 17.8504,4.36536 20.517,8.53202 16.5,17 
-    C 7.95624,20.3224 4.12291,17.4891 5,8.5 
-    C 5.68972,6.64977 6.85639,5.31643 8.5,4.5 Z 
-    M 8.5,7.5 
-    C 10.604,7.2011 12.604,7.53443 14.5,8.5 
-    C 13.2713,9.28107 11.938,9.78107 10.5,10 
-    C 14.5,11 14.5,12 10.5,13 
-    C 11.938,13.2189 13.2713,13.7189 14.5,14.5 
-    C 12.604,15.4656 10.604,15.7989 8.5,15.5 
-    C 8.5,12.8333 8.5,10.1667 8.5,7.5 Z`,
-
-                                pathWidth: 12,
-                                pathHeight: 22,
+                                path: () => `M10 10 H20 V12 H14 V18 H20 V20 H14 V26 H20 V28 H10 Z`,
+                                pathWidth: 20,
+                                pathHeight: 28,
                                 tooltipContent: () => ({
                                     x: 10,
                                     y: 10,
                                     children: [
                                         <text key={1}>Earnings: ${ea.earnings}</text>,
-                                        <text key={2}>Estimated: ${ea.est_earnings}</text>
+                                        <text key={2}>Estimated: ${ea.est_earnings}</text>,
+                                        <text key={3}>Earnings Date: ${ea.date}</text>
                                     ]
                                 })
                             }}

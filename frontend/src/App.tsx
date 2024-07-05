@@ -24,7 +24,7 @@ import finnhubSymbols from './finnhub-symbols.json';
 
 function App() {
 
-    const [ref, { width, height }] = useDimensions();
+    const [ref, {width, height}] = useDimensions();
 
     const [data, setData] = useState<any>([]);
     const [lastTime, setLastTime] = useState<any>(new Date());
@@ -52,8 +52,12 @@ function App() {
         const newSocket = io(WEBSOCKET_ADDRESS);
 
         const fetchDataAndConnectWebSocket = async () => {
-            await fetchInitialData();
-            connectWebSocket(newSocket);
+            try {
+                await fetchInitialData();
+                connectWebSocket(newSocket);
+            } catch (error) {
+                console.error('Error in fetching data or connecting WebSocket:', error);
+            }
         };
         fetchDataAndConnectWebSocket();
 
@@ -196,17 +200,22 @@ function App() {
     }
 
     const fetchInitialData = async () => {
-        if (finnhubSymbols.hasOwnProperty(symbol)) {
-            console.log("fetchInitialDataFinnhub",symbol)
-            await fetchInitialDataFinnhub(symbol)
-        } else {
-            let ticker = symbol.replace('_USD', 'USD').toLowerCase();
-            console.log("fetchInitialDataFMP",ticker)
-            await fetchInitialDataFMP(ticker)
+        try {
+            if (finnhubSymbols.hasOwnProperty(symbol)) {
+                console.log("fetchInitialDataFinnhub", symbol)
+                await fetchInitialDataFinnhub(symbol)
+            } else {
+                let ticker = symbol.replace('_USD', 'USD').toLowerCase();
+                console.log("fetchInitialDataFMP", ticker)
+                await fetchInitialDataFMP(ticker)
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            throw error; // Rethrow error to be caught in the outer try-catch block
         }
     };
 
-    const fetchInitialDataFinnhub = async (ticker:any) => {
+    const fetchInitialDataFinnhub = async (ticker: any) => {
         try {
             // let from;
             setLoading(true)
@@ -226,17 +235,6 @@ function App() {
             const from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * multiplier);
             const to = Math.floor(new Date().getTime() / 1000);
 
-            // switch (timeFrame) {
-                // case "1M":
-                //     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 60);
-                //     break;
-                // case "D":
-                //     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600);
-                //     break;
-
-                // default:
-                //     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
-            // }
 
             const candleData = await fetchCandleDataFinnhub(ticker, timeFrame, from, to);
 
@@ -250,11 +248,8 @@ function App() {
         }
     };
 
-    const fetchInitialDataFMP = async (ticker:any) => {
+    const fetchInitialDataFMP = async (ticker: any) => {
         try {
-            // let from;
-            // let to = Math.floor(new Date().getTime() / 1000);
-
             setLoading(true)
 
             const multipliers = {
@@ -297,6 +292,7 @@ function App() {
         } catch (error) {
             console.error('Error fetching candle data:', error);
             setError(true)
+            throw error; // Rethrow error to be caught in the outer try-catch block
         }
     };
 
@@ -337,14 +333,18 @@ function App() {
                             background: getDesignTokens(themeMode).palette.chartBackground
                         }}>
                             {loading && !error &&
-                                <div className={'loader-wrapper'} style={{ width: width ? width - (openSideBar ? 40 : 0) : 0, height: height ? height : 0 }}>
-                                    <BlinkBlur color="#f3cc00" size="medium" text="Loading..." textColor="" />
-                            </div>}
+                                <div className={'loader-wrapper'} style={{
+                                    width: width ? width - (openSideBar ? 40 : 0) : 0,
+                                    height: height ? height : 0
+                                }}>
+                                    <BlinkBlur color="#f3cc00" size="medium" text="Loading..." textColor=""/>
+                                </div>}
                             {error ? <div className="error-message">Failed to fetch</div> :
-                                data.length > 0 && <MainChart dataList={data} width={width ? width - (openSideBar ? 45 : 10) : 0} ratio={3}
-                                                              reloadFromSymbol={reloadFromSymbol}
-                                                           theme={theme} height={height ? height : 0}
-                            />}
+                                data.length > 0 &&
+                                <MainChart dataList={data} width={width ? width - (openSideBar ? 45 : 10) : 0} ratio={3}
+                                           reloadFromSymbol={reloadFromSymbol}
+                                           theme={theme} height={height ? height : 0}
+                                />}
 
                             {/*{error ? <div className="error-message">Failed to fetch</div> :  <StockChart data={stateDataRef.current} setData={setData} theme={theme}
                                                             height={window.innerHeight - 100}
