@@ -84,6 +84,7 @@ function App() {
             const convertedMessage = {...message, p: new Decimal(message.p).toNumber()}
             if (message.s === symbol) {
                 handleRealTimeCandle(convertedMessage);
+                setReloadFromSymbol(prevState => !prevState);
             }
         });
 
@@ -103,6 +104,7 @@ function App() {
 
             if (message.symbol === symbol) {
                 handleRealTimeCandleCex(message);
+                setReloadFromSymbol(prevState => !prevState);
             }
         });
     };
