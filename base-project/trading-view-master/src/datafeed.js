@@ -151,7 +151,7 @@ export default {
         }
         const symbolInfo = {
             // ticker: symbolName.replace('_USD', 'USD'), // for FMP
-            ticker: symbolName.replace('_USD', 'USDT'),
+            ticker: symbolName,
             name: symbolName,
             description: symbolName,
             type: symbolCategory,
@@ -192,19 +192,29 @@ export default {
 
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
+        const symbolCategory = symbolInfo.type;
         if (rawData.length == 1) {
-            rawSymbol = rawData[0].replace('_USD', 'USDT') // for FINNHUB
+            if (symbolCategory === 'FX'){
+                rawSymbol = rawData[0].replace('_USD', 'USD') // for FMP
+            } else {
+                rawSymbol = rawData[0].replace('_USD', 'USDT')  // for FINNHUB
+            }
         }
         if (rawData.length == 2) {
-            // rawSymbol = rawData[1].replace('_USD', 'USD') // for FMP
-            rawSymbol = rawData[1].replace('_USD', 'USDT') // for FINNHUB
+            if (symbolCategory === 'FX'){
+                rawSymbol = rawData[1].replace('_USD', 'USD') // for FMP
+            } else {
+                rawSymbol = rawData[1].replace('_USD', 'USDT')  // for FINNHUB
+            }
         }
         if (rawData.length == 3) {
-            //rawSymbol = rawData[2].replace('_USD', 'USD') // for FMP
-            rawSymbol = rawData[2].replace('_USD', 'USDT')  // for FINNHUB
+            if (symbolCategory === 'FX'){
+                rawSymbol = rawData[2].replace('_USD', 'USD') // for FMP
+            } else {
+                rawSymbol = rawData[2].replace('_USD', 'USDT')  // for FINNHUB
+            }
         }
 
-        const symbolCategory = symbolInfo.type;
         let ticker = '';
         let resultData = [];
 
@@ -213,7 +223,8 @@ export default {
         }
 
         if (symbolCategory === 'FX') {
-            ticker = 'OANDA' + ':' + rawSymbol
+            // ticker = 'OANDA' + ':' + rawSymbol
+            ticker = rawSymbol
         }
         if (symbolCategory == "STC" || symbolCategory == "ETF") {
             ticker = rawSymbol
@@ -259,16 +270,19 @@ export default {
                     "F40_EUR": "OANDA:FR40_EUR"
                 };
                 ticker = symbolMapping[rawSymbol];
+
                 resultData = await fetchCandleDataFinnhub(ticker, reqResolution, from, to);
             }
 
-            if (symbolCategory == "FX" || symbolCategory == "CRT" || symbolCategory == "CMD") {
+            if ( symbolCategory == "CRT" || symbolCategory == "CMD") {
                 console.log("Finnhub")
+                console.log({from})
+                console.log({to})
                 console.log({ticker})
                 resultData = await fetchCandleDataFinnhub(ticker, reqResolution, from, to);
             }
 
-            if (symbolCategory == "STC" || symbolCategory == "ETF") {
+            if (symbolCategory == "STC" || symbolCategory == "ETF" || symbolCategory == "FX") {
                 console.log("FMP")
                 resultData = await fetchInitialDataFMP(ticker, reqResolution, from, to);
             }
