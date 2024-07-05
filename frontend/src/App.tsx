@@ -217,7 +217,6 @@ function App() {
 
     const fetchInitialDataFinnhub = async (ticker: any) => {
         try {
-            // let from;
             setLoading(true)
 
             const multipliers = {
@@ -234,7 +233,6 @@ function App() {
             const multiplier = multipliers[timeFrame];
             const from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * multiplier);
             const to = Math.floor(new Date().getTime() / 1000);
-
 
             const candleData = await fetchCandleDataFinnhub(ticker, timeFrame, from, to);
 
@@ -266,21 +264,6 @@ function App() {
             const multiplier = multipliers[timeFrame];
             const from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * multiplier);
             const to = Math.floor(new Date().getTime() / 1000);
-
-
-            /*switch (timeFrame) {
-                case "1M":
-                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 60);
-                    break;
-                case "D":
-                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600);
-                    break;
-
-                //todo add other time frame
-
-                default:
-                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
-            }*/
 
             const candleData = await fetchCandleDataFMP(ticker, timeFrame, from, to);
             console.log(candleData)

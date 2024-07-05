@@ -95,7 +95,7 @@ const Sidebar = (props: any) => {
                 </IconButton>
             </Tooltip>
 
-            <Tooltip title="Brush" placement="right" arrow>
+            {/*<Tooltip title="Brush" placement="right" arrow>
                 <IconButton
                     onClick={() => {
                         setEnableBrush(!enableBrush)
@@ -107,9 +107,9 @@ const Sidebar = (props: any) => {
                 >
                     <Brush selected={enableEquidistant} color={themeSecondaryColor} />
                 </IconButton>
-            </Tooltip>
+            </Tooltip>*/}
 
-            <Tooltip title="InteractiveText" placement="right" arrow>
+            {/*<Tooltip title="InteractiveText" placement="right" arrow>
                 <IconButton
                     onClick={() => {
                         setEnableInteractiveObject(!enableInteractiveObject)
@@ -122,8 +122,7 @@ const Sidebar = (props: any) => {
                 >
                     <InteractiveText selected={enableEquidistant} color={themeSecondaryColor} />
                 </IconButton>
-            </Tooltip>
-
+            </Tooltip>*/}
 
         </div>
     )

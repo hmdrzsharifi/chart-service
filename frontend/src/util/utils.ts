@@ -102,6 +102,34 @@ export async function fetchEarningsFMP(symbol:any, from:any, to:any) {
     }
 }
 
+export async function fetchDividendsFMP(symbol:any, from:any, to:any) {
+    const requestBody = {
+        "Ticker": symbol,
+        "from": from,
+        "to": to
+    };
+    const resultData:any = [];
+    try {
+        const response = await fetch(API_URL_FMP +'/fetchDividends', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        })
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const resultData = await response.json();
+
+        return resultData;
+    } catch (error) {
+        console.error('There was an error fetching the candle data:', error);
+        throw error; // Re-throw the error for the calling code to handle
+    }
+}
+
 export async function fetchCexSymbols(){
     const resultData:SymbolList[] = [];
     try {

@@ -52,7 +52,8 @@ import {
     XAxis,
     YAxis,
     ZoomButtons,
-    LabelAnnotationProps
+    LabelAnnotationProps,
+    ClickCallback
 
 } from "react-financial-charts";
 
@@ -78,6 +79,7 @@ import {
     fetchCandleDataFinnhub,
     fetchCandleDataFMP,
     fetchEarningsFMP,
+    fetchDividendsFMP,
     useEventListener
 } from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
@@ -133,8 +135,22 @@ interface MainChartProps {
 
 interface Earnings {
     date: string;
-    earnings: number;
-    est_earnings: number;
+    eps: number;
+    epsEstimated: number;
+    fiscalDateEnding: string;
+    revenue: number;
+    revenueEstimated: number;
+    updatedFromDate: string;
+}
+
+interface Dividends {
+    date: string;
+    label: string;
+    adjDividend: number;
+    dividend: number;
+    recordDate: string;
+    paymentDate: string;
+    declarationDate: string;
 }
 
 const bbStroke = {
@@ -150,7 +166,6 @@ export const MainChart = (props: MainChartProps) => {
     const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList, reloadFromSymbol} = props;
 
     // ----------------- store ----------------- //
-
     const {
         timeFrame, setTimeFrame,
         symbol, setSymbol,
@@ -184,7 +199,6 @@ export const MainChart = (props: MainChartProps) => {
 
     } = useDesignStore();
 
-
     // ----------------- refs ----------------- //
     const canvasRef = useRef(null);
 
@@ -198,10 +212,6 @@ export const MainChart = (props: MainChartProps) => {
     const [xScale, setXScale] = useState<any>()
     const [xAccessor, setXAccessor] = useState<any>()
     const [displayXAccessor, setDisplayXAccessor] = useState<any>()
-
-    // const {fixedPosition, setFixedPosition} = useStore()
-    // const muiTheme = useTheme();
-
     const [fixedPosition, setFixedPosition] = useState(false)
     const [text, setText] = useState<any[]>([]);
     const [yExtents1, setYExtents1] = useState<any>()
@@ -211,22 +221,14 @@ export const MainChart = (props: MainChartProps) => {
     const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
 
     const [suffix, setSuffix] = useState(1);
-
     const [textList_1, textList_3] = useState<any[]>([]);
     const [hover, setHover] = useState<boolean>();
     const [selected, setSelected] = useState<boolean>(false);
     const BRUSH_TYPE = "2D";
     const [earnings, setEarnings] = useState<Earnings[]>([]);
-    /*const [trends, setTrends] = useState([{
-        start: [37, 193.5119667590028],
-        end: [107, 180.54797783933518],
-        appearance: {stroke: "green"},
-        type: "XLINE",
-        selected: undefined
-    }])*/
+    const [dividends, setDividends] = useState<Dividends[]>([]);
 
     const [brushes, setBrushes] = useState<any[]>([])
-
     const numberFormat = format(".2f");
 
     // ----------------- helpers constants ----------------- //
@@ -352,14 +354,19 @@ export const MainChart = (props: MainChartProps) => {
         }*/
 
     const [openEaDialog, setOpenEaDialog] = useState(false);
-    const [eaDialogContent, setEaDialogContent] = useState({ earnings: '', est_earnings: '' });
+    const [openDvDialog, setOpenDvDialog] = useState(false);
+    const [eaDialogContent, setEaDialogContent] = useState({ eps: '', revenue: '', date: ''});
+    const [dvDialogContent, setDvDialogContent] = useState({ dividend: '', date: ''});
 
-    const handleAnnotateClick = (ea:any) => {
-        setEaDialogContent({ earnings: ea.earnings, est_earnings: ea.est_earnings });
+    const handleEarningsClick = (ea:any) => {
+        setEaDialogContent({ eps: ea.eps, revenue: ea.revenue, date: ea.date });
         setOpenEaDialog(true);
     };
 
-
+    const handleDividendsClick = (dv:any) => {
+        setDvDialogContent({ dividend: dv.dividend, date: dv.date });
+        setOpenDvDialog(true);
+    };
 
     const onDrawComplete = (textList: any, moreProps: any) => {
         // this gets called on
@@ -418,10 +425,6 @@ export const MainChart = (props: MainChartProps) => {
         //     enableInteractiveObject: false
         // });
     }
-
-    // const canvasRef = useRef(null);
-
-    // const {data: initialData, dateTimeFormat = "%d %b", height, ratio, width, theme, setData} = props;
 
     /*
         const handleBrush1 = (brushCoords: any, moreProps: any) => {
@@ -536,36 +539,25 @@ export const MainChart = (props: MainChartProps) => {
 
     useEffect(() => {
         const getEarnings = async () => {
-            // const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
-            const earningsData = [
-                {
-                    "date": "2024-06-25",
-                    "earnings": 2.5,
-                    "est_earnings": 2.3
-                },
-                {
-                    "date": "2024-04-20",
-                    "earnings": 3.0,
-                    "est_earnings": 1000.00
-                },
-            ]
-            console.log({earningsData});
+            const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
             // @ts-ignore
             setEarnings(earningsData);
         };
 
+        const getDividends = async () => {
+            const dividendsData = await fetchDividendsFMP(symbol, data[0].date, new Date());
+            // @ts-ignore
+            setDividends(dividendsData);
+        };
+
         if (data.length > 0) {
             getEarnings();
+            getDividends();
         }
 
     }, [symbol])
 
     useMemo(() => {
-        // const { data: inputData } = props;
-        // const inputData = props.data;
-
-        //console.log({props})
-
         const data = dataList;
 
         const ema26Indicator = ema()
@@ -606,19 +598,10 @@ export const MainChart = (props: MainChartProps) => {
             })
             .accessor((d: any) => d.smaVolume50);
 
-        // const maxWindowSize = getMaxUndefined([ema26,
-        // 	ema12,
-        // 	macdCalculator,
-        // 	smaVolume50
-        // ]);
         /* SERVER - START */
-        // const dataToCalculate = inputData.slice(-LENGTH_TO_SHOW - maxWindowSize);
         const dataToCalculate = data.slice(-LENGTH_TO_SHOW);
-
         const calculatedData = ema26Indicator(ema12Indicator(macdCalculatorIndicator(smaVolume50Indicator(dataToCalculate))));
         const indexCalculator = discontinuousTimeScaleProviderBuilder().indexCalculator();
-
-        // console.log(inputData.length, dataToCalculate.length, maxWindowSize)
         const {index} = indexCalculator(calculatedData);
         /* SERVER - END */
 
@@ -649,9 +632,7 @@ export const MainChart = (props: MainChartProps) => {
     }, [reloadFromSymbol])
 
     const handleDataLoadAfter = async (start: any, end: any) => {
-        // setFixedPosition(true);
         console.log("My Data After")
-
     };
 
 
@@ -704,8 +685,6 @@ export const MainChart = (props: MainChartProps) => {
             return
         }
 
-        // let calculatedData = calculateData(moreData)
-
         function calculateData(inputData: any) {
             /*return ema20(
                 wma20(
@@ -725,16 +704,6 @@ export const MainChart = (props: MainChartProps) => {
             return macdCalculator(ema20(sma20(ema50(smaVolume50(ema12(ema26(bb(inputData))))))));
 
         }
-
-        /* SERVER - START */
-        // const dataToCalculate = inputData
-        //     // .slice(-rowsToDownload - maxWindowSize - prevData.length, - prevData.length);
-        //     .slice(-rowsToDownload - prevData.length, - prevData.length);
-        //
-        // console.log({dataToCalculate})
-        //
-        // // const calculatedData = ema26(ema12(macdCalculator(smaVolume50(dataToCalculate))));
-
 
         const calculatedData = ema26(ema12(macdCalculator(smaVolume50(moreData.slice(0, moreData.length - 1)))));
         const indexCalculator = discontinuousTimeScaleProviderBuilder()
@@ -756,10 +725,6 @@ export const MainChart = (props: MainChartProps) => {
             xAccessor,
             displayXAccessor
         } = xScaleProvider(calculateData(calculatedData.slice(-rowsToDownload).concat(prevData)));
-        // const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
-        // setDisplayXAccessor(displayXAccessor)
-        // setXScale(xScale)
-        // setXAccessor(xAccessor)
 
         setData(linearData)
         setLoading(false)
@@ -767,13 +732,8 @@ export const MainChart = (props: MainChartProps) => {
         setXScale(() => xScale)
         setXAccessor(() => xAccessor)
         setDisplayXAccessor(() => displayXAccessor)
-
     }
 
-
-    /* if (calculatedData.length <= 1) {
-         return null
-     }*/
 
     const [contextMenuVisible, setContextMenuVisible] = useState(false);
     const [menuPosition, setMenuPosition] = useState<{ mouseX: null | number; mouseY: null | number }>({
@@ -1020,9 +980,7 @@ export const MainChart = (props: MainChartProps) => {
     useEventListener("keydown", handler);
 
 
-    if (ema12 == undefined || ema26 == undefined || macdCalculator == undefined || smaVolume50 == undefined || xScale == undefined
-        //  || xAccessor == undefined
-    )
+    if (ema12 == undefined || ema26 == undefined || macdCalculator == undefined || smaVolume50 == undefined || xScale == undefined)
         return <></>
 
     // let calculatedData = calculateData(data)
@@ -1046,126 +1004,6 @@ export const MainChart = (props: MainChartProps) => {
     //
     // }
 
-
-    /* useEffect(() => {
-         if (!fixedPosition) {
-             const max = xAccessor(data[data.length - 1]);
-             const min = xAccessor(data[Math.max(0, data.length - NO_OF_CANDLES)]);
-             setXExtents([min, max + 10])
-         }
-     }, [props, fixedPosition])
-
-     useEffect(() => {
-
-         // change Indicators according to themeMode
-         changeIndicatorsColor(themeMode, trends, setTrends, retracements, setRetracements)
-
-     }, [themeMode])
- */
-    /*    const gridHeight = height - margin.top - margin.bottom;*/
-
-    /*    const defaultSar = sar()
-            .options({
-                accelerationFactor, maxAccelerationFactor
-            })
-            .merge((d: any, c: any) => {
-                d.sar = c;
-            })
-            .accessor((d: any) => d.sar);
-        const calculatedData1 = defaultSar(initialData);
-
-
-        const rsiCalculator = rsi()
-            .options({windowSize: 14})
-            .merge((d: any, c: any) => {
-                d.rsi = c;
-            })
-            .accessor((d: any) => d.rsi);
-        const calculatedData2 = rsiCalculator(initialData);
-
-        const atr14 = atr()
-            .options({windowSize: 14})
-            .merge((d: any, c: any) => {
-                d.atr14 = c;
-            })
-            .accessor((d: any) => d.atr14);
-        const calculatedData3 = atr14(initialData);*/
-
-    /*    const fi = forceIndex()
-            .merge((d: any, c: any) => {
-                d.fi = c;
-            })
-            .accessor((d: any) => d.fi);
-        const calculatedData4 = fi(initialData);
-
-        const fiEMA13 = ema()
-            .id(1)
-            .options({windowSize: 13, sourcePath: "fi"})
-            .merge((d: any, c: any) => {
-                d.fiEMA13 = c;
-            })
-            .accessor((d: any) => d.fiEMA13);
-        const calculatedData5 = fiEMA13(initialData);
-
-        const elder = elderRay();
-
-        const changeCalculator = change();
-        const calculatedData6 = changeCalculator(elder(initialData));*/
-
-
-    /*    const slowSTO = stochasticOscillator()
-            .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
-            .merge((d: any, c: any) => {
-                d.slowSTO = c;
-            })
-            .accessor((d: any) => d.slowSTO);
-        const calculatedData7 = slowSTO(elder(initialData));
-
-        const fastSTO = stochasticOscillator()
-            .options({windowSize: 14, kWindowSize: 1, dWindowSize: 4})
-            .merge((d: any, c: any) => {
-                d.fastSTO = c;
-            })
-            .accessor((d: any) => d.fastSTO);
-        const calculatedData8 = fastSTO(elder(initialData));
-
-        const fullSTO = stochasticOscillator()
-            .options({windowSize: 14, kWindowSize: 3, dWindowSize: 4})
-            .merge((d: any, c: any) => {
-                d.fullSTO = c;
-            })
-            .accessor((d: any) => d.fullSTO);
-        const calculatedData9 = fullSTO(elder(initialData));*/
-
-    // const calculatedData10 = elderImpulseCalculator(macdCalculator(ema12(changeCalculator(initialData))));
-
-    /*    const showGrid = false;
-        const xGrid = showGrid ? {innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.1} : {};
-
-        const getStudiesChartOrigin = (chart: StudiesChart) => {
-            return (studiesCharts.indexOf(chart) + 1) * STUDIES_CHART_HEIGHT
-        }
-
-        const getStudiesChartTooltipOrigin = (chart: StudiesChart, yPosition = TOOLTIP_PADDING_LEFT, paddingTop = TOOLTIP_PADDING_TOP, height = TOOLTIP_HEIGHT) => {
-            return [yPosition, studiesChartsWithTooltip.indexOf(chart) * height + paddingTop]
-        }*/
-
-    /* const getlastPrice = (d: any): number => {
-         return initialData[initialData.length - 1].close;
-     };*/
-
-    /*  const getlastPriceForColor = () : string => {
-          const lastItem = initialData[initialData.length - 1];
-          if (!lastItem){
-              return '#ccc'
-          }
-          return lastItem.close > lastItem.open ? "#8cc176" : "#b82c0c";
-      };*/
-
-    /* const showTickLabel = (chart: StudiesChart) => {
-         return studiesCharts.indexOf(chart) === 0
-     }
- */
     // const elderRayOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.ELDER_RAY)];
     // const macdOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.MACD)];
     // const rsiAndAtrOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.RSI_AND_ATR)];
@@ -1236,7 +1074,6 @@ export const MainChart = (props: MainChartProps) => {
             useCrossHairStyleCursor={!disableCrossHair}
             onLoadBefore={handleDownloadMore}
         >
-
 
             /*##### Main Chart #####*/
             <Chart
@@ -1411,7 +1248,15 @@ export const MainChart = (props: MainChartProps) => {
 */}
                 <ZoomButtons onReset={handleReset}/>
                 <OHLCTooltip origin={[8, 16]} textFill={getDesignTokens(themeMode).palette.text.primary}/>
-
+                {/*<ClickCallback
+                    onMouseMove={ (moreProps, e) => { console.log("onMouseMove", moreProps, e); } }
+                    onMouseDown={ (moreProps, e) => { console.log("onMouseDown", moreProps, e); } }
+                    onClick={ (moreProps, e) => { console.log("onClick", moreProps, e); } }
+                    onDoubleClick={ (moreProps, e) => { console.log("onDoubleClick", moreProps, e); } }
+                    onContextMenu={ (moreProps, e) => { console.log("onContextMenu", moreProps, e); } }
+                    onPan={ (moreProps, e) => { console.log("onPan", moreProps, e); } }
+                    onPanEnd={ (moreProps, e) => { console.log("onPanEnd", moreProps, e); } }
+                />*/}
                 {isStudiesChartWithTooltipInclude(StudiesChart.BOLLINGER_BAND) && (
                     <>
                         <MovingAverageTooltip
@@ -1727,42 +1572,62 @@ export const MainChart = (props: MainChartProps) => {
 
                 // Earnings
                 <>
-                    {/*{console.log(earnings.map(ea => dateFormat(new Date(ea.date))))}*/}
-                    {/*{console.log(earnings.map(ea => ea.date))}*/}
-
                     {earnings.map((ea, idx) => (
                         <Annotate
                             key={idx}
                             with={SvgPathAnnotation}
-                            //     return dateFormat(d.date) === dateFormat(new Date(ea.date))}}
-                            // when={d => dateFormat(d.date) === dateFormat(new Date(ea.date))}
-                            // console.log("d.date == ", dateFormat(d.date) === dateFormat(new Date(ea.date)))
                             when={(d: any) => {
                                 const dataDate = dateFormat(new Date(d.date));
                                 const earningsDate = dateFormat(new Date(ea.date));
-                                // console.log(`Comparing ${dataDate} with ${earningsDate}`);
                                 return dataDate === earningsDate;
                             }}
                             usingProps={{
-                                onClick: () => handleAnnotateClick(ea),
-                                // y: ({yScale, datum}: any) => yScale(datum.high),
+                                onClick: () => handleEarningsClick(ea),
                                 y: ({ yScale } : any) => yScale.range()[0],
-                                // y: ({ yScale, datum }: { yScale: any; datum: any }) => yScale(datum.high),
-                                // fill: "green",
-                                fill: ea.earnings >= 0 ? "green" : "red", // Conditional fill color
-                                tooltip: `Earnings: ${ea.earnings}, Est: ${ea.est_earnings}`,
-                                // path: () =>
-                                //     "M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z",
-                                path: () => `M10 10 H20 V12 H14 V18 H20 V20 H14 V26 H20 V28 H10 Z`,
+                                fill: ea.eps >= ea.epsEstimated ? "green" : "red",
+                                tooltip: `EPS: ${ea.eps}, Revenue: ${ea.revenue}`,
+                                path: () => `M20.25,2.75H3.75a1,1,0,0,0-1,1v16.5a1,1,0,0,0,1,1h16.5a1,1,0,0,0,1-1V3.75A1,1,0,0,0,20.25,2.75Z M8.625,18.75H15.375 M8.625,5.25H15.375 M8.625,12H13.025 M8.625,5.25V18.75`,
                                 pathWidth: 20,
-                                pathHeight: 28,
+                                pathHeight: 22,
                                 tooltipContent: () => ({
                                     x: 10,
                                     y: 10,
                                     children: [
-                                        <text key={1}>Earnings: ${ea.earnings}</text>,
-                                        <text key={2}>Estimated: ${ea.est_earnings}</text>,
-                                        <text key={3}>Earnings Date: ${ea.date}</text>
+                                        <text key={1}>EPS: ${ea.eps}</text>,
+                                        <text key={2}>Revenue: ${ea.revenue}</text>,
+                                        <text key={3}>Date: ${ea.date}</text>
+                                    ]
+                                })
+                            }}
+                        />
+                    ))}
+                </>
+
+                // Dividends
+                <>
+                    {dividends.map((dv, idx) => (
+                        <Annotate
+                            key={idx}
+                            with={SvgPathAnnotation}
+                            when={(d: any) => {
+                                const dataDate = dateFormat(new Date(d.date));
+                                const dividendsDate = dateFormat(new Date(dv.date));
+                                return dataDate === dividendsDate;
+                            }}
+                            usingProps={{
+                                onClick: () => handleDividendsClick(dv),
+                                y: ({ yScale } : any) => yScale.range()[0],
+                                fill: dv.dividend >= 0 ? "green" : "red",
+                                tooltip: `Dividend: ${dv.dividend}, Date: ${dv.date}`,
+                                path: () => `M20.25,2.75H3.75a1,1,0,0,0-1,1v16.5a1,1,0,0,0,1,1h16.5a1,1,0,0,0,1-1V3.75A1,1,0,0,0,20.25,2.75Z M7.5,18.75v-13.5h2.285A6.74,6.74,0,0,1,16.5,12h0A6.74,6.74,0,0,1,9.775,18.75Z`,
+                                pathWidth: 20,
+                                pathHeight: 22,
+                                tooltipContent: () => ({
+                                    x: 10,
+                                    y: 10,
+                                    children: [
+                                        <text key={1}>EPS: ${dv.dividend}</text>,
+                                        <text key={2}>Date: ${dv.date}</text>
                                     ]
                                 })
                             }}
@@ -1780,10 +1645,13 @@ export const MainChart = (props: MainChartProps) => {
                     <DialogTitle id="scroll-dialog-title">Earnings Details</DialogTitle>
                     <DialogContent dividers>
                         <Typography gutterBottom>
-                            Earnings: ${eaDialogContent.earnings}
+                            EPS: ${eaDialogContent.eps}
                         </Typography>
                         <Typography gutterBottom>
-                            Estimated Earnings: ${eaDialogContent.est_earnings}
+                            Revenue: ${eaDialogContent.revenue}
+                        </Typography>
+                        <Typography gutterBottom>
+                            Date: {eaDialogContent.date}
                         </Typography>
                     </DialogContent>
                     <DialogActions>
@@ -1793,6 +1661,28 @@ export const MainChart = (props: MainChartProps) => {
                     </DialogActions>
                 </Dialog>
 
+                <Dialog
+                    open={openDvDialog}
+                    onClose={() => setOpenDvDialog(false)}
+                    scroll="paper"
+                    aria-labelledby="scroll-dialog-title"
+                    aria-describedby="scroll-dialog-description"
+                >
+                    <DialogTitle id="scroll-dialog-title">Dividends Details</DialogTitle>
+                    <DialogContent dividers>
+                        <Typography gutterBottom>
+                            Dividends: ${dvDialogContent.dividend}
+                        </Typography>
+                        <Typography gutterBottom>
+                            Date: {dvDialogContent.date}
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setOpenDvDialog(false)} color="primary">
+                            Close
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Chart>
 
             /*##### Volume Chart #####*/
@@ -2338,11 +2228,4 @@ export const MainChart = (props: MainChartProps) => {
         </ChartCanvas>
     );
 }
-
-// CandleStickChartPanToLoadMore.propTypes = {
-//     data: PropTypes.array.isRequired,
-//     width: PropTypes.number.isRequired,
-//     ratio: PropTypes.number.isRequired,
-//     type: PropTypes.oneOf(["svg", "hybrid"]).isRequired,
-// };
 

@@ -202,7 +202,7 @@ const Toolbar = (props: any) => {
         let selectedText = '';
         var name = item.symbol;
         if (item.categoryName === 'CRT') {
-            name = name.replace('_USD', 'USD');
+            // name = name.replace('_USD', 'USD');
             selectedText = name;
         }
         if (item.categoryName === "FX") {
@@ -218,11 +218,11 @@ const Toolbar = (props: any) => {
             selectedText = name
         }
         if (item.categoryName === "CMD") {
-            name = `OANDA:${name}`;
+            // name = `OANDA:${name}`;
             selectedText = name
         }
         if (item.categoryName === "IND") {
-            name = `OANDA:${name}`;
+            // name = `OANDA:${name}`;
             selectedText = name
         }
 
