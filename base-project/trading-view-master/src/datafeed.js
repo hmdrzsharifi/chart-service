@@ -10,27 +10,10 @@ import { finnhubSymbols } from './finnhub-symbols.js';
 const lastBarsCache = new Map();
 export {lastBarsCache};
 
-function mapSymbolResult(originalObject) {
-    let type;
 
-    if (originalObject.categoryName == 'CRT') {
-        type = 'CRT';
-    }
-    if (originalObject.categoryName == 'FX') {
-        type = 'FX';
-    }
-    if (originalObject.categoryName == 'CMD') {
-        type = 'CMD';
-    }
-    if (originalObject.categoryName == 'IND') {
-        type = 'IND';
-    }
-    if (originalObject.categoryName == 'ETF') {
-        type = 'ETF';
-    }
-    if (originalObject.categoryName == 'STC') {
-        type = 'STC';
-    }
+function mapSymbolResult(originalObject) {
+    let type = getType(originalObject.categoryName)
+
     return {
         symbol: originalObject.symbol,
         full_name: originalObject.symbol,
@@ -40,6 +23,18 @@ function mapSymbolResult(originalObject) {
         type: type,
     };
 }
+
+const getType = (categoryName) => {
+    switch (categoryName) {
+        case 'CRT': return 'CRT';
+        case 'FX':  return 'FX';
+        case 'CMD': return 'CMD';
+        case 'IND': return 'IND';
+        case 'ETF': return 'ETF';
+        case 'STC': return 'STC';
+        default: return 'CRT';
+    }
+};
 
 const configurationData = {
     // Represents the resolutions for bars supported by your datafeed
@@ -74,6 +69,10 @@ const configurationData = {
         {
             name: 'STC',
             value: 'STC',
+        },
+        {
+            name: 'IND',
+            value: 'IND',
         },
     ],
 };
@@ -151,7 +150,8 @@ export default {
             symbolCategory = 'CRT'
         }
         const symbolInfo = {
-            ticker: symbolName.replace('_USD', 'USD'),
+            // ticker: symbolName.replace('_USD', 'USD'), // for FMP
+            ticker: symbolName.replace('_USD', 'USDT'),
             name: symbolName,
             description: symbolName,
             type: symbolCategory,
@@ -193,21 +193,29 @@ export default {
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
         if (rawData.length == 1) {
-            rawSymbol = rawData[0];
+            rawSymbol = rawData[0].replace('_USD', 'USDT') // for FINNHUB
         }
         if (rawData.length == 2) {
-            rawSymbol = rawData[1].replace('_USD', 'USD')
+            // rawSymbol = rawData[1].replace('_USD', 'USD') // for FMP
+            rawSymbol = rawData[1].replace('_USD', 'USDT') // for FINNHUB
         }
         if (rawData.length == 3) {
-            rawSymbol = rawData[2].replace('_USD', 'USD')
+            //rawSymbol = rawData[2].replace('_USD', 'USD') // for FMP
+            rawSymbol = rawData[2].replace('_USD', 'USDT')  // for FINNHUB
         }
 
         const symbolCategory = symbolInfo.type;
         let ticker = '';
+        let resultData = [];
+
         if (symbolCategory === 'CRT') {
-            ticker = rawSymbol
+            ticker = 'BINANCE' + ':' + rawSymbol
         }
-        if (symbolCategory == "FX" || symbolCategory == "STC" || symbolCategory == "ETF") {
+
+        if (symbolCategory === 'FX') {
+            ticker = 'OANDA' + ':' + rawSymbol
+        }
+        if (symbolCategory == "STC" || symbolCategory == "ETF") {
             ticker = rawSymbol
         }
 
@@ -215,26 +223,54 @@ export default {
             ticker = 'OANDA' + ':' + rawSymbol
         }
         if (symbolCategory == "IND") {
-            console.log({rawSymbol})
-            if (rawSymbol == "DJIUSD") {
-                ticker = "OANDA:DJI_USD"
-            }
+            const symbolMapping = {
+                "DJIUSD": "OANDA:DJI_USD",
+                "NDXUSDT": "OANDA:NDX_USD",
+                "SPXUSDT": "OANDA:SPX_USD",
+                "ASX_AUD": "OANDA:ASX_AUD",
+                "NIK_JPY": "OANDA:NIK_JPY",
+                "CN50USDT": "OANDA:CN50_USD",
+                "EU50_EUR": "OANDA:EU50_EUR",
+                "DAX_EUR": "OANDA:DAX_EUR",
+                "HK33_HKD": "OANDA:HK33_HKD",
+                "SG30_SGD": "OANDA:SG30_SGD",
+                "FTS_GBP": "OANDA:FTS_GBP",
+                "F40_EUR": "OANDA:F40_EUR"
+            };
+            ticker = symbolMapping[rawSymbol];
         }
 
-        let resultData = [];
 
         try {
-            if (finnhubSymbols.hasOwnProperty(ticker)) {
-                console.log({ticker})
-                if (rawSymbol == "DJIUSD") {
-                    ticker = "^DJI"
-                }
+            if (symbolCategory == "IND" && finnhubSymbols.hasOwnProperty(ticker)) {
+                console.log("Finnhub")
+                const symbolMapping = {
+                    "DJIUSD": "^DJI",
+                    "NDXUSDT": "^NDX",
+                    "SPXUSDT": "OANDA:SPX500_USD",
+                    "ASX_AUD": "^AXJO",
+                    "NIK_JPY": "^N225",
+                    "CN50USDT": "XIN9.FGI",
+                    "EU50_EUR": "^STOXX50E",
+                    "DAX_EUR": "^GDAXI",
+                    "HK33_HKD": "^HSI",
+                    "SG30_SGD": "^STI",
+                    "FTS_GBP": "^FTSE",
+                    "F40_EUR": "OANDA:FR40_EUR"
+                };
+                ticker = symbolMapping[rawSymbol];
                 resultData = await fetchCandleDataFinnhub(ticker, reqResolution, from, to);
-            } else {
-                console.log("FMP")
-                console.log({ticker})
-                resultData = await fetchInitialDataFMP(ticker, reqResolution, from, to);
+            }
 
+            if (symbolCategory == "FX" || symbolCategory == "CRT" || symbolCategory == "CMD") {
+                console.log("Finnhub")
+                console.log({ticker})
+                resultData = await fetchCandleDataFinnhub(ticker, reqResolution, from, to);
+            }
+
+            if (symbolCategory == "STC" || symbolCategory == "ETF") {
+                console.log("FMP")
+                resultData = await fetchInitialDataFMP(ticker, reqResolution, from, to);
             }
 
             if (firstDataRequest) {
@@ -338,7 +374,7 @@ export default {
     //     }
     // },
 
-/*
+    /*
     async getTimescaleMarks(symbolInfo, startDate, endDate, onDataCallback, resolution) {
         if (configurationData.supports_timescale_marks) {
             try {
