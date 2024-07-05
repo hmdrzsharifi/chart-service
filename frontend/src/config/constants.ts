@@ -4,7 +4,6 @@ export const SYMBOLS_API_URL = 'http://localhost:5000'
 
 export const NO_OF_CANDLES = 300;
 export const LENGTH_TO_SHOW = 300;
-export const STUDIES_CHART_HEIGHT = 150;
 export const TOOLTIP_PADDING_LEFT = 8;
 export const TOOLTIP_PADDING_TOP = 45;
 export const TOOLTIP_HEIGHT = 40;

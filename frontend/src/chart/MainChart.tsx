@@ -80,13 +80,13 @@ import {
     fetchCandleDataFMP,
     fetchEarningsFMP,
     fetchDividendsFMP,
-    useEventListener
+    useEventListener,
+    studyChartHeight
 } from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {
     NO_OF_CANDLES,
     LENGTH_TO_SHOW,
-    STUDIES_CHART_HEIGHT,
     TOOLTIP_HEIGHT,
     TOOLTIP_PADDING_LEFT,
     TOOLTIP_PADDING_TOP
@@ -239,7 +239,7 @@ export const MainChart = (props: MainChartProps) => {
             (studiesCharts.includes(StudiesChart.STOCHASTIC_OSCILLATOR) ? 2 : 0) +
             (studiesCharts.includes(StudiesChart.FORCE_INDEX) ? 1 : 0) +
             (studiesCharts.includes(StudiesChart.RSI_AND_ATR) ? 1 : 0)
-        ) * STUDIES_CHART_HEIGHT;
+        ) * studyChartHeight(studiesCharts);
     const pricesDisplayFormat = format(".2f");
     const dateFormat = timeFormat("%Y-%m-%d");
     const barChartHeight = gridHeight / 4;
@@ -446,14 +446,21 @@ export const MainChart = (props: MainChartProps) => {
         }
     */
 
-    /* const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length) * STUDIES_CHART_HEIGHT - barChartHeight];*/
+    /* const barChartOrigin = (_: number, h: number) => [0, h - (studiesCharts.length) * studyChartHeight(studiesCharts) - barChartHeight];*/
 
     const barChartExtents = (data: IOHLCData) => {
         return data.volume;
     };
 
     const getStudiesChartOrigin = (w: number, h: number, chart: StudiesChart) => {
-        return [0, h - (studiesCharts.indexOf(chart) + 1) * STUDIES_CHART_HEIGHT]
+
+        const index = studiesCharts.indexOf(chart)
+        return [0, h - ( index + 1 +
+            (studiesCharts.slice(0, index).includes(StudiesChart.STOCHASTIC_OSCILLATOR) ? 2 : 0) +
+            (studiesCharts.slice(0, index).includes(StudiesChart.FORCE_INDEX) ? 1 : 0) +
+            (studiesCharts.slice(0, index).includes(StudiesChart.RSI_AND_ATR) ? 1 : 0)
+
+        ) * studyChartHeight(studiesCharts)]
     }
 
     const showTickLabel = (chart: StudiesChart) => {
@@ -1010,12 +1017,12 @@ export const MainChart = (props: MainChartProps) => {
     // const forceIndexOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.FORCE_INDEX)];
     // const stochasticOscillatorOrigin = (_: number, h: number) => [0, h - getStudiesChartOrigin(StudiesChart.STOCHASTIC_OSCILLATOR)];
     // const barChartHeight = gridHeight / 4;
-    // const chartHeight = gridHeight - studiesCharts.length * STUDIES_CHART_HEIGHT;
+    // const chartHeight = gridHeight - studiesCharts.length * studyChartHeight(studiesCharts);
     const barChartOrigin = (_: number, h: number) => [0, (gridHeight - barChartHeight) - ((studiesCharts.length +
         (studiesCharts.includes(StudiesChart.STOCHASTIC_OSCILLATOR) ? 2 : 0) +
         (studiesCharts.includes(StudiesChart.FORCE_INDEX) ? 1 : 0) +
         (studiesCharts.includes(StudiesChart.RSI_AND_ATR) ? 1 : 0)
-    )) * STUDIES_CHART_HEIGHT];
+    )) * studyChartHeight(studiesCharts)];
 
     // const timeDisplayFormat = timeFormat(HourAndMinutesTimeFrames.includes(timeFrame) ? "%H %M" : dateTimeFormat);
     // const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
@@ -1714,7 +1721,7 @@ export const MainChart = (props: MainChartProps) => {
                 // />
 
                 (
-                    <Chart id={3} height={STUDIES_CHART_HEIGHT} yExtents={[0, elder.accessor()]}
+                    <Chart id={3} height={studyChartHeight(studiesCharts)} yExtents={[0, elder.accessor()]}
                            origin={(w, h) => getStudiesChartOrigin(w, h, StudiesChart.ELDER_RAY)}
                            padding={{top: 8, bottom: 8}}>
                         {/*<XAxis showGridLines gridLinesStrokeStyle="#e0e3eb" {...xAndYColors}/>*/}
@@ -1776,7 +1783,7 @@ export const MainChart = (props: MainChartProps) => {
 
             /*##### MACD Chart #####*/
             {isStudiesChartInclude(StudiesChart.MACD) && (
-                <Chart id={4} height={STUDIES_CHART_HEIGHT}
+                <Chart id={4} height={studyChartHeight(studiesCharts)}
                        yExtents={macdCalculator.accessor()}
                        origin={(w, h) => getStudiesChartOrigin(w, h, StudiesChart.MACD)}
                        padding={{top: 10, bottom: 10}}
@@ -1814,8 +1821,8 @@ export const MainChart = (props: MainChartProps) => {
             {isStudiesChartInclude(StudiesChart.RSI_AND_ATR) && (
                 <Chart id={5}
                        yExtents={rsiCalculator.accessor()}
-                       height={STUDIES_CHART_HEIGHT}
-                       origin={(w, h) => getStudiesChartOrigin(w, h - STUDIES_CHART_HEIGHT, StudiesChart.RSI_AND_ATR)}
+                       height={studyChartHeight(studiesCharts)}
+                       origin={(w, h) => getStudiesChartOrigin(w, h - studyChartHeight(studiesCharts), StudiesChart.RSI_AND_ATR)}
                        padding={{top: 10, bottom: 10}}
 
                 >
@@ -1841,7 +1848,7 @@ export const MainChart = (props: MainChartProps) => {
             {isStudiesChartInclude(StudiesChart.RSI_AND_ATR) && (
                 <Chart id={6}
                        yExtents={atr14.accessor()}
-                       height={STUDIES_CHART_HEIGHT}
+                       height={studyChartHeight(studiesCharts)}
                        origin={(w, h) => getStudiesChartOrigin(w, h, StudiesChart.RSI_AND_ATR)}
                        padding={{top: 10, bottom: 10}}
                 >
@@ -1873,9 +1880,9 @@ export const MainChart = (props: MainChartProps) => {
 
             /*##### FORCE_INDEX Chart #####*/
             {isStudiesChartInclude(StudiesChart.FORCE_INDEX) && (
-                <Chart id={7} height={STUDIES_CHART_HEIGHT}
+                <Chart id={7} height={studyChartHeight(studiesCharts)}
                        yExtents={fi.accessor()}
-                       origin={(w, h) => getStudiesChartOrigin(w, h - STUDIES_CHART_HEIGHT, StudiesChart.FORCE_INDEX)}
+                       origin={(w, h) => getStudiesChartOrigin(w, h - studyChartHeight(studiesCharts), StudiesChart.FORCE_INDEX)}
                        padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
@@ -1899,7 +1906,7 @@ export const MainChart = (props: MainChartProps) => {
                 </Chart>
             )}
             {isStudiesChartInclude(StudiesChart.FORCE_INDEX) && (
-                <Chart id={8} height={STUDIES_CHART_HEIGHT}
+                <Chart id={8} height={studyChartHeight(studiesCharts)}
                        yExtents={fiEMA13.accessor()}
                        origin={(w, h) => getStudiesChartOrigin(w, h, StudiesChart.FORCE_INDEX)}
                        padding={{top: 10, bottom: 10}}
@@ -1939,8 +1946,8 @@ export const MainChart = (props: MainChartProps) => {
             {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
                 <Chart id={9}
                        yExtents={[0, 100]}
-                       height={STUDIES_CHART_HEIGHT}
-                       origin={(w, h) => getStudiesChartOrigin(w, h - (STUDIES_CHART_HEIGHT * 2), StudiesChart.STOCHASTIC_OSCILLATOR)}
+                       height={studyChartHeight(studiesCharts)}
+                       origin={(w, h) => getStudiesChartOrigin(w, h - (studyChartHeight(studiesCharts) * 2), StudiesChart.STOCHASTIC_OSCILLATOR)}
                        padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
@@ -1968,8 +1975,8 @@ export const MainChart = (props: MainChartProps) => {
             {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
                 <Chart id={10}
                        yExtents={[0, 100]}
-                       height={STUDIES_CHART_HEIGHT}
-                       origin={(w, h) => getStudiesChartOrigin(w, h - STUDIES_CHART_HEIGHT, StudiesChart.STOCHASTIC_OSCILLATOR)}
+                       height={studyChartHeight(studiesCharts)}
+                       origin={(w, h) => getStudiesChartOrigin(w, h - studyChartHeight(studiesCharts), StudiesChart.STOCHASTIC_OSCILLATOR)}
                        padding={{top: 10, bottom: 10}}
                 >
                     <XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} {...xAndYColors}
@@ -1998,7 +2005,7 @@ export const MainChart = (props: MainChartProps) => {
             {isStudiesChartInclude(StudiesChart.STOCHASTIC_OSCILLATOR) && (
                 <Chart id={11}
                        yExtents={[0, 100]}
-                       height={STUDIES_CHART_HEIGHT}
+                       height={studyChartHeight(studiesCharts)}
                        origin={(w, h) => getStudiesChartOrigin(w, h, StudiesChart.STOCHASTIC_OSCILLATOR)}
                        padding={{top: 10, bottom: 10}}
                 >

@@ -3,7 +3,6 @@ import {
 
 } from "react-financial-charts";
 import * as React from "react";
-import {STUDIES_CHART_HEIGHT} from "../../config/constants";
 import useStore from "../../util/store";
 import useDesignStore from "../../util/designStore";
 import {useState} from "react";
@@ -14,7 +13,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import {Button} from "@mui/material";
 import {StudiesChart} from "../../type/Enum";
-import {xAndYColors} from "../../util/utils";
+import {xAndYColors, studyChartHeight} from "../../util/utils";
 import getDesignTokens from "../../config/theme";
 
 const ElderRayStudiesChart = (props: {
@@ -32,11 +31,11 @@ const ElderRayStudiesChart = (props: {
     // states
     const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
 
-    const elderRayOrigin = (_: number, h: number) => [0, h - studiesCharts.length * STUDIES_CHART_HEIGHT];
+    const elderRayOrigin = (_: number, h: number) => [0, h - studiesCharts.length * studyChartHeight(studiesCharts)];
 
     return (
         <Chart id={3}
-               height={STUDIES_CHART_HEIGHT}
+               height={studyChartHeight(studiesCharts)}
                yExtents={props.yExtents}
                origin={elderRayOrigin}
                padding={{top: 8, bottom: 8}}
