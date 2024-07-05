@@ -4,6 +4,21 @@ class Config:
     FMP_API_KEY = 'fng76oNvOTV9fiNj1QlDCoU1gbZCNtrh'
     HOST = '0.0.0.0'
     PORT = 5000
-    DEBUG = False
+    DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:mysql@adi.dev.modernisc.com/app_db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# class Config:
+#     SYMBOLS_API_URL = "https://default-url.com/api"
+#
+# class DevelopmentConfig(Config):
+#     DEBUG = True
+#     SYMBOLS_API_URL = "https://dev-url.com/api"
+#
+# class TestingConfig(Config):
+#     TESTING = True
+#     SYMBOLS_API_URL = "https://test-url.com/api"
+#
+# class ProductionConfig(Config):
+#     DEBUG = False
+#     SYMBOLS_API_URL = "https://prod-url.com/api"

@@ -7,9 +7,32 @@ from flask_caching import Cache
 import hashlib
 import datetime
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import urllib.request as urllib2, json
+import logging
+
+
+# Create and configure the logger
+logger = logging.getLogger('my_flask_app')
+logger.setLevel(logging.INFO)
+
+# Create a file handler
+file_handler = logging.FileHandler('app.log')
+file_handler.setLevel(logging.INFO)
+
+# Create a console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Create a formatter and set it for the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 
 # from waitress import serve
@@ -22,7 +45,8 @@ CORS(app, resources={r'*': {'origins': '*'}})
 app.config.from_object('config.Config')  # Load configuration from config.py
 
 # Configure caching
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+# cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+cache = Cache()
 
 
 # redis level 1 caching
@@ -57,61 +81,116 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 #         return cache_key
 #     return None
 
-def make_getSymbols_cache_key_():
-    logging.debug("make_getSymbols_cache_key_ function called")
+def generate_cache_key_get_all_symbols():
+    logging.debug("Generating cache key.")
     args = request.args  # For GET requests
     if args:
         key = json.dumps(request.args, sort_keys=True)  # Sort keys for consistency
     else:
         key = 'static_key_for_all_symbols'  # Static key when there are no query parameters
+
     cache_key = hashlib.md5(key.encode('utf-8')).hexdigest()
     logging.debug(f"Generated cache key: {cache_key}")
     return cache_key
 
-
 @app.route('/getAllSymbols', methods=['GET'])
-@cache.cached(timeout=86400, key_prefix=make_getSymbols_cache_key_)  # Cache for 1 day
+@cache.cached(timeout=86400, key_prefix=generate_cache_key_get_all_symbols)  # Cache for 1 day
 def get_all_symbols():
+    logger.info('Fetching all symbols.')
+
     url = current_app.config['SYMBOLS_API_URL']
     try:
         response = requests.get(url)
         response.raise_for_status()
-        return jsonify(response.json())
+        symbols = response.json()
+        logger.debug(f"Successfully fetched symbols: {symbols}")
+        return jsonify(symbols)
     except requests.RequestException as exp:
-        current_app.logger.error(f"Error fetching symbols: {exp}")
+        logger.error(f"Error fetching symbols: {exp}")
         return jsonify({"error": "Failed to fetch symbols"}), 500
 
+#
+# def generate_cache_key_fetch_candle_data():
+#     logging.debug("make_cache_key function called")
+#     request_data = request.get_json()
+#     if request_data:
+#         from_time = request_data.get('from')
+#         to_time = request_data.get('to')
+#
+#         # Convert timestamps to human-readable dates
+#         from_date = datetime.datetime.fromtimestamp(from_time).strftime('%Y-%m-%d')
+#         to_date = datetime.datetime.fromtimestamp(to_time).strftime('%Y-%m-%d')
+#
+#         # Use the dates along with other request parameters to generate the key
+#         key_data = {
+#             'Ticker': request_data.get('Ticker'),
+#             'TimeFrame': request_data.get('TimeFrame'),
+#             'from_date': from_date,
+#             'to_date': to_date
+#         }
+#
+#         key = json.dumps(key_data, sort_keys=True)  # Sort keys for consistency
+#         cache_key = hashlib.md5(key.encode('utf-8')).hexdigest()
+#         logging.debug(f"Generated cache key: {cache_key}")
+#         return cache_key
+#     return None
 
-# @app.route('/fetchCandleData', methods=['POST'])
-# # @cache.cached(timeout=300, key_prefix=make_cache_key)  # Cache for 5 minutes
-# def fetch_candle_data():
+# def generate_cache_key_fetch_candle_data():
 #     request_data = request.json
-#     symbol = request_data.get('Ticker')
+#     symbol = request_data.get('Ticker').lower()
 #     time_frame = request_data.get('TimeFrame')
-#     from_time = request_data.get('from')
-#     to_time = request_data.get('to')
-#
-#     if time_frame == '1M': time_frame = '1'
-#     if time_frame == '5M': time_frame = '5'
-#     if time_frame == '15M': time_frame = '15'
-#     if time_frame == '30M': time_frame = '30'
-#     if time_frame == '1H': time_frame = '60'
-#
-#     finnhub_client = finnhub.Client(api_key=current_app.config['FINNHUB_API_KEY'])
-#     print(request_data)
-#     # Stock candles
-#     res = finnhub_client.stock_candles(symbol, time_frame, from_time, to_time)
-#
-#     if res.get('s') == "ok":
-#         df = pd.DataFrame(res)
-#         # Convert to JSON
-#         json_data = df.to_json(orient='records')
-#     else:
-#         json_data = json.dumps(res)
-#     return json_data
+#     from_date = request_data.get('from')
+#     to_date = request_data.get('to')
+#     return f"{symbol}_{time_frame}_{from_date}_{to_date}"
+
+def normalize_dates(from_timestamp, to_timestamp, timeframe):
+    from_date = datetime.utcfromtimestamp(from_timestamp)
+    to_date = datetime.utcfromtimestamp(to_timestamp)
+
+    if timeframe == '1M':
+        # Normalize to the nearest 5 minutes interval
+        from_date = from_date.replace(second=0, microsecond=0, minute=(from_date.minute // 5) * 5)
+        to_date = to_date.replace(second=0, microsecond=0, minute=(to_date.minute // 5) * 5)
+    elif timeframe == '5M':
+        from_date = from_date.replace(second=0, microsecond=0)
+        to_date = to_date.replace(second=0, microsecond=0)
+    elif timeframe == '15M':
+        from_date = from_date.replace(second=0, microsecond=0, minute=(from_date.minute // 15) * 15)
+        to_date = to_date.replace(second=0, microsecond=0, minute=(to_date.minute // 15) * 15)
+    elif timeframe == '30M':
+        from_date = from_date.replace(second=0, microsecond=0, minute=(from_date.minute // 30) * 30)
+        to_date = to_date.replace(second=0, microsecond=0, minute=(to_date.minute // 30) * 30)
+    elif timeframe == '1H':
+        from_date = from_date.replace(minute=0, second=0, microsecond=0)
+        to_date = to_date.replace(minute=0, second=0, microsecond=0)
+    elif timeframe == 'D':
+        from_date = from_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        to_date = to_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif timeframe == 'W':
+        from_date = from_date - timedelta(days=from_date.weekday())
+        from_date = from_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        to_date = to_date - timedelta(days=to_date.weekday())
+        to_date = to_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif timeframe == 'M':
+        from_date = from_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        to_date = to_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    return int(from_date.timestamp()), int(to_date.timestamp())
+
+def generate_cache_key_fetch_candle_data():
+    request_data = request.json
+    symbol = request_data.get('Ticker').lower()
+    time_frame = request_data.get('TimeFrame')
+    from_date = request_data.get('from')
+    to_date = request_data.get('to')
+
+    normalized_from, normalized_to = normalize_dates(from_date, to_date, time_frame)
+
+    return f"{symbol}_{time_frame}_{normalized_from}_{normalized_to}"
 
 
 @app.route('/fetchCandleData', methods=['POST'])
+@cache.cached(timeout=86400, key_prefix=generate_cache_key_fetch_candle_data)  # Cache for 5 minutes
 def fetch_candle_data():
     request_data = request.json
     symbol = request_data.get('Ticker').lower()
@@ -148,11 +227,22 @@ def fetch_candle_data():
         historical_data_sorted = sorted(historical_data, key=lambda x: x['date'])  # Replace 'date' with the appropriate key to sort by
         if time_frame not in ['D', 'W', 'M']:
             for entry in historical_data_sorted:
+                # entry['date'] = convert_to_utc(entry['date'])
                 entry['date'] = convert_to_utc(entry['date'])
 
+
+        logger.info('Fetch Candles: %s %s %d %s %s', symbol, time_frame, len(historical_data_sorted), from_date, to_date)
         return jsonify(historical_data_sorted)
     else:
         return jsonify({"error": "Failed to retrieve data"}), response.status_code
+
+
+def convert_to_utc(date_string, timezone='US/Eastern'):
+    local = pytz.timezone(timezone)
+    naive = datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S')
+    local_dt = local.localize(naive, is_dst=None)
+    utc_dt = local_dt.astimezone(pytz.utc)
+    return utc_dt.strftime('%Y-%m-%d %H:%M:%S')
 
 @app.route('/fetchEarnings', methods=['POST'])
 def fetch_earnings():
@@ -197,15 +287,22 @@ def convert_timestamp_to_date(from_timestamp):
     else:
         return 'Timestamp not provided'
 
-def convert_to_utc(date_str):
-    local_tz = pytz.timezone('America/Toronto')  # Assuming the data is in Toronto timezone
-    local_dt = local_tz.localize(datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S"))  # Adjust the format as needed
-    utc_dt = local_dt.astimezone(pytz.utc)
-    return utc_dt.strftime("%Y-%m-%d %H:%M:%S")
+# def convert_to_utc(date_str):
+#     local_tz = pytz.timezone('America/Toronto')  # Assuming the data is in Toronto timezone
+#     local_dt = local_tz.localize(datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S"))  # Adjust the format as needed
+#     utc_dt = local_dt.astimezone(pytz.utc)
+#     return utc_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+# Ensure the cache is properly configured
+def configure_cache(app):
+    cache.init_app(app, config={'CACHE_TYPE': 'simple'})  # Example cache configuration
+    logging.debug("Cache configured.")
 
 # Example usage
 if __name__ == '__main__':
     host = app.config['HOST']
     port = app.config['PORT']
     debug = app.config['DEBUG']
-    app.run(host=host, port=port, debug=debug)
+    configure_cache(app)
+
+app.run(host=host, port=port, debug=debug, use_reloader=True)

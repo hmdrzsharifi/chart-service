@@ -89,8 +89,9 @@ function App() {
 
         // CEX
         socket.on('symbolUpdate', (message: any) => {
-            const convertedMessage = {...message, ask: new Decimal(message.ask).toNumber()}
+            // console.log('Received message CEX:', message);
 
+            /*const convertedMessage = {...message, ask: new Decimal(message.ask).toNumber()}
             let rawData = symbol.split(':')
             let rawSymbol
             if (rawData[0] === 'BINANCE') {
@@ -98,9 +99,10 @@ function App() {
             }
             if (rawData[0] === 'OANDA') {
                 rawSymbol = rawData[1]
-            }
-            if (message.symbol === rawSymbol) {
-                handleRealTimeCandleCex(convertedMessage);
+            }*/
+
+            if (message.symbol === symbol) {
+                handleRealTimeCandleCex(message);
             }
         });
     };
@@ -204,26 +206,40 @@ function App() {
 
     const fetchInitialDataFinnhub = async (ticker:any) => {
         try {
-            let from;
+            // let from;
             setLoading(true)
 
-            switch (timeFrame) {
-                case "1M":
-                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 60);
-                    break;
-                case "D":
-                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600);
-                    break;
+            const multipliers = {
+                "1M": 60,
+                "5M": 5 * 60,
+                "15M": 15 * 60,
+                "30M": 30 * 60,
+                "1H": 60 * 60,
+                "D": 24 * 3600,
+                "W": 7 * 24 * 3600,
+                "M": 30 * 24 * 3600
+            };
 
-                //todo add other time frame
+            const multiplier = multipliers[timeFrame];
+            const from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * multiplier);
+            const to = Math.floor(new Date().getTime() / 1000);
 
-                default:
-                    from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
-            }
+            // switch (timeFrame) {
+                // case "1M":
+                //     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 60);
+                //     break;
+                // case "D":
+                //     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600);
+                //     break;
 
-            const candleData = await fetchCandleDataFinnhub(ticker, timeFrame, from, Math.floor(new Date().getTime() / 1000));
+                // default:
+                //     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
+            // }
+
+            const candleData = await fetchCandleDataFinnhub(ticker, timeFrame, from, to);
 
             setData(candleData)
+            setReloadFromSymbol(!reloadFromSymbol)
             setLoading(false)
 
         } catch (error) {
@@ -234,12 +250,28 @@ function App() {
 
     const fetchInitialDataFMP = async (ticker:any) => {
         try {
-            let from;
-            let to = Math.floor(new Date().getTime() / 1000);
+            // let from;
+            // let to = Math.floor(new Date().getTime() / 1000);
 
             setLoading(true)
 
-            switch (timeFrame) {
+            const multipliers = {
+                "1M": 60,
+                "5M": 5 * 60,
+                "15M": 15 * 60,
+                "30M": 30 * 60,
+                "1H": 60 * 60,
+                "D": 24 * 3600,
+                "W": 7 * 24 * 3600,
+                "M": 30 * 24 * 3600
+            };
+
+            const multiplier = multipliers[timeFrame];
+            const from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * multiplier);
+            const to = Math.floor(new Date().getTime() / 1000);
+
+
+            /*switch (timeFrame) {
                 case "1M":
                     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 60);
                     break;
@@ -251,7 +283,7 @@ function App() {
 
                 default:
                     from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * 24 * 3600)
-            }
+            }*/
 
             const candleData = await fetchCandleDataFMP(ticker, timeFrame, from, to);
             console.log(candleData)

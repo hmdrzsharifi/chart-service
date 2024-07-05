@@ -564,7 +564,7 @@ export const MainChart = (props: MainChartProps) => {
         // const { data: inputData } = props;
         // const inputData = props.data;
 
-        console.log({props})
+        //console.log({props})
 
         const data = dataList;
 
@@ -673,21 +673,53 @@ export const MainChart = (props: MainChartProps) => {
 
         const prevData = data
         const endDate = new Date(data[0].date);
+        // console.log({endDate})
+        // let from;
+        let to = Math.floor(endDate.getTime() / 1000);
 
-        let from;
-        switch (timeFrame) {
+        const multipliers = {
+            "1M": 60,
+            "5M": 5 * 60,
+            "15M": 15 * 60,
+            "30M": 30 * 60,
+            "1H": 60 * 60,
+            "D": 24 * 3600,
+            "W": 7 * 24 * 3600,
+            "M": 30 * 24 * 3600
+        };
+
+        const multiplier = multipliers[timeFrame];
+        const from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * multiplier);
+
+        /*switch (timeFrame) {
             case "1M":
                 from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 60);
+                break;
+            case "5M":
+                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 5 * 60);
+                break;
+            case "15M":
+                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 15 * 60);
+                break;
+            case "30M":
+                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 30 * 60);
+                break;
+            case "1H":
+                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 60 * 60);
                 break;
             case "D":
                 from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600);
                 break;
-
-            //todo add other time frame
+            case "W":
+                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 7 * 24 * 3600);
+                break;
+            case "M":
+                from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 30 * 24 * 3600);
+                break;
 
             default:
                 from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600)
-        }
+        }*/
 
 
         let moreData = []
@@ -695,11 +727,11 @@ export const MainChart = (props: MainChartProps) => {
         try {
             if (finnhubSymbols.hasOwnProperty(symbol)) {
                 console.log("fetchInitialDataFinnhub", symbol)
-                moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+                moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, to);
             } else {
                 let ticker = symbol.replace('_USD', 'USD').toLowerCase();
                 console.log("fetchInitialDataFMP", ticker)
-                moreData = await fetchCandleDataFMP(ticker, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+                moreData = await fetchCandleDataFMP(ticker, timeFrame, from, to);
             }
             // moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
         } catch (error) {
@@ -1731,7 +1763,7 @@ export const MainChart = (props: MainChartProps) => {
 
                 // Earnings
                 <>
-                    {console.log(earnings.map(ea => dateFormat(new Date(ea.date))))}
+                    {/*{console.log(earnings.map(ea => dateFormat(new Date(ea.date))))}*/}
                     {/*{console.log(earnings.map(ea => ea.date))}*/}
 
                     {earnings.map((ea, idx) => (

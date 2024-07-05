@@ -149,7 +149,7 @@ function mapObjectFinnhub(originalObject:any) {
 
 function mapObjectFMP(originalObject:any) {
     return {
-        date: new Date(originalObject.date),
+        date: new Date(originalObject.date + 'Z'),  // Append 'Z' to indicate UTC
         open: originalObject.open,
         high: originalObject.high,
         low: originalObject.low,
