@@ -94,7 +94,7 @@ const Toolbar = (props: any) => {
         const items: string[] = [];
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key) {
+            if (key && key.startsWith('chart_')) {
                 items.push(key);
             }
         }
@@ -127,7 +127,8 @@ const Toolbar = (props: any) => {
             themeMode,
             checkedThemeSwitch
         }
-        localStorage.setItem(saveName , JSON.stringify(chartState));
+        const prefixedSaveName = `chart_${saveName}`;
+        localStorage.setItem(prefixedSaveName , JSON.stringify(chartState));
         closeSaveDialog();
     };
 
@@ -187,7 +188,7 @@ const Toolbar = (props: any) => {
             setThemeMode(chartState.themeMode)
             setCheckedThemeSwitch(chartState.checkedThemeSwitch)
         }
-        setSaveName(item)
+        setSaveName(item.replace('chart_', ''))
         closeSaveModal()
         setSaveMenuOpen(false)
     }
@@ -783,6 +784,11 @@ const Toolbar = (props: any) => {
                             variant="standard"
                             value={saveName}
                             onChange={(e) => setSaveName(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSave();
+                                }
+                            }}
                         />
                     </DialogContent>
                     <DialogActions>
@@ -812,7 +818,7 @@ const Toolbar = (props: any) => {
                             {filteredItems.length > 0 ? (
                                 filteredItems.map((item) => (
                                     <ListItem button key={item} onClick={() => handleItemClick(item)}>
-                                        <ListItemText primary={item} />
+                                        <ListItemText primary={item.replace('chart_', '')} />
                                     </ListItem>
                                 ))
                             ) : (
