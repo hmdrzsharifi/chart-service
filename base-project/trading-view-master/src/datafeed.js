@@ -83,6 +83,26 @@ let symbolMap = new Map();
 // Cache to store the fetched data
 const barsCache = {};
 
+function adjustFromParameter(from, requiredBars, resolution) {
+    // Implement logic to adjust 'from' based on requiredBars and resolution
+    // For example, if resolution is in days and requiredBars is 100, you might subtract 100 days from 'from'
+    // Return the adjusted 'from' timestamp
+    return from - (requiredBars * resolutionToMilliseconds(resolution));
+}
+
+function resolutionToMilliseconds(resolution) {
+    switch (resolution) {
+        case '1': return 60 * 1000; // 1 minute
+        case '5': return 5 * 60 * 1000; // 5 minutes
+        case '15': return 15 * 60 * 1000; // 15 minutes
+        case '30': return 30 * 60 * 1000; // 30 minutes
+        case '60': return 60 * 60 * 1000; // 1 hour
+        case 'D': return 24 * 60 * 60 * 1000; // 1 day
+        case 'W': return 7 * 24 * 60 * 60 * 1000; // 1 week
+        case 'M': return 30 * 24 * 60 * 60 * 1000; // 1 month
+        default: return 0;
+    }
+}
 async function getAllSymbols() {
     try {
         const response = await fetch(FMP_DATA_ADDRESS + '/getAllSymbols', {
@@ -183,6 +203,8 @@ export default {
         // Create a unique key for the cache based on symbol, resolution, and time range
         const cacheKey = `${symbolInfo.ticker}-${resolution}-${from}-${to}`;
 
+        const requiredBars = countBack;
+        console.log("requiredBars", requiredBars)
         // Check if the data is already in the cache
         if (barsCache[cacheKey]) {
             console.log('Serving from cache:', cacheKey);
@@ -206,39 +228,65 @@ export default {
         let rawData = window.tvWidget.symbolInterval().symbol.split(':')
         let rawSymbol;
         const symbolCategory = symbolInfo.type;
+        let ticker = '';
         if (rawData.length == 1) {
-            if (symbolCategory === 'FX'){
+            if (symbolCategory === 'CRT') {
+                rawSymbol = rawData[0].replace('_USD', 'USDT')
+                ticker = 'BINANCE' + ':' + rawSymbol
+            }
+
+            if (symbolCategory === 'FX') {
+                rawSymbol = rawData[0]
+                ticker = 'OANDA' + ':' +  rawSymbol
+                // ticker = rawSymbol // for FMP
+            }
+            /*if (symbolCategory === 'FX'){
                 rawSymbol = rawData[0].replace('_USD', 'USD') // for FMP
             } else {
                 rawSymbol = rawData[0].replace('_USD', 'USDT')  // for FINNHUB
-            }
+            }*/
         }
         if (rawData.length == 2) {
-            if (symbolCategory === 'FX'){
+            if (symbolCategory === 'CRT') {
+                ticker = 'BINANCE' + ':' + rawSymbol
+            }
+
+            if (symbolCategory === 'FX') {
+                ticker = 'OANDA' + ':' + rawSymbol
+                // ticker = rawSymbol // for FMP
+            }
+            if (symbolCategory === 'STC' || symbolCategory === 'ETF') {
+                ticker = rawSymbol
+            }
+            /*if (symbolCategory === 'FX'){
                 rawSymbol = rawData[1].replace('_USD', 'USD') // for FMP
             } else {
                 rawSymbol = rawData[1].replace('_USD', 'USDT')  // for FINNHUB
-            }
+            }*/
         }
         if (rawData.length == 3) {
-            if (symbolCategory === 'FX'){
+            if (symbolCategory === 'CRT') {
+                ticker = 'BINANCE' + ':' + rawSymbol
+            }
+
+            if (symbolCategory === 'FX') {
+                ticker = 'OANDA' + ':' + rawSymbol
+                // ticker = rawSymbol // for FMP
+            }
+            if (symbolCategory === 'STC' || symbolCategory === 'ETF') {
+                ticker = rawSymbol
+            }
+
+           /* if (symbolCategory === 'FX'){
                 rawSymbol = rawData[2].replace('_USD', 'USD') // for FMP
             } else {
                 rawSymbol = rawData[2].replace('_USD', 'USDT')  // for FINNHUB
-            }
+            }*/
         }
 
-        let ticker = '';
         let resultData = [];
 
-        if (symbolCategory === 'CRT') {
-            ticker = 'BINANCE' + ':' + rawSymbol
-        }
 
-        if (symbolCategory === 'FX') {
-            // ticker = 'OANDA' + ':' + rawSymbol
-            ticker = rawSymbol
-        }
         if (symbolCategory == "STC" || symbolCategory == "ETF") {
             ticker = rawSymbol
         }
@@ -287,31 +335,53 @@ export default {
                 resultData = await fetchCandleDataFinnhub(ticker, reqResolution, from, to);
             }
 
-            if ( symbolCategory == "CRT" || symbolCategory == "CMD") {
+            if ( symbolCategory == "CRT" || symbolCategory == "CMD" ) {
                 console.log("Finnhub")
-                console.log({from})
-                console.log({to})
-                console.log({ticker})
                 resultData = await fetchCandleDataFinnhub(ticker, reqResolution, from, to);
             }
 
-            if (symbolCategory == "STC" || symbolCategory == "ETF" || symbolCategory == "FX") {
+            if ( symbolCategory == "FX") {
+                console.log("Finnhub")
+                resultData = await fetchCandleDataFinnhub(ticker, reqResolution, from, to);
+            }
+
+            if (symbolCategory == "STC" || symbolCategory == "ETF" ) {
                 console.log("FMP")
                 resultData = await fetchInitialDataFMP(ticker, reqResolution, from, to);
             }
 
             if (firstDataRequest) {
-                lastBarsCache.set(symbolCategory + ':' + rawSymbol.replace('USD', '_USD'), {
-                    ...resultData[resultData.length - 1],
-                });
+                if (symbolCategory == "STC" || symbolCategory == "ETF" ) {
+                    lastBarsCache.set(symbolCategory + ':' + rawSymbol, {
+                        ...resultData[resultData.length - 1],
+                    });
+                } else {
+                    lastBarsCache.set(symbolCategory + ':' + rawSymbol.replace('USD', '_USD'), {
+                        ...resultData[resultData.length - 1],
+                    });
+                }
             }
 
             // Store the fetched data in the cache
             barsCache[cacheKey] = resultData;
             // console.log(`[getBars]: returned ${resultData.length} bar(s)`);
-            onHistoryCallback(resultData, {
+
+            /*if (resultData.length < requiredBars) {
+                console.log("YES")
+                const newFrom = adjustFromParameter(from, requiredBars, resolution);
+                console.log("newFrom", newFrom)
+                resultData = await fetchInitialDataFMP(ticker.replace('_', ''), reqResolution, newFrom, to);
+            }*/
+
+            if (resultData.length === 0) {
+                onHistoryCallback([], { noData: true });
+            } else {
+                onHistoryCallback(resultData, { noData: false });
+            }
+
+            /*onHistoryCallback(resultData, {
                 noData: false,
-            });
+            });*/
         } catch (error) {
             console.error('There was an error fetching the candle data:', error);
             throw error; // Re-throw the error for the calling code to handle
