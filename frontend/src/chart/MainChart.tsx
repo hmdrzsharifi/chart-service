@@ -122,6 +122,7 @@ import EditIcon from '@mui/icons-material/Edit';
 // @ts-ignore
 import {ColorResult, SketchPicker} from "react-color";
 import finnhubSymbols from "../finnhub-symbols.json";
+import {useSnackbar, VariantType} from "notistack";
 
 interface MainChartProps {
     readonly dataList: IOHLCData[];
@@ -227,6 +228,7 @@ export const MainChart = (props: MainChartProps) => {
     const BRUSH_TYPE = "2D";
     const [earnings, setEarnings] = useState<Earnings[]>([]);
     const [dividends, setDividends] = useState<Dividends[]>([]);
+    const { enqueueSnackbar } = useSnackbar();
 
     const [brushes, setBrushes] = useState<any[]>([])
     const numberFormat = format(".2f");
@@ -546,14 +548,25 @@ export const MainChart = (props: MainChartProps) => {
 
     const getEarnings = async () => {
         const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
+        if (earningsData.length === 0){
+            handleSnackbarError('error' , 'failed to fetch EarningsFMP')
+        }
         // @ts-ignore
         setEarnings(earningsData);
     };
 
     const getDividends = async () => {
         const dividendsData = await fetchDividendsFMP(symbol, data[0].date, new Date());
+        if (dividendsData.length === 0){
+            handleSnackbarError('error' , 'failed to fetch DividendsFMP')
+        }
         // @ts-ignore
         setDividends(dividendsData);
+    };
+
+    const handleSnackbarError = (variant: VariantType , message:string) => {
+        enqueueSnackbar(message, { variant });
+        console.log("hoooooo");
     };
 
     useEffect(() => {
