@@ -80,6 +80,9 @@ const configurationData = {
 // Obtains all symbols for all exchanges supported by CryptoCompare API
 let symbolMap = new Map();
 
+// Cache to store the fetched data
+const barsCache = {};
+
 async function getAllSymbols() {
     try {
         const response = await fetch(FMP_DATA_ADDRESS + '/getAllSymbols', {
@@ -176,6 +179,16 @@ export default {
 
     getBars: async (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
         const {from, to, firstDataRequest, countBack} = periodParams;
+
+        // Create a unique key for the cache based on symbol, resolution, and time range
+        const cacheKey = `${symbolInfo.ticker}-${resolution}-${from}-${to}`;
+
+        // Check if the data is already in the cache
+        if (barsCache[cacheKey]) {
+            console.log('Serving from cache:', cacheKey);
+            onHistoryCallback(barsCache[cacheKey], { noData: barsCache[cacheKey].length === 0 });
+            return;
+        }
 
         const resolutionMapping = {
             '1': '1M',
@@ -293,6 +306,8 @@ export default {
                 });
             }
 
+            // Store the fetched data in the cache
+            barsCache[cacheKey] = resultData;
             // console.log(`[getBars]: returned ${resultData.length} bar(s)`);
             onHistoryCallback(resultData, {
                 noData: false,
