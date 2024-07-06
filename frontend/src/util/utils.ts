@@ -88,7 +88,8 @@ export async function fetchEarningsFMP(symbol:any, from:any, to:any) {
             body: JSON.stringify(requestBody),
         })
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // throw new Error(`HTTP error! status: ${response.status}`);
+            return [];
         }
 
         const resultData = await response.json();
@@ -119,7 +120,8 @@ export async function fetchDividendsFMP(symbol:any, from:any, to:any) {
             body: JSON.stringify(requestBody),
         })
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // throw new Error(`HTTP error! status: ${response.status}`);
+            return [];
         }
 
         const resultData = await response.json();
