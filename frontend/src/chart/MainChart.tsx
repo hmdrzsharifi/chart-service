@@ -544,24 +544,23 @@ export const MainChart = (props: MainChartProps) => {
 
     }, [themeMode])
 
+    const getEarnings = async () => {
+        const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
+        // @ts-ignore
+        setEarnings(earningsData);
+    };
+
+    const getDividends = async () => {
+        const dividendsData = await fetchDividendsFMP(symbol, data[0].date, new Date());
+        // @ts-ignore
+        setDividends(dividendsData);
+    };
+
     useEffect(() => {
-        const getEarnings = async () => {
-            const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
-            // @ts-ignore
-            setEarnings(earningsData);
-        };
-
-        const getDividends = async () => {
-            const dividendsData = await fetchDividendsFMP(symbol, data[0].date, new Date());
-            // @ts-ignore
-            setDividends(dividendsData);
-        };
-
         if (data.length > 0) {
             getEarnings();
             getDividends();
         }
-
     }, [symbol])
 
     useMemo(() => {
@@ -685,6 +684,8 @@ export const MainChart = (props: MainChartProps) => {
                 console.log("fetchInitialDataFMP", ticker)
                 moreData = await fetchCandleDataFMP(ticker, timeFrame, from, to);
             }
+            getEarnings();
+            getDividends();
             // moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
         } catch (error) {
             console.error('Error fetching candle data:', error);
