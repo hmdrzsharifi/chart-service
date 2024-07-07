@@ -100,7 +100,7 @@ def generate_cache_key_fetch_candle_data():
 
 
 @app.route('/fetchCandleData', methods=['POST'])
-@cache.cached(timeout=86400, key_prefix=generate_cache_key_fetch_candle_data)  # Cache for 5 minutes
+# @cache.cached(timeout=86400, key_prefix=generate_cache_key_fetch_candle_data)  # Cache for 5 minutes
 def fetch_candle_data():
     request_data = request.json
     symbol = request_data.get('Ticker').lower()
