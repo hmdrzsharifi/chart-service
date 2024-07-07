@@ -184,7 +184,8 @@ export const MainChart = (props: MainChartProps) => {
         standardDeviationChannel, setStandardDeviationChannel,
         fans, setFans,
         xExtents, setXExtents,
-        openSaveDialog, setOpenSaveDialog
+        openSaveDialog, setOpenSaveDialog,
+        suffix , setSuffix
     } = useStore();
 
     const {
@@ -221,7 +222,6 @@ export const MainChart = (props: MainChartProps) => {
     const [openMovingAverageModal, setOpenMovingAverageModal] = useState<boolean>(false);
     const [openElderRayModal, setOpenElderRayModal] = useState<boolean>(false);
 
-    const [suffix, setSuffix] = useState(1);
     const [textList_1, textList_3] = useState<any[]>([]);
     const [hover, setHover] = useState<boolean>();
     const [selected, setSelected] = useState<boolean>(false);
