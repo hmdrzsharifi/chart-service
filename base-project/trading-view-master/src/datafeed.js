@@ -326,7 +326,7 @@ export default {
                     ...resultData[resultData.length - 1],
                 });
             } else {
-                lastBarsCache.set(symbolCategory + ':' + rawSymbol.replace('USD', '_USD'), {
+                lastBarsCache.set(symbolCategory + ':' + rawSymbol.replace('USDT', '_USD'), {
                     ...resultData[resultData.length - 1],
                 });
             }

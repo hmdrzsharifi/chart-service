@@ -71,7 +71,7 @@ function handleRealTimeCandleCex(message, rawSymbol) {
         case "60":
             timeFrame = 60;
             break;
-        case "1D":
+        case "D":
             // 1 day in minutes === 1440
             timeFrame = 1440;
             break;
