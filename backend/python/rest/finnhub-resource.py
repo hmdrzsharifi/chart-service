@@ -96,6 +96,7 @@ def generate_cache_key_fetch_candle_data():
 def fetch_candle_data():
     request_data = request.json
     symbol = request_data.get('Ticker')
+    symbolCategory = request_data.get('symbolCategory')
     time_frame = request_data.get('TimeFrame')
     from_time = request_data.get('from')
     to_time = request_data.get('to')
@@ -110,11 +111,19 @@ def fetch_candle_data():
     finnhub_client = finnhub.Client(api_key=current_app.config['FINNHUB_API_KEY'])
     print(request_data)
     # Stock candles
-    source, pair = symbol.split(":")
+
+    if symbolCategory in ['CRT', 'FX']:
+        source, pair = symbol.split(":")
+    else:
+        source = symbol
+
     if source == 'BINANCE':
         res = finnhub_client.crypto_candles(symbol, time_frame, from_time, to_time)
-    if source == 'OANDA':
+    elif source == 'OANDA' or symbolCategory == 'IND':
         res = finnhub_client.forex_candles(symbol, time_frame, from_time, to_time)
+    else:
+        res = None
+        print("Unknown source or symbol category")
 
     if res.get('s') == "ok":
         df = pd.DataFrame(res)

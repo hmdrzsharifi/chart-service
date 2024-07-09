@@ -13,7 +13,7 @@ function initializeWebSocket() {
     });
 
     socket.on('symbolUpdate', (message) => {
-        // console.log(message)
+        console.log(message)
         let rawData = window.tvWidget.symbolInterval().symbol.split(':');
         let rawSymbol;
         if (rawData.length === 1) {

@@ -26,20 +26,13 @@ function mapSymbolResult(originalObject) {
 
 const getType = (categoryName) => {
     switch (categoryName) {
-        case 'CRT':
-            return 'CRT';
-        case 'FX':
-            return 'FX';
-        case 'CMD':
-            return 'CMD';
-        case 'IND':
-            return 'IND';
-        case 'ETF':
-            return 'ETF';
-        case 'STC':
-            return 'STC';
-        default:
-            return 'CRT';
+        case 'CRT': return 'CRT';
+        case 'FX':  return 'FX';
+        case 'CMD': return 'CMD';
+        case 'IND': return 'IND';
+        case 'ETF': return 'ETF';
+        case 'STC': return 'STC';
+        default: return 'CRT';
     }
 };
 
@@ -99,24 +92,15 @@ function adjustFromParameter(from, requiredBars, resolution) {
 
 function resolutionToMilliseconds(resolution) {
     switch (resolution) {
-        case '1':
-            return 60 * 1000; // 1 minute
-        case '5':
-            return 5 * 60 * 1000; // 5 minutes
-        case '15':
-            return 15 * 60 * 1000; // 15 minutes
-        case '30':
-            return 30 * 60 * 1000; // 30 minutes
-        case '60':
-            return 60 * 60 * 1000; // 1 hour
-        case 'D':
-            return 24 * 60 * 60 * 1000; // 1 day
-        case 'W':
-            return 7 * 24 * 60 * 60 * 1000; // 1 week
-        case 'M':
-            return 30 * 24 * 60 * 60 * 1000; // 1 month
-        default:
-            return 0;
+        case '1': return 60 * 1000; // 1 minute
+        case '5': return 5 * 60 * 1000; // 5 minutes
+        case '15': return 15 * 60 * 1000; // 15 minutes
+        case '30': return 30 * 60 * 1000; // 30 minutes
+        case '60': return 60 * 60 * 1000; // 1 hour
+        case 'D': return 24 * 60 * 60 * 1000; // 1 day
+        case 'W': return 7 * 24 * 60 * 60 * 1000; // 1 week
+        case 'M': return 30 * 24 * 60 * 60 * 1000; // 1 month
+        default: return 0;
     }
 }
 
@@ -307,9 +291,9 @@ export default {
         }
 
         const fetchData = async () => {
-            if (['CRT', 'CMD', 'FX'].includes(symbolCategory)) {
+            if (['CRT', 'CMD', 'FX', 'IND'].includes(symbolCategory)) {
                 console.log("Finnhub");
-                return await fetchCandleDataFinnhub(ticker, reqResolution, from, to);
+                return await fetchCandleDataFinnhub(ticker, symbolCategory ,reqResolution, from, to);
             } else if (['STC', 'ETF'].includes(symbolCategory)) {
                 console.log("FMP");
                 return await fetchInitialDataFMP(ticker, reqResolution, from, to);

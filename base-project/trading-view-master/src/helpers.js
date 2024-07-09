@@ -1,10 +1,11 @@
 import {FINNHUB_DATA_ADDRESS, FMP_DATA_ADDRESS} from "./constants.js";
 
 
-export async function fetchCandleDataFinnhub(symbol, tf, from, to) {
+export async function fetchCandleDataFinnhub(symbol, symbolCategory, tf, from, to) {
 
     const requestBody = {
         "Ticker": symbol,
+        "symbolCategory": symbolCategory,
         "TimeFrame": tf,
         "from": from,
         "to": to
