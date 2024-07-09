@@ -79,6 +79,7 @@ const Toolbar = (props: any) => {
     const [saveAnchorEl, setSaveAnchorEl] = useState<any>(null);
     const [saveName, setSaveName] = useState('');
     const {openSaveDialog, setOpenSaveDialog}= useStore();
+    const {suffix, setSuffix}= useStore();
     const [saveSearchTerm, setSAveSearchTerm] = useState('');
 
     const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -297,6 +298,7 @@ const Toolbar = (props: any) => {
                     <IconButton onClick={() => {
                         props.fetchInitialData()
                         setFixedPosition(false)
+                        setSuffix(suffix + 1)
                         setError(false)
                     }}>
                         <RefreshTwoTone/>

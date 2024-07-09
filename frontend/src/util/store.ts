@@ -70,6 +70,10 @@ type Store = {
     setOpenSaveDialog:(openSaveDialog: boolean) => void;
 
 
+    suffix:number,
+    setSuffix:(suffix: number) => void;
+
+
     // disableOHLCSeries:boolean
     // setDisableOHLCSeries : (disableOHLCSeries: boolean) => void
     // selectedSymbol : string
@@ -142,6 +146,9 @@ const useStore = create<Store>((set) => ({
 
     openSaveDialog:false,
     setOpenSaveDialog:(openSaveDialog: boolean) => set((state) => ({openSaveDialog:openSaveDialog})),
+
+    suffix: 1,
+    setSuffix:(suffix: number) => set((state) => ({suffix:suffix})),
 
 
     // disableOHLCSeries : true,
