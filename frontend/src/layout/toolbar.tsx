@@ -43,6 +43,7 @@ import {MainChart} from "../chart/MainChart";
 const Toolbar = (props: any) => {
 
     const {symbol , setSymbol} = useStore();
+    const {symbolCategory , setSymbolCategory} = useStore();
     const {seriesType , setSeriesType} = useStore();
     const {setThemeSecondaryColor} = useDesignStore();
     const [checkedThemeSwitch , setCheckedThemeSwitch] = useState<boolean>(true);
@@ -228,6 +229,7 @@ const Toolbar = (props: any) => {
             selectedText = name
         }
 
+        setSymbolCategory(item?.categoryName)
         setSymbol(selectedText)
         setSelectedSymbol(item.symbol)
         setError(false)

@@ -185,7 +185,8 @@ export const MainChart = (props: MainChartProps) => {
         fans, setFans,
         xExtents, setXExtents,
         openSaveDialog, setOpenSaveDialog,
-        suffix , setSuffix
+        suffix , setSuffix,
+        symbolCategory
     } = useStore();
 
     const {
@@ -548,7 +549,7 @@ export const MainChart = (props: MainChartProps) => {
 
     const getEarnings = async () => {
         const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
-        if (earningsData.length === 0){
+        if (symbolCategory === 'STC' && earningsData.length === 0){
             handleSnackbarError('error' , 'failed to fetch EarningsFMP')
         }
         // @ts-ignore
@@ -557,7 +558,7 @@ export const MainChart = (props: MainChartProps) => {
 
     const getDividends = async () => {
         const dividendsData = await fetchDividendsFMP(symbol, data[0].date, new Date());
-        if (dividendsData.length === 0){
+        if (symbolCategory === 'STC' && dividendsData.length === 0){
             handleSnackbarError('error' , 'failed to fetch DividendsFMP')
         }
         // @ts-ignore

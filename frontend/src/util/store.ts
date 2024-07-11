@@ -30,6 +30,10 @@ type Store = {
     symbol: string
     setSymbol: (symbol: string) => void
 
+    symbolCategory: string,
+    setSymbolCategory: (symbolCategory: string) => void
+
+
     loadingMoreData: boolean
     setLoadingMoreData: (loadingMoreData: boolean) => void
 
@@ -107,6 +111,9 @@ const useStore = create<Store>((set) => ({
     // symbol: 'BINANCE:BTCUSDT', // for finnhub
     symbol: 'BTC_USD', // for fmp
     setSymbol: (symbol: string) => set((state) => ({ symbol: symbol })),
+
+    symbolCategory: 'CRT',
+    setSymbolCategory: (symbolCategory: string) => set((state) => ({ symbolCategory: symbolCategory })),
 
     loadingMoreData: false,
     setLoadingMoreData: (loadingMoreData: boolean) => set((state) => ({ loadingMoreData: loadingMoreData })),
