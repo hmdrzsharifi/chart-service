@@ -334,6 +334,7 @@ function App() {
                                                             ratio={3}
                                                             width={getWidth()}/>
                             }*/}
+
                         </div>
                     </div>
                     <Footer style={{

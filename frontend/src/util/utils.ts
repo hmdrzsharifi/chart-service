@@ -100,7 +100,7 @@ export async function fetchEarningsFMP(symbol:any, from:any, to:any) {
         return resultData;
     } catch (error) {
         console.error('There was an error fetching the candle data:', error);
-        throw error; // Re-throw the error for the calling code to handle
+        return error; // Re-throw the error for the calling code to handle
     }
 }
 
@@ -129,7 +129,7 @@ export async function fetchDividendsFMP(symbol:any, from:any, to:any) {
         return resultData;
     } catch (error) {
         console.error('There was an error fetching the candle data:', error);
-        throw error; // Re-throw the error for the calling code to handle
+        return error; // Re-throw the error for the calling code to handle
     }
 }
 
