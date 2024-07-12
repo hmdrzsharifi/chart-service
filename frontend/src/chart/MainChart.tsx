@@ -1599,7 +1599,7 @@ export const MainChart = (props: MainChartProps) => {
 
                 // Earnings
                 <>
-                    {earnings.map((ea, idx) => (
+                    {earnings.length!= 0 ? earnings.map((ea, idx) => (
                         <Annotate
                             key={idx}
                             with={SvgPathAnnotation}
@@ -1627,12 +1627,12 @@ export const MainChart = (props: MainChartProps) => {
                                 })
                             }}
                         />
-                    ))}
+                    )) : []}
                 </>
 
                 // Dividends
                 <>
-                    {dividends.map((dv, idx) => (
+                    {dividends.length!= 0 ? dividends.map((dv, idx) => (
                         <Annotate
                             key={idx}
                             with={SvgPathAnnotation}
@@ -1659,7 +1659,7 @@ export const MainChart = (props: MainChartProps) => {
                                 })
                             }}
                         />
-                    ))}
+                    )) : []}
                 </>
 
                 <Dialog
