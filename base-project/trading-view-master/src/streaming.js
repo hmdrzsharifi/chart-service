@@ -13,20 +13,13 @@ function initializeWebSocket() {
     });
 
     socket.on('symbolUpdate', (message) => {
-        console.log(message)
         let rawData = window.tvWidget.symbolInterval().symbol.split(':');
         let rawSymbol;
         if (rawData.length === 1) {
-            // rawSymbol = rawData[0].replace('USD', '_USD'); // fro FMP
             rawSymbol = rawData[0].replace('USDT', '_USD');
         }
 
-        // console.log("rawSymbol",rawSymbol )
-        // console.log("message.symbol",message.symbol )
-        // console.log(message.symbol == rawSymbol)
         if (message.symbol === rawSymbol) {
-            // console.log("CEX YES")
-
             handleRealTimeCandleCex(message, rawSymbol);
         }
     });
@@ -40,12 +33,12 @@ function handleRealTimeCandleCex(message, rawSymbol) {
     const parsedSymbol = {
         exchange: 'crypto',
         fromSymbol: message.symbol,
-        // toSymbol: 'USD', // for FMP
         toSymbol: 'USDT',
     };
     const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
     const subscriptionItem = channelToSubscription.get(channelString);
-    const symbolCategory = message.categoryName;
+    // const symbolCategory =  window.tvWidget._options.symbolCategory; // For Server
+    const symbolCategory = message.categoryName; // For Test
 
     lastBarsCache.get(symbolCategory + ':' + rawSymbol)
     let lastBar = lastBarsCache.get(symbolCategory + ':' + rawSymbol);
@@ -71,7 +64,7 @@ function handleRealTimeCandleCex(message, rawSymbol) {
         case "60":
             timeFrame = 60;
             break;
-        case "D":
+        case "1D":
             // 1 day in minutes === 1440
             timeFrame = 1440;
             break;
@@ -152,7 +145,6 @@ export function subscribeOnStream(
     const parsedSymbol = {
         exchange: 'crypto',
         fromSymbol: symbolInfo.name,
-        // toSymbol: 'USD', for FMP
         toSymbol: 'USDT',
     };
     const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
