@@ -1,11 +1,14 @@
 import {
     subscribeOnStream,
     unsubscribeFromStream,
-} from './streaming.js';
+} from './__streaming.js';
 
-import {DATA_ADDRESS} from "./constants.js";
+// import {DATA_ADDRESS} from "./_constants.js";
+import {FINNHUB_DATA_ADDRESS} from "./_constants.js";
+import {fetchCandleDataFinnhub, fetchInitialDataFMP} from "./helpers.js";
+import {finnhubSymbols} from './finnhub-symbols.js';
 
-const url = DATA_ADDRESS;
+const url = FINNHUB_DATA_ADDRESS;
 
 const lastBarsCache = new Map();
 export {lastBarsCache};

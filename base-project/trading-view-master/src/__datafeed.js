@@ -1,9 +1,9 @@
 import {
     subscribeOnStream,
     unsubscribeFromStream,
-} from './streaming.js';
+} from './_streaming.js';
 
-import {FMP_DATA_ADDRESS} from "./constants.js";
+import {FMP_DATA_ADDRESS} from "./_constants.js";
 import {fetchCandleDataFinnhub, fetchInitialDataFMP} from "./helpers.js";
 import {finnhubSymbols} from './finnhub-symbols.js';
 
@@ -174,6 +174,7 @@ export default {
             symbolCategory = 'CRT'
         }
         const symbolInfo = {
+            // ticker: symbolName.replace('_USD', 'USDT'),
             // ticker: symbolName.replace('_USD', 'USD'), // for FMP
             ticker: symbolName,
             name: symbolName,
@@ -231,11 +232,12 @@ export default {
 
         const symbolCategory = symbolInfo.type;
         let rawSymbol = rawData[0];
+        let finnhubSymbol;
 
         switch (symbolCategory) {
             case 'CRT':
-                rawSymbol = rawData.length === 1 ? rawSymbol.replace('_USD', 'USDT') : rawSymbol;
-                ticker = `BINANCE:${rawSymbol}`;
+                finnhubSymbol = rawData.length === 1 ? rawSymbol.replace('_USD', 'USDT') : rawSymbol;
+                ticker = `BINANCE:${finnhubSymbol}`;
                 break;
             case 'FX':
                 ticker = `OANDA:${rawSymbol}`;
@@ -310,7 +312,7 @@ export default {
                     ...resultData[resultData.length - 1],
                 });
             } else {
-                lastBarsCache.set(symbolCategory + ':' + rawSymbol.replace('USDT', '_USD'), {
+                lastBarsCache.set(symbolCategory + ':' + rawSymbol, {
                     ...resultData[resultData.length - 1],
                 });
             }
@@ -366,7 +368,8 @@ subscribeBars: (
         onRealtimeCallback,
         subscriberUID,
         onResetCacheNeededCallback,
-        lastBarsCache.get(symbolCategory + ':' + rawSymbol.replace('USD', '_USD')),
+        // lastBarsCache.get(symbolCategory + ':' + rawSymbol.replace('USD', '_USD')),
+        lastBarsCache.get(symbolCategory + ':' + rawSymbol),
     );
 },
 

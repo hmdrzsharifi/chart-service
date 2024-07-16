@@ -1,5 +1,5 @@
-import {WEBSOCKET_ADDRESS} from "./constants.js";
-import {lastBarsCache} from "./datafeed.js";
+import {WEBSOCKET_ADDRESS} from "./_constants.js";
+import {lastBarsCache} from "./__datafeed.js";
 
 function initializeWebSocket() {
     const socket = io(WEBSOCKET_ADDRESS);
@@ -33,6 +33,7 @@ function handleRealTimeCandleCex(message, rawSymbol) {
     const parsedSymbol = {
         exchange: 'crypto',
         fromSymbol: message.symbol,
+        // toSymbol: 'USD', // for FMP
         toSymbol: 'USDT',
     };
     const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
@@ -64,21 +65,15 @@ function handleRealTimeCandleCex(message, rawSymbol) {
             timeFrame = 60;
             break;
         case "1D":
-            // 1 day in minutes === 1440
             timeFrame = 1440;
             break;
         case "1W":
-            // 1 week in minutes === 10080
             timeFrame = 10080;
             break;
         case "1M":
-            // 1 month (31 days) in minutes === 44640
-            //todo for month 30 and 31 days
             timeFrame = 44640;
             break;
-
         default:
-            // 1 day in minutes === 1440
             timeFrame = 1440;
     }
 
@@ -91,7 +86,7 @@ function handleRealTimeCandleCex(message, rawSymbol) {
 
         // create a new candle, use last close as open **PERSONAL CHOICE**
         bar = {
-            time: message.timestamp,
+            time: rounded * 1000, // Convert back to milliseconds
             open: tradePrice,
             high: tradePrice,
             low: tradePrice,
@@ -149,7 +144,6 @@ export function subscribeOnStream(
     const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
     let subscriptionItem = channelToSubscription.get(channelString);
     if (subscriptionItem) {
-        // Already subscribed to the channel, use the existing subscription
         subscriptionItem.handlers.push(handler);
         return;
     }
@@ -160,13 +154,10 @@ export function subscribeOnStream(
         handlers: [handler],
     };
     channelToSubscription.set(channelString, subscriptionItem);
-    // console.log('[subscribeBars]: Subscribe to streaming. Channel:', channelString);
     initializeWebSocket();
-    // socket.send(JSON.stringify({'type': 'subscribe', 'symbol': 'BINANCE:BTCUSDT'}))
 }
 
 export function unsubscribeFromStream(subscriberUID) {
-    // Find a subscription with id === subscriberUID
     for (const channelString of channelToSubscription.keys()) {
         const subscriptionItem = channelToSubscription.get(channelString);
         const handlerIndex = subscriptionItem.handlers.findIndex(
@@ -174,17 +165,13 @@ export function unsubscribeFromStream(subscriberUID) {
         );
 
         if (handlerIndex !== -1) {
-            // Remove from handlers
             subscriptionItem.handlers.splice(handlerIndex, 1);
 
             if (subscriptionItem.handlers.length === 0) {
-                // Unsubscribe from the channel if it was the last handler
-                // console.log('[unsubscribeBars]: Unsubscribe from streaming. Channel:', channelString);
                 const subRequest = {
                     action: 'SubRemove',
                     subs: [channelString],
                 };
-                // socket.send(JSON.stringify(subRequest));
                 channelToSubscription.delete(channelString);
                 break;
             }
