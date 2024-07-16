@@ -104,6 +104,7 @@ def generate_cache_key_fetch_candle_data():
 def fetch_candle_data():
     request_data = request.json
     symbol = request_data.get('Ticker').lower()
+    symbolCategory = request_data.get('symbolCategory')
     time_frame = request_data.get('TimeFrame')
     from_date = request_data.get('from')
     to_date = request_data.get('to')
@@ -123,6 +124,11 @@ def fetch_candle_data():
     }
 
     time_frame = time_frame_map.get(time_frame, time_frame)
+
+    # if symbolCategory in ['CRT', 'FX']:
+    #     source, pair = symbol.split(":")
+    # else:
+    #     source = symbol
 
     if time_frame == 'D':
         url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{symbol}?from={formatted_from_date}&to={formatted_to_date}&apikey={api_key}"
