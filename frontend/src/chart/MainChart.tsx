@@ -122,6 +122,7 @@ import EditIcon from '@mui/icons-material/Edit';
 // @ts-ignore
 import {ColorResult, SketchPicker} from "react-color";
 import finnhubSymbols from "../finnhub-symbols.json";
+// @ts-ignore
 import {useSnackbar, VariantType} from "notistack";
 
 interface MainChartProps {
