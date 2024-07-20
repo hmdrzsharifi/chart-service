@@ -5,8 +5,8 @@ import {
 
 // import {DATA_ADDRESS} from "./_constants.js";
 import {FINNHUB_DATA_ADDRESS} from "./_constants.js";
-import {fetchCandleDataFinnhub, fetchInitialDataFMP} from "./helpers.js";
-import {finnhubSymbols} from './finnhub-symbols.js';
+import {fetchCandleDataFinnhub, fetchInitialDataFMP} from "../helpers.js";
+import {finnhubSymbols} from '../finnhub-symbols.js';
 
 const url = FINNHUB_DATA_ADDRESS;
 
