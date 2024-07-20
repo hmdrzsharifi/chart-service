@@ -4,8 +4,8 @@ import {
 } from './__streaming.js';
 
 import {FMP_DATA_ADDRESS} from "./_constants.js";
-import {fetchCandleDataFinnhub, fetchInitialDataFMP} from "./helpers.js";
-import { finnhubSymbols } from './finnhub-symbols.js';
+import {fetchCandleDataFinnhub, fetchInitialDataFMP} from "../helpers.js";
+import { finnhubSymbols } from '../finnhub-symbols.js';
 
 const lastBarsCache = new Map();
 export {lastBarsCache};
