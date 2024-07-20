@@ -20,13 +20,15 @@ import useDimensions from 'react-use-dimensions'
 // @ts-ignore
 import {BlinkBlur} from "react-loading-indicators";
 import finnhubSymbols from './finnhub-symbols.json';
+import {IOHLCData} from "./data";
 
 
 function App() {
 
     const [ref, {width, height}] = useDimensions();
 
-    const [data, setData] = useState<any>([]);
+    const [data, setData] = useState<IOHLCData[]>([]);
+    const [last, setLast] = useState<IOHLCData | null>(null);
     const [lastTime, setLastTime] = useState<any>(new Date());
     const [reloadFromSymbol, setReloadFromSymbol] = useState(false);
     const {symbol, timeFrame} = useStore();
@@ -68,8 +70,7 @@ function App() {
         };
     }, [symbol, timeFrame]);
 
-    const connectWebSocket = async (socket: any) => {
-
+    const connectWebSocket = (socket:any) => {
         socket.on('connect', () => {
             console.log('Connected to server');
             console.log('******************* symbol: ', symbol)
@@ -77,56 +78,62 @@ function App() {
                 symbol: symbol
             }
             socket.emit('message', msg);
+
+            // Simulate receiving data from server
+            setInterval(() => {
+                const simulatedMessage = {
+                    symbol: symbol,
+                    timestamp: Date.now(),
+                    ask: Math.random() * 100,
+                    volume: Math.random() * 1000
+                };
+                socket.emit('symbolUpdate', simulatedMessage);
+            }, 100); // every second
         });
 
         socket.on('disconnect', () => {
             console.log('Disconnected from server');
         });
 
-        socket.on('message', (message: any) => {
-            // console.log('Received message:', message);
-            const convertedMessage = {...message, p: new Decimal(message.p).toNumber()}
-            if (message.s === symbol) {
+        socket.on('message', (message:any) => {
+            const convertedMessage = {...message, p: new Decimal(message.p).toNumber()};
+            // if (message.s === symbol) {
                 handleRealTimeCandle(convertedMessage);
                 setReloadFromSymbol(prevState => !prevState);
-            }
+            // }
         });
 
         // CEX
-        socket.on('symbolUpdate', (message: any) => {
-            // console.log('Received message CEX:', message);
-
-            /*const convertedMessage = {...message, ask: new Decimal(message.ask).toNumber()}
-            let rawData = symbol.split(':')
-            let rawSymbol
-            if (rawData[0] === 'BINANCE') {
-                rawSymbol = rawData[1].replace('USDT','_USD')
-            }
-            if (rawData[0] === 'OANDA') {
-                rawSymbol = rawData[1]
-            }*/
-
-            if (message.symbol === symbol) {
+        socket.on('symbolUpdate', (message:any) => {
+            // if (message.symbol === symbol) {
                 handleRealTimeCandleCex(message);
                 setReloadFromSymbol(prevState => !prevState);
-            }
+            // }
         });
     };
 
-    const handleRealTimeCandleCex = (dataFeed: any) => {
+    const getRandomData = () => {
+        return data[Math.floor(Math.random()*data.length)]
+    }
+
+    useEffect(() => {
+        setInterval(() => {
+            const random = getRandomData()
+            console.log('random', random)
+            setLast(random)
+        },1200)
+    }, []);
+
+    const handleRealTimeCandleCex = (dataFeed:any) => {
         const lastCandlestick = stateDataRef.current[stateDataRef.current.length - 1];
         const resolution = getResolution(timeFrame);
 
-        // @ts-ignore
-        let coeff = resolution * 60
-        // Round the time to the nearest minute, Change as per your resolution
-        // @ts-ignore
-        let rounded = Math.floor((dataFeed.timestamp / 1000) / coeff) * coeff
-        let lastBarSec = lastCandlestick.date.getTime() / 1000
-        let _lastBar
+        let coeff = resolution * 60;
+        let rounded = Math.floor((dataFeed.timestamp / 1000) / coeff) * coeff;
+        let lastBarSec = lastCandlestick ? lastCandlestick.date.getTime() / 1000 : 0;
+        let _lastBar;
 
         if (rounded > lastBarSec) {
-            // create a new candle, use last close as open
             _lastBar = {
                 date: new Date(rounded * 1000),
                 open: dataFeed.ask,
@@ -134,20 +141,22 @@ function App() {
                 low: dataFeed.ask,
                 close: dataFeed.ask,
                 volume: dataFeed.volume
-            }
-            setData([...stateDataRef.current, _lastBar]);
+            };
+            // setData([...stateDataRef.current, _lastBar]);
+            // stateDataRef.current = [...stateDataRef.current, _lastBar];
 
         } else {
-            // update last candle! candle still open just modify it
             lastCandlestick.high = dataFeed.ask > lastCandlestick.high ? dataFeed.ask : lastCandlestick.high;
             lastCandlestick.low = dataFeed.ask < lastCandlestick.low ? dataFeed.ask : lastCandlestick.low;
-            lastCandlestick.volume += dataFeed.volume
-            lastCandlestick.close = dataFeed.ask
-            _lastBar = lastCandlestick
+            lastCandlestick.volume += dataFeed.volume;
+            lastCandlestick.close = dataFeed.ask;
+            _lastBar = lastCandlestick;
 
-            setData([...stateDataRef.current.slice(0, -1), _lastBar]);
+            // setData([...stateDataRef.current.slice(0, -1), _lastBar]);
+            // stateDataRef.current = [...stateDataRef.current.slice(0, -1), _lastBar];
+
         }
-    }
+    };
 
     const getResolution = (timeFrame: string) => {
         switch (timeFrame) {
@@ -185,7 +194,7 @@ function App() {
                 close: dataFeed.p,
                 volume: dataFeed.v
             }
-            setData([...stateDataRef.current, _lastBar]);
+            // setData([...stateDataRef.current, _lastBar]);
 
         } else {
             // update last candle! candle still open just modify it
@@ -195,7 +204,7 @@ function App() {
             lastCandlestick.close = dataFeed.p
             _lastBar = lastCandlestick
 
-            setData([...stateDataRef.current.slice(0, -1), _lastBar]);
+            // setData([...stateDataRef.current.slice(0, -1), _lastBar]);
         }
     }
 
@@ -326,7 +335,7 @@ function App() {
                                 data.length > 0 &&
                                 <MainChart dataList={data} width={width ? width - (openSideBar ? 45 : 10) : 0} ratio={3}
                                            reloadFromSymbol={reloadFromSymbol}
-                                           theme={theme} height={height ? height : 0}
+                                           theme={theme} height={height ? height : 0} last={last}
                                 />}
 
                             {/*{error ? <div className="error-message">Failed to fetch</div> :  <StockChart data={stateDataRef.current} setData={setData} theme={theme}
