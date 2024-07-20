@@ -1,6 +1,8 @@
 import {WEBSOCKET_ADDRESS} from "./constants.js";
 import {lastBarsCache} from "./datafeed.js";
 
+const channelToSubscription = new Map();
+
 function initializeWebSocket() {
     const socket = io(WEBSOCKET_ADDRESS);
 
@@ -13,19 +15,23 @@ function initializeWebSocket() {
     });
 
     socket.on('symbolUpdate', (message) => {
-        let rawData = window.tvWidget.symbolInterval().symbol.split(':');
-        let rawSymbol;
-        if (rawData.length === 1) {
-            rawSymbol = rawData[0].replace('USDT', '_USD');
-        }
+        /*let baseSymbol = window.tvWidget.symbolInterval().symbol.split(':');
+        let normalizedSymbol;
+        if (baseSymbol.length === 1) {
+            normalizedSymbol = baseSymbol[0].replace('USDT', '_USD');
+        }*/
 
-        if (message.symbol === rawSymbol) {
-            handleRealTimeCandleCex(message, rawSymbol);
+        const { symbol } = window.tvWidget.symbolInterval();
+        const symbolParts = symbol.split(':');
+        const normalizedSymbol = (symbolParts.length === 1 && symbolParts[0]) ? symbolParts[0].replace('USDT', '_USD') : null;
+
+        if (normalizedSymbol && message.symbol === normalizedSymbol) {
+            handleRealTimeCandleCex(message, normalizedSymbol);
         }
     });
 }
 
-function handleRealTimeCandleCex(message, rawSymbol) {
+function handleRealTimeCandleCex(message, normalizedSymbol) {
     const tradePrice = parseFloat(message.ask);
     const tradeVolume = message.volume;
     const tradeTime = message.timestamp / 1000;
@@ -40,10 +46,9 @@ function handleRealTimeCandleCex(message, rawSymbol) {
     // const symbolCategory =  window.tvWidget._options.symbolCategory; // For Server
     const symbolCategory = message.categoryName; // For Test
 
-    lastBarsCache.get(symbolCategory + ':' + rawSymbol)
-    let lastBar = lastBarsCache.get(symbolCategory + ':' + rawSymbol);
+    lastBarsCache.get(symbolCategory + ':' + normalizedSymbol)
+    let lastBar = lastBarsCache.get(symbolCategory + ':' + normalizedSymbol);
     // let lastBar = subscriptionItem.lastDailyBar
-
     // let resolution = subscriptionItem.resolution
     let resolution = window.tvWidget.symbolInterval().interval
 
@@ -89,8 +94,7 @@ function handleRealTimeCandleCex(message, rawSymbol) {
 
     let bar;
     if (rounded > lastBarSec) {
-
-        // create a new candle, use last close as open **PERSONAL CHOICE**
+        // create a new candle
         bar = {
             time: message.timestamp,
             open: tradePrice,
@@ -99,8 +103,7 @@ function handleRealTimeCandleCex(message, rawSymbol) {
             close: tradePrice,
             volume: tradeVolume
         };
-        lastBarsCache.set(symbolCategory + ':' + rawSymbol, bar); // Update cache
-        // console.log('[socket] Generate new bar', bar);
+        lastBarsCache.set(symbolCategory + ':' + normalizedSymbol, bar); // Update cache
     } else {
         // update lastBar candle!
         if (tradePrice < lastBar.low) {
@@ -112,8 +115,7 @@ function handleRealTimeCandleCex(message, rawSymbol) {
         lastBar.close = tradePrice;
         bar = lastBar;
 
-        lastBarsCache.set(symbolCategory + ':' + rawSymbol, lastBar);
-        // console.log('[socket] Update the latest bar by price', tradePrice);
+        lastBarsCache.set(symbolCategory + ':' + normalizedSymbol, lastBar);
     }
 
     subscriptionItem.lastDailyBar = bar;
@@ -122,13 +124,11 @@ function handleRealTimeCandleCex(message, rawSymbol) {
     subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
 }
 
-const channelToSubscription = new Map();
-
-function getNextDailyBarTime(barTime) {
+/*function getNextDailyBarTime(barTime) {
     const date = new Date(barTime * 1000);
     date.setDate(date.getDate() + 1);
     return date.getTime() / 1000;
-}
+}*/
 
 export function subscribeOnStream(
     symbolInfo,
