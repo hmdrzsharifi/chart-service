@@ -678,9 +678,8 @@ export const MainChart = (props: MainChartProps) => {
         if(last == null || last == undefined)
             return
 
-        const newData = stateDataRef.current;
+        const newData = handleRealTimeCandleCex(last);
 
-        newData[newData.length - 1] = last
 
         const ema26Indicator = ema()
             .id(0)
@@ -753,6 +752,62 @@ export const MainChart = (props: MainChartProps) => {
 
         // setDisplayXAccessor(() => displayXAccessor)
     }, [last]);
+
+    const handleRealTimeCandleCex = (dataFeed:any) => {
+        const newData = stateDataRef.current;
+        const lastCandlestick = stateDataRef.current[stateDataRef.current.length - 1];
+        const resolution = getResolution(timeFrame);
+
+        let coeff = resolution * 60;
+        let rounded = Math.floor((dataFeed.timestamp / 1000) / coeff) * coeff;
+        let lastBarSec = lastCandlestick ? lastCandlestick.date.getTime() / 1000 : 0;
+        let _lastBar;
+
+        if (rounded > lastBarSec) {
+            _lastBar = dataFeed
+            // _lastBar = {
+            //     date: new Date(rounded * 1000),
+            //     open: dataFeed.ask,
+            //     high: dataFeed.ask,
+            //     low: dataFeed.ask,
+            //     close: dataFeed.ask,
+            //     volume: dataFeed.volume
+            // };
+            newData.push(_lastBar)
+            // setData([...stateDataRef.current, _lastBar]);
+            // stateDataRef.current = [...stateDataRef.current, _lastBar];
+
+        } else {
+            // lastCandlestick.high = dataFeed.ask > lastCandlestick.high ? dataFeed.ask : lastCandlestick.high;
+            // lastCandlestick.low = dataFeed.ask < lastCandlestick.low ? dataFeed.ask : lastCandlestick.low;
+            // lastCandlestick.volume += dataFeed.volume;
+            // lastCandlestick.close = dataFeed.ask;
+            // _lastBar = lastCandlestick;
+            _lastBar = dataFeed;
+            newData[newData.length - 1] = _lastBar
+
+
+
+            // setData([...stateDataRef.current.slice(0, -1), _lastBar]);
+            // stateDataRef.current = [...stateDataRef.current.slice(0, -1), _lastBar];
+
+        }
+        return newData
+    };
+
+    const getResolution = (timeFrame: string) => {
+        switch (timeFrame) {
+            case "1M": return 1;
+            case "5M": return 5;
+            case "15M": return 15;
+            case "30M": return 30;
+            case "1H": return 60;
+            case "D": return 1440; // 1 day in minutes === 1440
+            case "W": return 10080;
+            case "M": return 44640;
+            default: return 1440;
+        }
+    };
 
     const handleDataLoadAfter = async (start: any, end: any) => {
         console.log("My Data After")

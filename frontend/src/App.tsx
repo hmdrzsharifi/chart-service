@@ -98,16 +98,18 @@ function App() {
         socket.on('message', (message:any) => {
             const convertedMessage = {...message, p: new Decimal(message.p).toNumber()};
             // if (message.s === symbol) {
-                handleRealTimeCandle(convertedMessage);
-                setReloadFromSymbol(prevState => !prevState);
+            //     handleRealTimeCandle(convertedMessage);
+            setLast(message)
+            //     setReloadFromSymbol(prevState => !prevState);
             // }
         });
 
         // CEX
         socket.on('symbolUpdate', (message:any) => {
             // if (message.symbol === symbol) {
-                handleRealTimeCandleCex(message);
-                setReloadFromSymbol(prevState => !prevState);
+            //     handleRealTimeCandleCex(message);
+            setLast(message)
+                // setReloadFromSymbol(prevState => !prevState);
             // }
         });
     };
@@ -121,7 +123,7 @@ function App() {
             const random = getRandomData()
             console.log('random', random)
             setLast(random)
-        },1200)
+        },1405)
     }, []);
 
     const handleRealTimeCandleCex = (dataFeed:any) => {
