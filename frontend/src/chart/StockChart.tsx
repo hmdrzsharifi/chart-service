@@ -66,7 +66,13 @@ import {
     smaVolume50,
 } from "../indicator/indicators";
 import useStore from "../util/store";
-import {changeIndicatorsColor, fetchCandleDataFinnhub, studyChartHeight, useEventListener} from "../util/utils";
+import {
+    changeIndicatorsColor,
+    fetchCandleDataFinnhub,
+    fetchCandleDataFMP,
+    studyChartHeight,
+    useEventListener
+} from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {
     NO_OF_CANDLES,
@@ -385,25 +391,25 @@ export const StockChart = (props: StockChartProps) => {
             // Format dates to 'YYYY-MM-DD HH:MM:SS' format
             // const fromDateString = startDate.toISOString().slice(0, 19).replace('T', ' ');
             // const toDateString = earliestDate.toISOString().slice(0, 19).replace('T', ' ');
+            const multipliers = {
+                "1M": 60,
+                "5M": 5 * 60,
+                "15M": 15 * 60,
+                "30M": 30 * 60,
+                "1H": 60 * 60,
+                "D": 24 * 3600,
+                "W": 7 * 24 * 3600,
+                "M": 30 * 24 * 3600
+            };
 
-            let from;
-            switch (timeFrame) {
-                case "1M":
-                    from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 60);
-                    break;
-                case "D":
-                    from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600);
-                    break;
-
-                //todo add other time frame
-
-                default:
-                    from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * 24 * 3600)
-            }
+            const multiplier = multipliers[timeFrame];
+            const from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * multiplier);
 
             // const moreData = await fetchCandleData(symbol, timeFrame, from, Math.floor(new Date().getTime() / 1000));
             // Fetch more data
-            const moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+            // const moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
+            let ticker = symbol.replace('_USD', 'USD').toLowerCase();
+            const moreData = await fetchCandleDataFMP(ticker, timeFrame, from,  Math.floor(endDate.getTime() / 1000));
 
             console.log({moreData})
             // Combine new data with existing data
