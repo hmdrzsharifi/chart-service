@@ -36,6 +36,7 @@ function App() {
     const {loading, setLoading} = useDesignStore();
     const {error, setError} = useStore();
     const {setChartDimensions} = useStore();
+    const {suffix, setSuffix}= useStore();
 
 
     useEffect(() => {
@@ -50,6 +51,7 @@ function App() {
     stateDataRef.current = data;
 
     useEffect(() => {
+        setSuffix(suffix + 1)
         // Initialize socket connection
         const newSocket = io(WEBSOCKET_ADDRESS);
 

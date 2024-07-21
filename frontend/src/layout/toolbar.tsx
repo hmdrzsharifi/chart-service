@@ -305,9 +305,9 @@ const Toolbar = (props: any) => {
                 </Tooltip>
                 <Tooltip title="Refresh chart" placement="bottom" arrow>
                     <IconButton onClick={() => {
+                        setSuffix(suffix + 1)
                         props.fetchInitialData()
                         setFixedPosition(false)
-                        setSuffix(suffix + 1)
                         setError(false)
                     }}>
                         <RefreshTwoTone/>

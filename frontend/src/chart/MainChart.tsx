@@ -563,8 +563,12 @@ export const MainChart = (props: MainChartProps) => {
     const getEarnings = async () => {
         const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
         if (symbolCategory === 'STC' && (earningsData.message === 'Failed to fetch' || earningsData.length === 0)){
-            handleSnackbarError('error' , 'failed to fetch EarningsFMP')
-            setEarnings([]);
+            if (earningsData.length === 0){
+                setEarnings([]);
+            }else {
+                handleSnackbarError('error', 'failed to fetch EarningsFMP')
+                setEarnings([]);
+            }
         }else if (earningsData.message === 'Failed to fetch' || earningsData.length === 0){
             setEarnings([]);
         } else {
@@ -575,8 +579,12 @@ export const MainChart = (props: MainChartProps) => {
     const getDividends = async () => {
         const dividendsData = await fetchDividendsFMP(symbol, data[0].date, new Date());
         if (symbolCategory === 'STC' && (dividendsData.message === 'Failed to fetch' || dividendsData.length === 0)){
-            handleSnackbarError('error' , 'failed to fetch DividendsFMP')
-            setDividends([]);
+            if (dividendsData.length === 0){
+                setDividends([]);
+            }else {
+                handleSnackbarError('error', 'failed to fetch DividendsFMP')
+                setDividends([]);
+            }
         }else if (dividendsData.message === 'Failed to fetch' || dividendsData.length === 0){
             setDividends([]);
         } else {
