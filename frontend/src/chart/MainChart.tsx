@@ -133,6 +133,7 @@ interface MainChartProps {
     readonly ratio: number;
     readonly theme?: any;
     readonly reloadFromSymbol?: boolean;
+    readonly last?: any;
 }
 
 interface Earnings {
@@ -165,7 +166,7 @@ const bbFill = "rgba(70,130,180,0.24)";
 
 export const MainChart = (props: MainChartProps) => {
 
-    const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList, reloadFromSymbol} = props;
+    const {dateTimeFormat = "%d %b", height, ratio, width, theme, dataList, reloadFromSymbol,last} = props;
 
     // ----------------- store ----------------- //
     const {
@@ -205,6 +206,8 @@ export const MainChart = (props: MainChartProps) => {
 
     // ----------------- refs ----------------- //
     const canvasRef = useRef(null);
+
+    const [start1 , setStart1]  =useState(0)
 
     // ----------------- states ----------------- //
     const [data, setData] = useState<any>(dataList)
@@ -416,6 +419,15 @@ export const MainChart = (props: MainChartProps) => {
         return calculators.map((each: any) => each.undefinedLength()).reduce((a: any, b: any) => Math.max(a, b));
     }
 
+    const stateDataRef: React.MutableRefObject<any> = useRef();
+    stateDataRef.current = data;
+    //
+    // const newRowsRef: React.MutableRefObject<any> = useRef();
+    // newRowsRef.current = undefined;
+
+
+    const [newRowsRef, setNewRowsRef] = useState(0)
+
     const interactiveTextOnDrawComplete = (textList: any, moreProps: any) => {
         // this gets called on
         // 1. draw complete of drawing object
@@ -573,7 +585,6 @@ export const MainChart = (props: MainChartProps) => {
 
     const handleSnackbarError = (variant: VariantType , message:string) => {
         enqueueSnackbar(message, { variant });
-        console.log("hoooooo");
     };
 
     useEffect(() => {
@@ -652,10 +663,150 @@ export const MainChart = (props: MainChartProps) => {
         setSmaVolume50(() => smaVolume50Indicator)
         setLinearData(linearData)
         setData(linearData)
+        stateDataRef.current = linearData
         setXScale(() => xScale)
         setXAccessor(() => xAccessor)
         setDisplayXAccessor(() => displayXAccessor)
     }, [reloadFromSymbol])
+
+
+    useEffect(() => {
+
+        console.log({last})
+
+        if(last == null || last == undefined)
+            return
+
+        const newData = handleRealTimeCandleCex(last);
+
+
+        const ema26Indicator = ema()
+            .id(0)
+            .options({windowSize: 26})
+            .merge((d: any, c: any) => {
+                d.ema26 = c;
+            })
+            .accessor((d: any) => d.ema26);
+
+        const ema12Indicator = ema()
+            .id(1)
+            .options({windowSize: 12})
+            .merge((d: any, c: any) => {
+                d.ema12 = c;
+            })
+            .accessor((d: any) => d.ema12);
+
+        const macdCalculatorIndicator = macd()
+            .options({
+                fast: 12,
+                slow: 26,
+                signal: 9,
+            })
+            .merge((d: any, c: any) => {
+                d.macd = c;
+            })
+            .accessor((d: any) => d.macd);
+
+        const smaVolume50Indicator = sma()
+            .id(3)
+            .options({
+                windowSize: 50,
+                sourcePath: "volume",
+            })
+            .merge((d: any, c: any) => {
+                d.smaVolume50 = c;
+            })
+            .accessor((d: any) => d.smaVolume50);
+
+        /* SERVER - START */
+        const dataToCalculate = newData;
+        const calculatedData = ema26Indicator(ema12Indicator(macdCalculatorIndicator(smaVolume50Indicator(dataToCalculate))));
+        const indexCalculator = discontinuousTimeScaleProviderBuilder().initialIndex(Math.ceil(start1)).indexCalculator();
+        const {index} = indexCalculator(calculatedData);
+        /* SERVER - END */
+
+
+        const xScaleProvider = discontinuousTimeScaleProviderBuilder()
+            .withIndex(index);
+        const {
+            data: linearData,
+        } = xScaleProvider(calculatedData);
+
+        // const max = xAccessor(linearData[linearData.length - 1]);
+        // const min = xAccessor(linearData[Math.max(0, linearData.length - LENGTH_TO_SHOW)]);
+        //
+
+        console.log('newRowsRef', newRowsRef)
+
+        setXExtents([0, xExtents[1]])
+
+        setEma26(() => ema26Indicator)
+        setEma12(() => ema12Indicator)
+        setMacdCalculator(() => macdCalculatorIndicator)
+        setSmaVolume50(() => smaVolume50Indicator)
+        setLinearData(linearData)
+        setData(linearData)
+        setXScale(() => xScale)
+        setXAccessor(() => xAccessor)
+
+        setDisplayXAccessor(() => displayXAccessor)
+    }, [last]);
+
+    const handleRealTimeCandleCex = (dataFeed:any) => {
+        const newData = stateDataRef.current;
+        const lastCandlestick = stateDataRef.current[stateDataRef.current.length - 1];
+        const resolution = getResolution(timeFrame);
+
+        let coeff = resolution * 60;
+        let rounded = Math.floor((dataFeed.timestamp / 1000) / coeff) * coeff;
+        let lastBarSec = lastCandlestick ? lastCandlestick.date.getTime() / 1000 : 0;
+        let _lastBar;
+
+        if (rounded > lastBarSec) {
+            // _lastBar = dataFeed
+            _lastBar = {
+                date: new Date(rounded * 1000),
+                open: dataFeed.ask,
+                high: dataFeed.ask,
+                low: dataFeed.ask,
+                close: dataFeed.ask,
+                volume: dataFeed.volume
+            };
+            newData.push(_lastBar)
+            // setData([...stateDataRef.current, _lastBar]);
+            // stateDataRef.current = [...stateDataRef.current, _lastBar];
+
+        } else {
+            lastCandlestick.high = dataFeed.ask > lastCandlestick.high ? dataFeed.ask : lastCandlestick.high;
+            lastCandlestick.low = dataFeed.ask < lastCandlestick.low ? dataFeed.ask : lastCandlestick.low;
+            lastCandlestick.volume += dataFeed.volume;
+            lastCandlestick.close = dataFeed.ask;
+            _lastBar = lastCandlestick;
+            // _lastBar = dataFeed;
+            newData[newData.length - 1] = _lastBar
+
+
+
+            // setData([...stateDataRef.current.slice(0, -1), _lastBar]);
+            // stateDataRef.current = [...stateDataRef.current.slice(0, -1), _lastBar];
+
+        }
+        return newData
+    };
+
+    const getResolution = (timeFrame: string) => {
+        switch (timeFrame) {
+            case "1M": return 1;
+            case "5M": return 5;
+            case "15M": return 15;
+            case "30M": return 30;
+            case "1H": return 60;
+            case "D": return 1440; // 1 day in minutes === 1440
+            case "W": return 10080;
+            case "M": return 44640;
+            default: return 1440;
+        }
+    };
 
     const handleDataLoadAfter = async (start: any, end: any) => {
         console.log("My Data After")
@@ -664,6 +815,7 @@ export const MainChart = (props: MainChartProps) => {
 
     async function handleDownloadMore(start: any, end: any) {
 
+        setStart1(start)
         if (Math.ceil(start) === end) return;
 
         const rowsToDownload = end - Math.ceil(start);
@@ -756,7 +908,8 @@ export const MainChart = (props: MainChartProps) => {
 
         setData(linearData)
         setLoading(false)
-
+        stateDataRef.current = linearData
+        setNewRowsRef(rowsToDownload)
         setXScale(() => xScale)
         setXAccessor(() => xAccessor)
         setDisplayXAccessor(() => displayXAccessor)
@@ -1173,6 +1326,7 @@ export const MainChart = (props: MainChartProps) => {
                     lineStroke={openCloseColor}
                     displayFormat={pricesDisplayFormat}
                     yAccessor={yEdgeIndicator}
+                    fullWidth={true}
                 />
                 {/* <EdgeIndicator itemType="last" orient="right" edgeAt="right"
                                    yAccessor={d => d.close}

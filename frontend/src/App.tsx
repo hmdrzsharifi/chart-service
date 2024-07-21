@@ -20,13 +20,15 @@ import useDimensions from 'react-use-dimensions'
 // @ts-ignore
 import {BlinkBlur} from "react-loading-indicators";
 import finnhubSymbols from './finnhub-symbols.json';
+import {IOHLCData} from "./data";
 
 
 function App() {
 
     const [ref, {width, height}] = useDimensions();
 
-    const [data, setData] = useState<any>([]);
+    const [data, setData] = useState<IOHLCData[]>([]);
+    const [last, setLast] = useState<IOHLCData | null>(null);
     const [lastTime, setLastTime] = useState<any>(new Date());
     const [reloadFromSymbol, setReloadFromSymbol] = useState(false);
     const {symbol, timeFrame} = useStore();
@@ -87,8 +89,9 @@ function App() {
             // console.log('Received message:', message);
             const convertedMessage = {...message, p: new Decimal(message.p).toNumber()}
             if (message.s === symbol) {
-                handleRealTimeCandle(convertedMessage);
-                setReloadFromSymbol(prevState => !prevState);
+                // handleRealTimeCandle(convertedMessage);
+                // setReloadFromSymbol(prevState => !prevState);
+                setLast(message)
             }
         });
 
@@ -107,8 +110,9 @@ function App() {
             }*/
 
             if (message.symbol === symbol) {
-                handleRealTimeCandleCex(message);
-                setReloadFromSymbol(prevState => !prevState);
+                // handleRealTimeCandleCex(message);
+                // setReloadFromSymbol(prevState => !prevState);
+                setLast(message)
             }
         });
     };
@@ -326,7 +330,7 @@ function App() {
                                 data.length > 0 &&
                                 <MainChart dataList={data} width={width ? width - (openSideBar ? 45 : 10) : 0} ratio={3}
                                            reloadFromSymbol={reloadFromSymbol}
-                                           theme={theme} height={height ? height : 0}
+                                           theme={theme} height={height ? height : 0} last={last}
                                 />}
 
                             {/*{error ? <div className="error-message">Failed to fetch</div> :  <StockChart data={stateDataRef.current} setData={setData} theme={theme}
