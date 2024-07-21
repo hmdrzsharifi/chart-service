@@ -402,7 +402,7 @@ const Toolbar = (props: any) => {
                             <Scrollbar style={{height: 300}}>
                                 {tabValue === 0 && (
                                     <List>
-                                        {symbolList.filter((item: SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm)).sort((a: SymbolList, b: SymbolList) => a.categoryName.localeCompare(b.categoryName))
+                                        {symbolList.filter((item: SymbolList) => item.symbol.toString().toLowerCase().includes(searchTerm.toLowerCase())).sort((a: SymbolList, b: SymbolList) => a.categoryName.localeCompare(b.categoryName))
                                             .map((item: SymbolList) => (
                                                 <ListItem className='element' key={item.symbol} onClick={(e) => sendToApp(item)} style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center' }}>
