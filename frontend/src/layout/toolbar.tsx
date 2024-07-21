@@ -39,6 +39,7 @@ import {fetchCexSymbols} from "../util/utils";
 import html2canvas from 'html2canvas';
 import getDesignTokens from "../config/theme";
 import {MainChart} from "../chart/MainChart";
+import {useSnackbar, VariantType} from "notistack";
 
 const Toolbar = (props: any) => {
 
@@ -82,6 +83,7 @@ const Toolbar = (props: any) => {
     const {openSaveDialog, setOpenSaveDialog}= useStore();
     const {suffix, setSuffix}= useStore();
     const [saveSearchTerm, setSAveSearchTerm] = useState('');
+    const { enqueueSnackbar } = useSnackbar();
 
     const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
         setSAveSearchTerm(event.target.value);
@@ -132,6 +134,7 @@ const Toolbar = (props: any) => {
         const prefixedSaveName = `chart_${saveName}`;
         localStorage.setItem(prefixedSaveName , JSON.stringify(chartState));
         closeSaveDialog();
+        handleSnackbar("success" , "Save Successfully")
     };
 
     const handleCancel = () => {
@@ -278,6 +281,11 @@ const Toolbar = (props: any) => {
     const isStudiesChartWithTooltipInclude = (chart: StudiesChart): boolean => {
         return studiesChartsWithTooltip.includes(chart)
     }
+
+    const handleSnackbar = (variant: VariantType , message:string) => {
+        enqueueSnackbar(message, { variant });
+        console.log("hoooooo");
+    };
 
     return (
         <div className="toolbar" style={props.style} id={"toolbarId"}>
