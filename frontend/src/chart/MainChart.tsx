@@ -362,11 +362,11 @@ export const MainChart = (props: MainChartProps) => {
 
     const [openEaDialog, setOpenEaDialog] = useState(false);
     const [openDvDialog, setOpenDvDialog] = useState(false);
-    const [eaDialogContent, setEaDialogContent] = useState({ eps: '', revenue: '', date: ''});
+    const [eaDialogContent, setEaDialogContent] = useState({ eps: '', revenue: '', date: '' , epsEstimated: ''});
     const [dvDialogContent, setDvDialogContent] = useState({ dividend: '', date: ''});
 
     const handleEarningsClick = (ea:any) => {
-        setEaDialogContent({ eps: ea.eps, revenue: ea.revenue, date: ea.date });
+        setEaDialogContent({ eps: ea.eps, revenue: ea.revenue, date: ea.date , epsEstimated: ea.epsEstimated});
         setOpenEaDialog(true);
     };
 
@@ -564,6 +564,7 @@ export const MainChart = (props: MainChartProps) => {
         const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
         if (symbolCategory === 'STC' && (earningsData.message === 'Failed to fetch' || earningsData.length === 0)){
             handleSnackbarError('error' , 'failed to fetch EarningsFMP')
+            setEarnings([]);
         }else if (earningsData.message === 'Failed to fetch' || earningsData.length === 0){
             setEarnings([]);
         } else {
@@ -575,6 +576,7 @@ export const MainChart = (props: MainChartProps) => {
         const dividendsData = await fetchDividendsFMP(symbol, data[0].date, new Date());
         if (symbolCategory === 'STC' && (dividendsData.message === 'Failed to fetch' || dividendsData.length === 0)){
             handleSnackbarError('error' , 'failed to fetch DividendsFMP')
+            setDividends([]);
         }else if (dividendsData.message === 'Failed to fetch' || dividendsData.length === 0){
             setDividends([]);
         } else {
@@ -1240,6 +1242,7 @@ export const MainChart = (props: MainChartProps) => {
     // @ts-ignore
     // @ts-ignore
     // @ts-ignore
+
     return (
         <ChartCanvas
             ref={canvasRef}
@@ -1824,6 +1827,16 @@ export const MainChart = (props: MainChartProps) => {
                     aria-labelledby="scroll-dialog-title"
                     aria-describedby="scroll-dialog-description"
                 >
+                    <Box
+                        sx={{
+                            height: '5px',
+                            width: '100%',
+                            backgroundColor: eaDialogContent.eps >= eaDialogContent.epsEstimated ? "green" : "red",
+                            position: 'absolute',
+                            top: 0,
+                            left: 0
+                        }}
+                    />
                     <DialogTitle id="scroll-dialog-title">Earnings Details</DialogTitle>
                     <DialogContent dividers>
                         <Typography gutterBottom>
@@ -1850,6 +1863,17 @@ export const MainChart = (props: MainChartProps) => {
                     aria-labelledby="scroll-dialog-title"
                     aria-describedby="scroll-dialog-description"
                 >
+                    <Box
+                        sx={{
+                            height: '5px',
+                            width: '100%',
+                            // @ts-ignore
+                            backgroundColor: dvDialogContent.dividend >= 0 ? "green" : "red",
+                            position: 'absolute',
+                            top: 0,
+                            left: 0
+                        }}
+                    />
                     <DialogTitle id="scroll-dialog-title">Dividends Details</DialogTitle>
                     <DialogContent dividers>
                         <Typography gutterBottom>
