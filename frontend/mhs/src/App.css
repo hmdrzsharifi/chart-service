@@ -1,0 +1,172 @@
+html, body {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  transition: background-color 0.5s;
+}
+
+body {
+  background-clip: content-box;
+}
+
+#root {
+  height: 100%;
+}
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.toolbar {
+  height: 40px;
+  transition: background-color 0.5s;
+  display: flex;
+  justify-content: space-between;
+}
+
+.toolbar-right-box {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.sidebar {
+  overflow: hidden;
+  /*transition: all 0.5s;*/
+}
+
+.chart-container {
+  display: flex;
+  flex: auto;
+}
+
+.chart {
+
+}
+
+.toolbar-chart-icon .toolbar-chart-item {
+  display: none;
+}
+
+.footer {
+  height: 35px !important;
+  transition: background-color 0.5s;
+}
+
+
+.timeframe-menu-root {
+  height: 30px !important;
+  background: transparent !important;;
+}
+
+.timeframe-menu-root .MuiButtonBase-root {
+  min-width: 60px;
+  max-width: 60px;
+}
+
+.MuiSelect-select,
+.timeframe-menu-root .MuiBottomNavigationAction-label {
+  font-size: 12px !important;
+}
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.toolbar-select .MuiSelect-select {
+  padding: 2px 5px;
+}
+
+.toolbar-select fieldset {
+  border: 0;
+}
+
+.change-theme-switch svg {
+  background: black;
+  border-radius: 20px;
+}
+
+.change-theme-switch-checked svg {
+  background: #fff;
+}
+
+.change-theme-switch .MuiButtonBase-root {
+  padding: 7px;
+}
+
+.react-financial-charts-enable-interaction {
+  cursor: pointer;
+  fill: rgba(0, 0, 0, 0);
+  stroke: #d9d9d9;
+}
+.react-financial-charts-enable-interaction:hover {
+  fill: rgba(144, 202, 249, 0.35);
+  stroke: #2976b5;
+}
+.element:hover{
+  cursor: pointer;
+  background-color: #898c8d;
+}
+
+button:focus { outline: none !important;}
+
+.small-toggle-button .MuiSvgIcon-root {
+  font-size: 1.3rem;
+}
+
+.loader-wrapper {
+  position: absolute;
+  z-index: 9;
+  background-color: rgba(0, 0, 0, 0.54);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  justify-content: center;
+}
+
+.error-message {
+  font-size: 24px;
+  color: white;
+  background-color: #972323d4;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+  max-width: 40%;
+  margin: 0 auto;
+}

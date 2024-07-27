@@ -1,0 +1,31 @@
+Enter PgAdmin on localhost:80. Then add a server with:
+
+name: container-postgresdb
+host: host.docker.internal
+database: postgres
+user: postgres
+password: admin
+
+
+
+
+finnhub
+pip3 install websocket-client
+
+
+
+set-python3.bat
+pip install websocket-client
+
+
+
+docker pull redis/redis-stack
+docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 -e REDIS_ARGS="--requirepass mypassword" redis/redis-stack:latest
+http://localhost:8001
+
+
+docker run --name mysql-container -p 3306:3306 -h adi.dev.modernisc.com -e MYSQL_ROOT_PASSWORD=mysql -v /home/abis/mySql/data:/var/lib/mysql -d mysql:latest
+
+
+pip install cryptography
+
