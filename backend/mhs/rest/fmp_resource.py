@@ -1,27 +1,21 @@
 import pandas as pd
-from flask import Blueprint, Flask, request, jsonify, current_app
+from flask import Flask, request, jsonify, current_app
+from flask import Blueprint, jsonify, request, current_app
+from flask_caching import Cache
 from flask_cors import CORS
 import hashlib
-import datetime
 import requests
 from datetime import datetime, timedelta
 import pytz
 import json
 import logging
-from cache_config import configure_cache, cache
-from logging_config import setup_logging
 
+from ..config.cache_config import configure_cache, cache
+from ..config.logging_config import setup_logging
 
-pd.set_option('display.float_format', '{:.8f}'.format)
+main = Blueprint('main', __name__)
 
 logger = setup_logging()
-
-app = Flask(__name__)
-CORS(app, resources={r'*': {'origins': '*'}})
-app.config.from_object('config.Config')  # Load configuration from config.py
-
-configure_cache(app)
-
 
 def generate_cache_key_get_all_symbols():
     logging.debug("Generating cache key.")
@@ -35,7 +29,7 @@ def generate_cache_key_get_all_symbols():
     logging.debug(f"Generated cache key: {cache_key}")
     return cache_key
 
-@app.route('/getAllSymbols', methods=['GET'])
+@main.route('/getAllSymbols', methods=['GET'])
 @cache.cached(timeout=86400, key_prefix=generate_cache_key_get_all_symbols)  # Cache for 1 day
 def get_all_symbols():
     logger.info('Fetching all symbols.')
@@ -99,7 +93,7 @@ def generate_cache_key_fetch_candle_data():
     return f"{symbol}_{time_frame}_{normalized_from}_{normalized_to}"
 
 
-@app.route('/fetchCandleData', methods=['POST'])
+@main.route('/fetchCandleData', methods=['POST'])
 # @cache.cached(timeout=86400, key_prefix=generate_cache_key_fetch_candle_data)  # Cache for 5 minutes
 def fetch_candle_data():
     request_data = request.json
@@ -177,7 +171,8 @@ def fetch_earnings_cache_key():
         from_date = (convert_iso_to_date(request_data.get('from'))),
         to_date = (convert_iso_to_date(request_data.get('to')))
     )
-@app.route('/fetchEarnings', methods=['POST'])
+# @app.route('/fetchEarnings', methods=['POST'])
+@main.route('/fetchEarnings', methods=['POST'])
 @cache.cached(timeout=86400, key_prefix=fetch_earnings_cache_key)
 def fetch_earnings():
     try:
@@ -231,7 +226,8 @@ def fetch_dividends_cache_key():
 def normalize_date_to_day(date):
     return date.replace(hour=0, minute=0, second=0, microsecond=0)
 
-@app.route('/fetchDividends', methods=['POST'])
+# @app.route('/fetchDividends', methods=['POST'])
+@main.route('/fetchDividends', methods=['POST'])
 @cache.cached(timeout=86400, key_prefix=fetch_dividends_cache_key)
 def fetch_dividends():
     try:
@@ -270,7 +266,8 @@ def fetch_dividends():
         return jsonify({"error": "An internal error occurred"}), 500
 
 
-@app.route('/clearCache', methods=['GET'])
+# @app.route('/clearCache', methods=['GET'])
+@main.route('/clearCache', methods=['GET'])
 def clear_cache():
     cache.clear()
     logging.debug("Cache cleared")
@@ -290,11 +287,3 @@ def convert_timestamp_to_date(from_timestamp):
         return formatted_date
     else:
         return 'Timestamp not provided'
-
-
-if __name__ == '__main__':
-    host = app.config['HOST']
-    port = app.config['PORT']
-    debug = app.config['DEBUG']
-
-app.run(host=host, port=port, debug=debug, use_reloader=True)

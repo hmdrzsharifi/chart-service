@@ -16,7 +16,7 @@ pd.set_option('display.float_format', '{:.8f}'.format)
 
 app = Flask(__name__)
 CORS(app, resources={r'*': {'origins': '*'}})
-app.config.from_object('config.Config')  # Load configuration from config.py
+app.config.from_object('config.Config')  # Load configuration from base_config.py
 # db = SQLAlchemy(app)
 
 # Configure caching

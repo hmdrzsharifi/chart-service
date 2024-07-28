@@ -15,7 +15,7 @@ pd.set_option('display.float_format', '{:.8f}'.format)
 
 app = Flask(__name__)
 CORS(app, resources={r'*': {'origins': '*'}})
-app.config.from_object('config.Config')  # Load configuration from config.py
+app.config.from_object('config.Config')  # Load configuration from base_config.py
 
 
 # Configure caching
@@ -91,52 +91,8 @@ def generate_cache_key_fetch_candle_data():
 
     return f"{symbol}_{time_frame}_{normalized_from}_{normalized_to}"
 
-# @app.route('/fetchCandleData', methods=['POST'])
-# # @cache.cached(timeout=86400, key_prefix=generate_cache_key_fetch_candle_data)  # Cache for 5 minutes
-# def fetch_candle_data():
-#     request_data = request.json
-#     symbol = request_data.get('Ticker')
-#     symbolCategory = request_data.get('symbolCategory')
-#     time_frame = request_data.get('TimeFrame')
-#     from_time = request_data.get('from')
-#     to_time = request_data.get('to')
-#
-#     if time_frame == '1M': time_frame = '1'
-#     if time_frame == '5M': time_frame = '5'
-#     if time_frame == '15M': time_frame = '15'
-#     if time_frame == '30M': time_frame = '30'
-#     if time_frame == '1H': time_frame = '60'
-#     if time_frame == 'D': time_frame = 'D'
-#
-#     finnhub_client = finnhub.Client(api_key=current_app.config['FINNHUB_API_KEY'])
-#     print(request_data)
-#     # Stock candles
-#
-#     if symbolCategory in ['CRT', 'FX']:
-#         source, pair = symbol.split(":")
-#     else:
-#         source = symbol
-#
-#     if source == 'BINANCE':
-#         res = finnhub_client.crypto_candles(symbol, time_frame, from_time, to_time)
-#     elif source == 'OANDA' or symbolCategory == 'IND':
-#         res = finnhub_client.forex_candles(symbol, time_frame, from_time, to_time)
-#     else:
-#         res = None
-#         print("Unknown source or symbol category")
-#
-#     if res.get('s') == "ok":
-#         df = pd.DataFrame(res)
-#         # Convert to JSON
-#         json_data = df.to_json(orient='records')
-#     else:
-#         json_data = json.dumps(res)
-#     return json_data
-
-
-
 @app.route('/fetchCandleData', methods=['POST'])
-# @cache.cached(timeout=300, key_prefix=make_cache_key)  # Cache for 5 minutes
+# @cache.cached(timeout=86400, key_prefix=generate_cache_key_fetch_candle_data)  # Cache for 5 minutes
 def fetch_candle_data():
     request_data = request.json
     symbol = request_data.get('Ticker')
@@ -150,6 +106,7 @@ def fetch_candle_data():
     if time_frame == '15M': time_frame = '15'
     if time_frame == '30M': time_frame = '30'
     if time_frame == '1H': time_frame = '60'
+    if time_frame == 'D': time_frame = 'D'
 
     finnhub_client = finnhub.Client(api_key=current_app.config['FINNHUB_API_KEY'])
 
@@ -165,10 +122,6 @@ def fetch_candle_data():
     else:
         res = None
         print("Unknown source or symbol category")
-
-    # finnhub_client = finnhub.Client(api_key=current_app.config['FINNHUB_API_KEY'])
-    # Stock candles
-    # res = finnhub_client.crypto_candles(symbol, time_frame, from_time, to_time)
 
     if res.get('s') == "ok":
         df = pd.DataFrame(res)
@@ -190,5 +143,5 @@ if __name__ == '__main__':
     host = app.config['HOST']
     port = app.config['PORT']
     debug = app.config['DEBUG']
-    app.run(host=host, port=8000, debug=debug)
+    app.run(host=host, port=6000, debug=debug)
 
