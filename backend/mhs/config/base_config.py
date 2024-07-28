@@ -1,11 +1,12 @@
+# config/base_config.py
+
 class BaseConfig:
-    ENV = 'development'
     SYMBOLS_API_URL = 'http://185.148.147.219:4444/api/v1/services/all/symbols'
     FINNHUB_API_KEY = 'cppbtv9r01qn2da2dd6gcppbtv9r01qn2da2dd70'
     FMP_API_KEY = 'fng76oNvOTV9fiNj1QlDCoU1gbZCNtrh'
     HOST = '0.0.0.0'
     PORT = 5000
-    DEBUG = True
+    DEBUG = False
     USE_RELOADER = False
 
     # Database
@@ -14,21 +15,24 @@ class BaseConfig:
 
     # Cache Configurations
     CACHE_TYPE = 'simple'
-    # CACHE_TYPE = 'redis'
-    # CACHE_REDIS_URL = 'redis://:mypassword@adi.dev.modernisc.com:6379/0'
-    # CACHE_DEFAULT_TIMEOUT = 300
 
-# class Config:
-#     SYMBOLS_API_URL = "https://default-url.com/api"
-#
-# class DevelopmentConfig(Config):
-#     DEBUG = True
-#     SYMBOLS_API_URL = "https://dev-url.com/api"
-#
-# class TestingConfig(Config):
-#     TESTING = True
-#     SYMBOLS_API_URL = "https://test-url.com/api"
-#
-# class ProductionConfig(Config):
-#     DEBUG = False
-#     SYMBOLS_API_URL = "https://prod-url.com/api"
+class DevelopmentConfig(BaseConfig):
+    ENV = 'development'
+    DEBUG = True
+    USE_RELOADER = True
+
+class TestingConfig(BaseConfig):
+    ENV = 'testing'
+    TESTING = True
+    DEBUG = True
+
+class ProductionConfig(BaseConfig):
+    ENV = 'production'
+    DEBUG = False
+    USE_RELOADER = False
+
+    # Cache Configurations
+    CACHE_TYPE = 'redis'
+    CACHE_REDIS_URL = 'redis://:mypassword@adi.dev.modernisc.com:6379/0'
+    CACHE_DEFAULT_TIMEOUT = 300
+

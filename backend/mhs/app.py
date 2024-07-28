@@ -1,4 +1,5 @@
 # app.py
+import os
 from flask import Flask
 from flask_cors import CORS
 
@@ -7,12 +8,14 @@ from config.logging_config import setup_logging
 from config.cache_config import configure_cache
 from rest.fmp_resource import main
 
+# Dynamically load the configuration
+config_name = os.getenv('FLASK_CONFIG', 'config.BaseConfig')
+app = Flask(__name__)
+app.config.from_object(config_name)
+
 logger = setup_logging()
 
-app = Flask(__name__)
 CORS(app, resources={r'*': {'origins': '*'}})
-app.config.from_object(BaseConfig)
-
 configure_cache(app)
 
 app.register_blueprint(main)

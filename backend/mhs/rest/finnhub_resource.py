@@ -8,7 +8,6 @@ from flask_caching import Cache
 import hashlib
 from datetime import datetime, timedelta
 import requests
-# from waitress import serve
 
 
 pd.set_option('display.float_format', '{:.8f}'.format)

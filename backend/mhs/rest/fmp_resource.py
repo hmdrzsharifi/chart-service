@@ -1,17 +1,12 @@
-import pandas as pd
-from flask import Flask, request, jsonify, current_app
-from flask import Blueprint, jsonify, request, current_app
-from flask_caching import Cache
-from flask_cors import CORS
 import hashlib
 import requests
 from datetime import datetime, timedelta
 import pytz
 import json
 import logging
-
-from ..config.cache_config import configure_cache, cache
-from ..config.logging_config import setup_logging
+from flask import Blueprint, current_app, jsonify, request
+from config.cache_config import configure_cache, cache
+from config.logging_config import setup_logging
 
 main = Blueprint('main', __name__)
 

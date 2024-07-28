@@ -1,5 +1,5 @@
 # gunicorn_config.py
-from base_config import Config
+from base_config import BaseConfig
 
-bind = f"{Config.HOST}:{Config.PORT}"
+bind = f"{BaseConfig.HOST}:{BaseConfig.PORT}"
 workers = 4  # Adjust the number of workers as needed
