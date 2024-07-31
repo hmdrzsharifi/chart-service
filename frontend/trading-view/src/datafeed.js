@@ -6,7 +6,8 @@ import {
 import {
     getAllSymbols,
     fetchCandleData,
-    symbolMap
+    symbolMap,
+    fetchEarningsFMP
 } from "./helpers.js";
 
 import {FINNHUB_DATA_ADDRESS, FMP_DATA_ADDRESS} from "./constants.js";
@@ -79,6 +80,13 @@ const getType = (categoryName) => {
 const configurationData = {
     // Represents the resolutions for bars supported by your datafeed
     supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
+
+    // earnings & dividends
+    supports_search: true,
+    supports_group_request: false,
+    supports_marks: true,
+    supports_timescale_marks: true,
+    supports_time: true,
 
     // The `exchanges` arguments are used for the `searchSymbols` method if a user selects the exchange
     exchanges: [{
@@ -439,4 +447,61 @@ export default {
         // console.log('[unsubscribeBars]: Method call with subscriberUID:', subscriberUID);
         unsubscribeFromStream(subscriberUID);
     },
+
+    /*getMarks: async (symbolInfo, startDate, endDate, onDataCallback, resolution) => {
+        if (symbolInfo.type === 'STC') {
+            let marks = [];
+            // Convert to Date objects
+            const startDateObj = new Date(startDate * 1000);
+            const endDateObj = new Date(endDate * 1000);
+            const earningsData = await fetchEarningsFMP(symbolInfo.name, startDateObj, endDateObj);
+            // Process earnings data and add to marks
+            earningsData.forEach(earnings => {
+                marks.push({
+                    id: earnings.symbol, // or any unique identifier
+                    time: new Date(earnings.date).getTime() / 1000, // convert date to seconds timestamp
+                    color: 'red', // choose a color based on your logic
+                    text: `Earnings: ${earnings.eps}`, // example text, customize as needed
+                    label: 'E', // example label, customize as needed
+                    labelFontColor: '#FFFFFF', // example font color
+                    minSize: 14 // example size, adjust as needed
+                });
+            });
+            onDataCallback(marks);
+        }
+    },*/
+
+    async getTimescaleMarks(symbolInfo, startDate, endDate, onDataCallback, resolution) {
+        if (symbolInfo.type === 'STC') {
+            let earningsMarks = [];
+            // Convert to Date objects
+            const startDateObj = new Date(startDate * 1000);
+            const endDateObj = new Date(endDate * 1000);
+            const earningsData = await fetchEarningsFMP(symbolInfo.name, startDateObj, endDateObj);
+            // Process earnings data and add to earningsMarks
+            earningsData.forEach(earnings => {
+                earningsMarks.push({
+                    id: earnings.symbol, // or any unique identifier
+                    time: new Date(earnings.date).getTime() / 1000, // convert date to seconds timestamp
+                    color: earnings.eps >= earnings.epsEstimated ? "green" : "red", // choose a color based on your logic
+                    tooltip: `Earnings: ${earnings.eps}`, // show text in tooltip
+                    // imageUrl: `https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg`, // all need to photo
+                    shape: earnings.eps >= earnings.epsEstimated ? `earningUp` : `earningDown`, //"circle" | "earningUp" | "earningDown" | "earning"
+                    label: 'E', // example label, customize as needed
+                    labelFontColor: '#FFFFFF', // example font color
+                    minSize: 14 // example size, adjust as needed
+                });
+            });
+            onDataCallback(earningsMarks);
+        }
+    },
+
+    /*getServerTime(callback) {
+        if (configurationData.supports_time) {
+            const self = this
+            setTimeout(function () {
+                callback(self.getServerTime())
+            }, 10)
+        }
+    }*/
 };
