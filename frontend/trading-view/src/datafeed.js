@@ -7,7 +7,7 @@ import {
     getAllSymbols,
     fetchCandleData,
     symbolMap,
-    fetchEarningsFMP
+    fetchEarningsFMP, fetchDividendsFMP
 } from "./helpers.js";
 
 import {FINNHUB_DATA_ADDRESS, FMP_DATA_ADDRESS} from "./constants.js";
@@ -81,6 +81,7 @@ const configurationData = {
     // Represents the resolutions for bars supported by your datafeed
     supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
 
+    // earnings & dividends
     supports_search: true,
     supports_group_request: false,
     supports_marks: true,
@@ -417,12 +418,12 @@ export default {
         if (rawData.length == 1) {
             rawSymbol = rawData[0]
         }
-        /* if (rawData.length == 2) {
-             rawSymbol = rawData[1].replace('_USD', 'USDT')
-         }
-         if (rawData.length == 3) {
-             rawSymbol = rawData[2].replace('_USD', 'USDT')
-         }*/
+       /* if (rawData.length == 2) {
+            rawSymbol = rawData[1].replace('_USD', 'USDT')
+        }
+        if (rawData.length == 3) {
+            rawSymbol = rawData[2].replace('_USD', 'USDT')
+        }*/
 
         function last() {
             if (symbolCategory == "STC" || symbolCategory == "ETF") {
@@ -447,17 +448,13 @@ export default {
         unsubscribeFromStream(subscriberUID);
     },
 
-    getMarks: async (symbolInfo, startDate, endDate, onDataCallback, resolution) => {
+    /*getMarks: async (symbolInfo, startDate, endDate, onDataCallback, resolution) => {
         if (symbolInfo.type === 'STC') {
-            const startDateInMs = startDate * 1000;
-            const endDateInMs = endDate * 1000;
-
             let marks = [];
-// Convert to Date objects
-            const startDateObj = new Date(startDateInMs);
-            const endDateObj = new Date(endDateInMs);
-            const earningsData = await fetchEarningsFMP("AAPL", startDateObj, endDateObj);
-            console.log({earningsData})
+            // Convert to Date objects
+            const startDateObj = new Date(startDate * 1000);
+            const endDateObj = new Date(endDate * 1000);
+            const earningsData = await fetchEarningsFMP(symbolInfo.name, startDateObj, endDateObj);
             // Process earnings data and add to marks
             earningsData.forEach(earnings => {
                 marks.push({
@@ -472,44 +469,57 @@ export default {
             });
             onDataCallback(marks);
         }
-    },
+    },*/
 
     async getTimescaleMarks(symbolInfo, startDate, endDate, onDataCallback, resolution) {
         if (symbolInfo.type === 'STC') {
-            const startDateInMs = startDate * 1000;
-            const endDateInMs = endDate * 1000;
-
-            let marks = [];
-// Convert to Date objects
-            const startDateObj = new Date(startDateInMs);
-            const endDateObj = new Date(endDateInMs);
-            const earningsData = await fetchEarningsFMP("AAPL", startDateObj, endDateObj);
-            console.log({earningsData})
-            // Process earnings data and add to marks
+            let earningsMarks = [];
+            let idCounter = 1;
+            // Convert to Date objects
+            const startDateObj = new Date(startDate * 1000);
+            const endDateObj = new Date(endDate * 1000);
+            const earningsData = await fetchEarningsFMP(symbolInfo.name, startDateObj, endDateObj);
+            const dividendsData = await fetchDividendsFMP(symbolInfo.name, startDateObj, endDateObj);
+            // Process earnings data and add to earningsMarks
             earningsData.forEach(earnings => {
-                marks.push({
-                    id: earnings.symbol, // or any unique identifier
+                earningsMarks.push({
+                    id: idCounter, // or any unique identifier
                     time: new Date(earnings.date).getTime() / 1000, // convert date to seconds timestamp
-                    color: 'red', // choose a color based on your logic
-                    tooltip: `Earnings: ${earnings.eps}`, // show text in tooltip
+                    color: earnings.eps >= earnings.epsEstimated ? "green" : "red", // choose a color based on your logic
+                    tooltip: `EPS: ${earnings.eps}, Revenue: ${earnings.revenue}`, // show text in tooltip
                     // imageUrl: `https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg`, // all need to photo
-                    shape: `earningDown`, //"circle" | "earningUp" | "earningDown" | "earning"
+                    shape: earnings.eps >= earnings.epsEstimated ? `earningUp` : `earningDown`, //"circle" | "earningUp" | "earningDown" | "earning"
                     label: 'E', // example label, customize as needed
                     labelFontColor: '#FFFFFF', // example font color
                     minSize: 14 // example size, adjust as needed
                 });
+                idCounter++;
             });
-            onDataCallback(marks);
+            console.log({dividendsData})
+            dividendsData.forEach(dividends => {
+                earningsMarks.push({
+                    id: idCounter, // or any unique identifier
+                    time: new Date(dividends.date).getTime() / 1000, // convert date to seconds timestamp
+                    color: dividends.dividend >= 0 ? "green" : "red", // choose a color based on your logic
+                    tooltip: `Dividend: ${dividends.dividend}, Date: ${dividends.date}`, // show text in tooltip
+                    // imageUrl: `https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg`, // all need to photo
+                    shape: `circle`, //"circle" | "earningUp" | "earningDown" | "earning"
+                    label: 'D', // example label, customize as needed
+                    labelFontColor: '#FFFFFF', // example font color
+                    minSize: 14 // example size, adjust as needed
+                });
+                idCounter++;
+            });
+            onDataCallback(earningsMarks);
         }
     },
 
-
-    // getServerTime(callback) {
-    //     if (configurationData.supports_time) {
-    //         const self = this
-    //         setTimeout(function () {
-    //             callback(self.getServerTime())
-    //         }, 10)
-    //     }
-    // }
+    /*getServerTime(callback) {
+        if (configurationData.supports_time) {
+            const self = this
+            setTimeout(function () {
+                callback(self.getServerTime())
+            }, 10)
+        }
+    }*/
 };
