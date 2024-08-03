@@ -1,4 +1,5 @@
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 from flask import Blueprint, Flask, request, jsonify, current_app
 from flask_cors import CORS
 import hashlib
@@ -109,9 +110,11 @@ def fetch_candle_data():
     from_date = request_data.get('from')
     to_date = request_data.get('to')
 
+
     formatted_from_date = convert_timestamp_to_date(from_date)
     formatted_to_date = convert_timestamp_to_date(to_date)
     api_key = current_app.config['FMP_API_KEY']
+
 
     time_frame_map = {
         '1M': '1min',
@@ -129,6 +132,9 @@ def fetch_candle_data():
     #     source, pair = symbol.split(":")
     # else:
     #     source = symbol
+
+    if symbolCategory == 'STC':
+        formatted_from_date = (datetime.strptime(formatted_from_date, '%Y-%m-%d') - relativedelta(months=7)).strftime('%Y-%m-%d')
 
     if time_frame == 'D':
         url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{symbol}?from={formatted_from_date}&to={formatted_to_date}&apikey={api_key}"
