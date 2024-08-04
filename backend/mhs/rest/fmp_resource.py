@@ -7,6 +7,7 @@ import logging
 from flask import Blueprint, current_app, jsonify, request
 from config.cache_config import configure_cache, cache
 from config.logging_config import setup_logging
+from dateutil.relativedelta import relativedelta
 
 main = Blueprint('main', __name__)
 
@@ -118,6 +119,8 @@ def fetch_candle_data():
     #     source, pair = symbol.split(":")
     # else:
     #     source = symbol
+    if symbolCategory == 'STC':
+        formatted_from_date = (datetime.strptime(formatted_from_date, '%Y-%m-%d') - relativedelta(months=7)).strftime('%Y-%m-%d')
 
     if time_frame == 'D':
         url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{symbol}?from={formatted_from_date}&to={formatted_to_date}&apikey={api_key}"
