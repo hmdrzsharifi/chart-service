@@ -13,7 +13,7 @@ export async function fetchCandleDataFinnhub(symbol, symbolCategory, tf, from, t
         "from": from,
         "to": to
     };
-    console.log({requestBody})
+    // console.log({requestBody})
 
     const resultData = [];
     try {
@@ -141,6 +141,65 @@ function mapSymbolResult(originalObject) {
         exchange: '',
         type: type,
     };
+}
+
+
+export async function fetchEarningsFMP(symbol, from, to) {
+    const requestBody = {
+        "Ticker": symbol,
+        "from": from,
+        "to": to
+    };
+    const resultData = [];
+    try {
+        const response = await fetch(FMP_DATA_ADDRESS +'/fetchEarnings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        })
+        if (!response.ok) {
+            // throw new Error(`HTTP error! status: ${response.status}`);
+            return [];
+        }
+
+        const resultData = await response.json();
+
+        return resultData;
+    } catch (error) {
+        console.error('There was an error fetching the candle data:', error);
+        return error; // Re-throw the error for the calling code to handle
+    }
+}
+
+export async function fetchDividendsFMP(symbol, from, to) {
+    const requestBody = {
+        "Ticker": symbol,
+        "from": from,
+        "to": to
+    };
+    const resultData = [];
+    try {
+        const response = await fetch(FMP_DATA_ADDRESS +'/fetchDividends', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        })
+        if (!response.ok) {
+            // throw new Error(`HTTP error! status: ${response.status}`);
+            return [];
+        }
+
+        const resultData = await response.json();
+
+        return resultData;
+    } catch (error) {
+        console.error('There was an error fetching the candle data:', error);
+        return error; // Re-throw the error for the calling code to handle
+    }
 }
 
 const getType = (categoryName) => {
