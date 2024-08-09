@@ -6,8 +6,9 @@ import {
 import {
     getAllSymbols,
     fetchCandleData,
-    symbolMap,
-    fetchEarningsFMP
+    fetchEarningsFMP,
+    fetchDividendsFMP,
+    symbolMap
 } from "./helpers.js";
 
 import {FINNHUB_DATA_ADDRESS, FMP_DATA_ADDRESS} from "./constants.js";
@@ -15,15 +16,6 @@ import {FINNHUB_DATA_ADDRESS, FMP_DATA_ADDRESS} from "./constants.js";
 const lastBarsCache = new Map();
 export {lastBarsCache};
 
-/*function mapObjectFinnhub(originalObject) {
-    return {
-        time: new Date(originalObject.t * 1000),
-        open: originalObject.o,
-        high: originalObject.h,
-        low: originalObject.l,
-        close: originalObject.c,
-    };
-}*/
 
 /*function mapSymbolResult(originalObject) {
     let type = getType(originalObject.categoryName)
@@ -58,24 +50,6 @@ export {lastBarsCache};
     };
 }*/
 
-const getType = (categoryName) => {
-    switch (categoryName) {
-        case 'CRT':
-            return 'CRT';
-        case 'FX':
-            return 'FX';
-        case 'CMD':
-            return 'CMD';
-        case 'IND':
-            return 'IND';
-        case 'ETF':
-            return 'ETF';
-        case 'STC':
-            return 'STC';
-        default:
-            return 'CRT';
-    }
-};
 
 const configurationData = {
     // Represents the resolutions for bars supported by your datafeed
@@ -474,23 +448,40 @@ export default {
     async getTimescaleMarks(symbolInfo, startDate, endDate, onDataCallback, resolution) {
         if (symbolInfo.type === 'STC') {
             let earningsMarks = [];
+            let idCounter = 1;
             // Convert to Date objects
             const startDateObj = new Date(startDate * 1000);
             const endDateObj = new Date(endDate * 1000);
             const earningsData = await fetchEarningsFMP(symbolInfo.name, startDateObj, endDateObj);
+            const dividendsData = await fetchDividendsFMP(symbolInfo.name, startDateObj, endDateObj);
             // Process earnings data and add to earningsMarks
             earningsData.forEach(earnings => {
                 earningsMarks.push({
-                    id: earnings.symbol, // or any unique identifier
+                    id: idCounter, // or any unique identifier
                     time: new Date(earnings.date).getTime() / 1000, // convert date to seconds timestamp
                     color: earnings.eps >= earnings.epsEstimated ? "green" : "red", // choose a color based on your logic
-                    tooltip: `Earnings: ${earnings.eps}`, // show text in tooltip
+                    tooltip: `EPS: ${earnings.eps}, Revenue: ${earnings.revenue}`, // show text in tooltip
                     // imageUrl: `https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg`, // all need to photo
                     shape: earnings.eps >= earnings.epsEstimated ? `earningUp` : `earningDown`, //"circle" | "earningUp" | "earningDown" | "earning"
                     label: 'E', // example label, customize as needed
                     labelFontColor: '#FFFFFF', // example font color
                     minSize: 14 // example size, adjust as needed
                 });
+                idCounter++;
+            });
+            dividendsData.forEach(dividends => {
+                earningsMarks.push({
+                    id: idCounter, // or any unique identifier
+                    time: new Date(dividends.date).getTime() / 1000, // convert date to seconds timestamp
+                    color: dividends.dividend >= 0 ? "green" : "red", // choose a color based on your logic
+                    tooltip: `Dividend: ${dividends.dividend}, Date: ${dividends.date}`, // show text in tooltip
+                    // imageUrl: `https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg`, // all need to photo
+                    shape: `circle`, //"circle" | "earningUp" | "earningDown" | "earning"
+                    label: 'D', // example label, customize as needed
+                    labelFontColor: '#FFFFFF', // example font color
+                    minSize: 14 // example size, adjust as needed
+                });
+                idCounter++;
             });
             onDataCallback(earningsMarks);
         }
