@@ -2,7 +2,7 @@ import hashlib
 import json
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.request import urlopen
 
 import certifi
@@ -176,11 +176,57 @@ def get_all_symbols():
         return jsonify({"error": "Failed to fetch symbols"}), 500
 
 
+def normalize_dates(from_timestamp, to_timestamp, timeframe):
+    from_date = datetime.utcfromtimestamp(from_timestamp)
+    to_date = datetime.utcfromtimestamp(to_timestamp)
+
+    if timeframe == '1M':
+        # Normalize to the nearest 5 minutes interval
+        from_date = from_date.replace(second=0, microsecond=0, minute=(from_date.minute // 5) * 5)
+        to_date = to_date.replace(second=0, microsecond=0, minute=(to_date.minute // 5) * 5)
+    elif timeframe == '5M':
+        from_date = from_date.replace(second=0, microsecond=0)
+        to_date = to_date.replace(second=0, microsecond=0)
+    elif timeframe == '15M':
+        from_date = from_date.replace(second=0, microsecond=0, minute=(from_date.minute // 15) * 15)
+        to_date = to_date.replace(second=0, microsecond=0, minute=(to_date.minute // 15) * 15)
+    elif timeframe == '30M':
+        from_date = from_date.replace(second=0, microsecond=0, minute=(from_date.minute // 30) * 30)
+        to_date = to_date.replace(second=0, microsecond=0, minute=(to_date.minute // 30) * 30)
+    elif timeframe == '1H':
+        from_date = from_date.replace(minute=0, second=0, microsecond=0)
+        to_date = to_date.replace(minute=0, second=0, microsecond=0)
+    elif timeframe == 'D':
+        from_date = from_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        to_date = to_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif timeframe == 'W':
+        from_date = from_date - timedelta(days=from_date.weekday())
+        from_date = from_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        to_date = to_date - timedelta(days=to_date.weekday())
+        to_date = to_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif timeframe == 'M':
+        from_date = from_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        to_date = to_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    return int(from_date.timestamp()), int(to_date.timestamp())
+
+def generate_cache_key_fetch_candle_data():
+    request_data = request.json
+    symbol = request_data.get('Ticker').lower()
+    time_frame = request_data.get('TimeFrame')
+    from_date = request_data.get('from')
+    to_date = request_data.get('to')
+
+    normalized_from, normalized_to = normalize_dates(from_date, to_date, time_frame)
+
+    return f"{symbol}_{time_frame}_{normalized_from}_{normalized_to}"
+
 @app.route('/fetchCandleData', methods=['POST'])
-# @cache.cached(timeout=300, key_prefix=make_cache_key)  # Cache for 5 minutes
+# @cache.cached(timeout=86400, key_prefix=generate_cache_key_fetch_candle_data)  # Cache for 5 minutes
 def fetch_candle_data():
     request_data = request.json
     symbol = request_data.get('Ticker')
+    symbolCategory = request_data.get('symbolCategory')
     time_frame = request_data.get('TimeFrame')
     from_time = request_data.get('from')
     to_time = request_data.get('to')
@@ -190,10 +236,33 @@ def fetch_candle_data():
     if time_frame == '15M': time_frame = '15'
     if time_frame == '30M': time_frame = '30'
     if time_frame == '1H': time_frame = '60'
+    if time_frame == 'D': time_frame = 'D'
 
     finnhub_client = finnhub.Client(api_key=current_app.config['FINNHUB_API_KEY'])
-    # Stock candles
-    res = finnhub_client.stock_candles(symbol, time_frame, from_time, to_time)
+
+    date1 = datetime.utcfromtimestamp(from_time)
+    four_months_ago = date1 - timedelta(days=120)  # approximate 4 months
+    four_months_ago_timestamp = int(four_months_ago.timestamp())
+
+    if symbolCategory in ['CRT', 'FX']:
+        source, pair = symbol.split(":")
+    elif symbolCategory in ['CMD']:
+        source, pair = symbol.split(":")
+        symbol = source + ":" + pair.replace('USDT', '_USD')
+    else:
+        source = symbol
+
+    if symbolCategory == 'CRT':
+        res = finnhub_client.crypto_candles(symbol, time_frame, from_time, to_time)
+    elif symbolCategory == 'CMD':
+        res = finnhub_client.forex_candles(symbol, time_frame, four_months_ago_timestamp, to_time)
+    elif symbolCategory == 'IND':
+        res = finnhub_client.forex_candles(symbol, time_frame, four_months_ago_timestamp, to_time)
+    elif symbolCategory == 'STC':
+        res = finnhub_client.stock_candles(symbol, time_frame, from_time, to_time)
+    else:
+        res = None
+        print("Unknown source or symbol category")
 
     if res.get('s') == "ok":
         df = pd.DataFrame(res)
