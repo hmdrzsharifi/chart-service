@@ -5,18 +5,18 @@ import {SymbolList} from "../type/SymbolType";
 import getDesignTokens from "../config/theme";
 import {StudiesChart} from "../type/Enum";
 
-const API_URL_FMP = process.env.REACT_APP_FMP_DATA_ADDRESS;
-const API_URL_FINNHUB = process.env.REACT_APP_FINNHUB_DATA_ADDRESS;
-export async function fetchCandleDataFinnhub(symbol:any, tf:any, from:any, to:any) {
+const API_URL_TWELVEDATA = process.env.REACT_APP_TWELVE_DATA_ADDRESS;
+
+export async function fetchCandleDataTwelveData(symbol:any, tf:any, from:any, to:any) {
     const requestBody = {
-        "Ticker": symbol,
-        "TimeFrame": tf,
+        "ticker": symbol,
+        "timeFrame": tf,
         "from": from,
         "to": to
     };
     const resultData:any = [];
     try {
-        const response = await fetch(API_URL_FINNHUB +'/fetchCandleData', {
+        const response = await fetch(API_URL_TWELVEDATA +'/fetchCandleData', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -29,40 +29,7 @@ export async function fetchCandleDataFinnhub(symbol:any, tf:any, from:any, to:an
 
         const json = await response.json();
         json.forEach((entry:any) => {
-            resultData.push(mapObjectFinnhub(entry));
-        });
-
-        return resultData;
-    } catch (error) {
-        console.error('There was an error fetching the candle data:', error);
-        throw error; // Re-throw the error for the calling code to handle
-    }
-
-}
-
-export async function fetchCandleDataFMP(symbol:any, tf:any, from:any, to:any) {
-    const requestBody = {
-        "Ticker": symbol,
-        "TimeFrame": tf,
-        "from": from,
-        "to": to
-    };
-    const resultData:any = [];
-    try {
-        const response = await fetch(API_URL_FMP +'/fetchCandleData', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-        })
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const json = await response.json();
-        json.forEach((entry:any) => {
-            resultData.push(mapObjectFMP(entry));
+            resultData.push(mapObjectTwelve(entry));
         });
 
         return resultData;
@@ -72,15 +39,15 @@ export async function fetchCandleDataFMP(symbol:any, tf:any, from:any, to:any) {
     }
 }
 
-export async function fetchEarningsFMP(symbol:any, from:any, to:any) {
+export async function fetchEarnings(symbol:any, from:any, to:any) {
     const requestBody = {
-        "Ticker": symbol,
+        "ticker": symbol,
         "from": from,
         "to": to
     };
     const resultData:any = [];
     try {
-        const response = await fetch(API_URL_FMP +'/fetchEarnings', {
+        const response = await fetch(API_URL_TWELVEDATA +'/fetchEarnings', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -104,15 +71,15 @@ export async function fetchEarningsFMP(symbol:any, from:any, to:any) {
     }
 }
 
-export async function fetchDividendsFMP(symbol:any, from:any, to:any) {
+export async function fetchDividends(symbol:any, from:any, to:any) {
     const requestBody = {
-        "Ticker": symbol,
+        "ticker": symbol,
         "from": from,
         "to": to
     };
     const resultData:any = [];
     try {
-        const response = await fetch(API_URL_FMP +'/fetchDividends', {
+        const response = await fetch(API_URL_TWELVEDATA +'/fetchDividends', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -163,29 +130,14 @@ export async function fetchCexSymbols(){
 
 }
 
-function mapObjectFinnhub(originalObject:any) {
+function mapObjectTwelve(originalObject:any) {
     return {
-        date: new Date(originalObject.t * 1000),
-        open: originalObject.o,
-        high: originalObject.h,
-        low: originalObject.l,
-        close: originalObject.c,
-        volume: originalObject.v,
-        split: "",
-        dividend: "",
-        absoluteChange: "",
-        percentChange:""
-    };
-}
-
-function mapObjectFMP(originalObject:any) {
-    return {
-        date: new Date(originalObject.date + 'Z'),  // Append 'Z' to indicate UTC
+        date: new Date(originalObject.datetime),  // Append 'Z' to indicate UTC
         open: originalObject.open,
         high: originalObject.high,
         low: originalObject.low,
         close: originalObject.close,
-        volume: originalObject.volume,
+        // volume: originalObject.volume,
     };
 }
 

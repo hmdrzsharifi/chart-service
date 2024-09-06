@@ -8,7 +8,7 @@ import Sidebar from "./layout/sidebar";
 import {NO_OF_CANDLES, WEBSOCKET_ADDRESS} from "./config/constants";
 import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import useStore from "./util/store";
-import {fetchCandleDataFinnhub, fetchCandleDataFMP} from "./util/utils";
+import {fetchCandleDataTwelveData} from "./util/utils";
 import io from 'socket.io-client';
 import useDesignStore from "./util/designStore";
 import getDesignTokens from "./config/theme";
@@ -19,7 +19,6 @@ import {MainChart} from "./chart/MainChart";
 import useDimensions from 'react-use-dimensions'
 // @ts-ignore
 import {BlinkBlur} from "react-loading-indicators";
-import finnhubSymbols from './finnhub-symbols.json';
 import {IOHLCData} from "./data";
 
 
@@ -100,17 +99,6 @@ function App() {
         // CEX
         socket.on('symbolUpdate', (message: any) => {
             // console.log('Received message CEX:', message);
-
-            /*const convertedMessage = {...message, ask: new Decimal(message.ask).toNumber()}
-            let rawData = symbol.split(':')
-            let rawSymbol
-            if (rawData[0] === 'BINANCE') {
-                rawSymbol = rawData[1].replace('USDT','_USD')
-            }
-            if (rawData[0] === 'OANDA') {
-                rawSymbol = rawData[1]
-            }*/
-
             if (message.symbol === symbol) {
                 // handleRealTimeCandleCex(message);
                 // setReloadFromSymbol(prevState => !prevState);
@@ -207,21 +195,16 @@ function App() {
 
     const fetchInitialData = async () => {
         try {
-            if (finnhubSymbols.hasOwnProperty(symbol)) {
-                console.log("fetchInitialDataFinnhub", symbol)
-                await fetchInitialDataFinnhub(symbol)
-            } else {
-                let ticker = symbol.replace('_USD', 'USD').toLowerCase();
-                console.log("fetchInitialDataFMP", ticker)
-                await fetchInitialDataFMP(ticker)
-            }
+            let ticker = symbol.replace('_USD', '/USD').toLowerCase();
+            console.log("fetchInitialDataTwelveData", ticker)
+            await fetchInitialDataTwelveData(ticker)
         } catch (error) {
             console.error('Error fetching data:', error);
             throw error; // Rethrow error to be caught in the outer try-catch block
         }
     };
 
-    const fetchInitialDataFinnhub = async (ticker: any) => {
+    const fetchInitialDataTwelveData = async (ticker: any) => {
         try {
             setLoading(true)
 
@@ -230,7 +213,10 @@ function App() {
                 "5M": 5 * 60,
                 "15M": 15 * 60,
                 "30M": 30 * 60,
+                "45M": 45 * 60,
                 "1H": 60 * 60,
+                "2H": 2 * 60 * 60,
+                "4H": 4 * 60 * 60,
                 "D": 24 * 3600,
                 "W": 7 * 24 * 3600,
                 "M": 30 * 24 * 3600
@@ -240,38 +226,7 @@ function App() {
             const from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * multiplier);
             const to = Math.floor(new Date().getTime() / 1000);
 
-            const candleData = await fetchCandleDataFinnhub(ticker, timeFrame, from, to);
-
-            setData(candleData)
-            setReloadFromSymbol(!reloadFromSymbol)
-            setLoading(false)
-
-        } catch (error) {
-            console.error('Error fetching candle data:', error);
-            setError(true)
-        }
-    };
-
-    const fetchInitialDataFMP = async (ticker: any) => {
-        try {
-            setLoading(true)
-
-            const multipliers = {
-                "1M": 60,
-                "5M": 5 * 60,
-                "15M": 15 * 60,
-                "30M": 30 * 60,
-                "1H": 60 * 60,
-                "D": 24 * 3600,
-                "W": 7 * 24 * 3600,
-                "M": 30 * 24 * 3600
-            };
-
-            const multiplier = multipliers[timeFrame];
-            const from = Math.floor(new Date().getTime() / 1000) - (NO_OF_CANDLES * multiplier);
-            const to = Math.floor(new Date().getTime() / 1000);
-
-            const candleData = await fetchCandleDataFMP(ticker, timeFrame, from, to);
+            const candleData = await fetchCandleDataTwelveData(ticker, timeFrame, from, to);
             console.log(candleData)
 
             setData(candleData)
@@ -284,7 +239,6 @@ function App() {
             throw error; // Rethrow error to be caught in the outer try-catch block
         }
     };
-
 
     const theme = React.useMemo(() => createTheme(getDesignTokens(themeMode)), [themeMode]);
 

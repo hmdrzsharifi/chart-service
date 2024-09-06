@@ -4,7 +4,10 @@ export enum TimeFrame {
     M5 = '5M',
     M15 = '15M',
     M30 = '30M',
+    M45 = '45M',
     H = '1H',
+    H2 = '2H',
+    H4 = '4H',
     W = 'W',
     M = 'M',
 }
@@ -15,7 +18,10 @@ export const TimeFrames = [
     TimeFrame.M5,
     TimeFrame.M15,
     TimeFrame.M30,
+    TimeFrame.M45,
     TimeFrame.H,
+    TimeFrame.H2,
+    TimeFrame.H4,
     TimeFrame.W,
     TimeFrame.M
 ];

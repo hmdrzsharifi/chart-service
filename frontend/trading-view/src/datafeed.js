@@ -6,54 +6,20 @@ import {
 import {
     getAllSymbols,
     fetchCandleData,
-    fetchEarningsFMP,
-    fetchDividendsFMP,
+    fetchEarnings,
+    fetchDividends,
     symbolMap
 } from "./helpers.js";
 
-import {FINNHUB_DATA_ADDRESS, FMP_DATA_ADDRESS} from "./constants.js";
+import {TWELVE_DATA_ADDRESS} from "./constants.js";
 
 const lastBarsCache = new Map();
 export {lastBarsCache};
 
 
-/*function mapSymbolResult(originalObject) {
-    let type = getType(originalObject.categoryName)
-    // let type;
-
-    /!*if (originalObject.categoryName == 'CRT') {
-        type = 'CRT';
-    }
-    if (originalObject.categoryName == 'FX') {
-        type = 'FX';
-    }
-    if (originalObject.categoryName == 'CMD') {
-        type = 'CMD';
-    }
-    if (originalObject.categoryName == 'IND') {
-        type = 'IND';
-    }
-    if (originalObject.categoryName == 'ETF') {
-        type = 'ETF';
-    }
-    if (originalObject.categoryName == 'STC') {
-        type = 'STC';
-    }
-    *!/
-    return {
-        symbol: originalObject.symbol,
-        full_name: originalObject.symbol,
-        description: originalObject.symbol,
-        // exchange:'BINANCE',
-        exchange: '',
-        type: type,
-    };
-}*/
-
-
 const configurationData = {
     // Represents the resolutions for bars supported by your datafeed
-    supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
+    supported_resolutions: ['1', '5', '15', '30', '45', '60', '120', '240', '1D', '1W', '1M'],
 
     // earnings & dividends
     supports_search: true,
@@ -102,35 +68,6 @@ const configurationData = {
     ],
 };
 
-// Obtains all symbols for all exchanges supported by CryptoCompare API
-// let symbolMap = new Map();
-
-/*async function getAllSymbols() {
-    let allSymbols = [];
-    try {
-        const response = await fetch(PLATFORM_ADDRESS + '/api/v1/services/all/symbols', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const json = await response.json();
-
-        json.forEach((entry) => {
-            allSymbols.push(mapSymbolResult(entry));
-            symbolMap.set(entry.symbol, mapSymbolResult(entry));
-        });
-        return allSymbols;
-    } catch (error) {
-        console.error('There was an error fetching the candle data:', error);
-        throw error; // Re-throw the error for the calling code to handle
-    }
-}*/
-
 export default {
 
     onReady: (callback) => {
@@ -150,10 +87,16 @@ export default {
                 value.symbol.toLowerCase().includes(userInput.toLowerCase()) &&
                 (!exchange || value.exchange === exchange)
             );
+        } else if (symbolType === 'STC' || symbolType === 'CRT' || symbolType === 'FX' ||
+            symbolType === 'IND' || symbolType === 'ETF' || symbolType === 'CMD') {
+            matchingSymbols = allSymbols.filter(value =>
+                value.type === symbolType &&
+                value.symbol.toLowerCase().includes(userInput.toLowerCase()) &&
+                (!exchange || value.exchange === exchange)
+            );
         } else {
             matchingSymbols = allSymbols.filter(value =>
                 value.symbol.toLowerCase().includes(userInput.toLowerCase()) &&
-                value.type === symbolType &&
                 (!exchange || value.exchange === exchange)
             );
         }
@@ -176,7 +119,7 @@ export default {
             symbolCategory = 'CRT' // For Test
         }
         const symbolInfo = {
-            ticker: symbolName.replace('_USD', 'USDT'),
+            ticker: symbolName.replace('_', '/'),
             name: symbolName,
             description: symbolName,
             type: symbolCategory,
@@ -191,6 +134,7 @@ export default {
             supported_resolutions: configurationData.supported_resolutions,
             volume_precision: 2,
             data_status: 'streaming',
+            has_empty_bars: false
         };
 
         // console.log('[resolveSymbol]: Symbol resolved', symbolName);
@@ -206,7 +150,10 @@ export default {
             '5': '5M',
             '15': '15M',
             '30': '30M',
+            '45': '45M',
             '60': '1H',
+            '120': '2H',
+            '240': '4H',
             '1D': 'D',
             '1W': 'W',
             '1M': 'M'
@@ -214,152 +161,60 @@ export default {
 
         const reqResolution = resolutionMapping[resolution];
 
-        /*
-        let rawData = window.tvWidget.symbolInterval().symbol.split(':')
-        let rawSymbol;
-        if (rawData.length == 1) {
-            rawSymbol = rawData[0];
-        }*/
-        /*if (rawData.length == 2) {
-            rawSymbol = rawData[1].replace('_USD', 'USDT')
-        }
-        if (rawData.length == 3) {
-            rawSymbol = rawData[2].replace('_USD', 'USDT')
-        }*/
-
-        const { symbol } = window.tvWidget.symbolInterval();
+        const {symbol} = window.tvWidget.symbolInterval();
         const symbolParts = symbol.split(':');
-        const normalizedSymbol = (symbolParts.length === 1 && symbolParts[0]) ? symbolParts[0] : null;
+        let ticker = (symbolParts.length === 1 && symbolParts[0]) ? symbolParts[0] : null;
 
         // const symbolCategory =  window.tvWidget._options.symbolCategory; // For Server
         const symbolCategory = symbolInfo.type; // For Test
 
-        let ticker = '';
+        const indexMappings = {
+            'NDX/USD': 'NDX',
+            'ASX/AUD': 'AXJO',
+            'NIK/JPY': 'N225',
+            'DAX/EUR': 'GDAXI',
+            'DJI/USD': 'DJI',
+            'F40/EUR': 'FCHI',
+            'FTS/GBP': 'FTSE',
+            'HK33/HKD': 'HSI',
+            'SG30/SGD': 'STI',
+            'CN50/USD': 'XIN0',
+            'SPX/USD': 'SPX',
+            'EU50/EUR': 'EU500',
+        };
 
-        switch (symbolCategory) {
-            case 'CRT':
-                ticker = 'BINANCE' + ':' + normalizedSymbol
-                break;
-            case 'FX':
-                const forexMappings = {
-                    'EURUSDT': 'EUR_USD',
-                    'GBPUSDT': 'GBP_USD',
-                    'NZDUSDT': 'NZD_USD',
-                    'AUDUSDT': 'AUD_USD'
-                };
-                if (forexMappings[normalizedSymbol]) {
-                    ticker = `OANDA:${forexMappings[normalizedSymbol]}`;
-                } else {
-                    ticker = `OANDA:${normalizedSymbol}`;
-                }
-                break;
-            case 'STC':
-                ticker = normalizedSymbol
-                break;
-            case 'ETF':
-                ticker = normalizedSymbol
-                break;
-            case 'CMD':
-                ticker = 'OANDA' + ':' + normalizedSymbol
-                break;
-            case 'IND':
-                const indexMappings = {
-                    'DJIUSDT': '^DJI',
-                    'NDXUSDT': '^NDX',
-                    'SPXUSDT': 'OANDA:SPX500_USD',
-                    'ASX_AUD': '^AXJO',
-                    'NIK_JPY': '^N225',
-                    'CN50USDT': 'XIN9.FGI',
-                    'EU50_EUR': '^STOXX50E',
-                    'DAX_EUR': '^GDAXI',
-                    'HK33_HKD': '^HSI',
-                    'SG30_SGD': '^STI',
-                    'FTS_GBP': '^FTSE',
-                    'F40_EUR': 'OANDA:FR40_EUR',
-                };
-                ticker = indexMappings[normalizedSymbol];
-                break;
-            default:
-                console.error(`Unknown symbol category: ${symbolCategory}`);
+        const cmdMappings = {
+            'BRN/USD': 'XBR/USD',
+        };
+
+        if (symbolCategory == 'IND') {
+            ticker = indexMappings[ticker];
+        }
+
+        if (symbolCategory == 'CMD') {
+             if (cmdMappings[ticker]) {
+                 ticker = cmdMappings[ticker]
+             } else {
+                 ticker = ticker;
+             }
         }
 
         let resultData = [];
-        if (['CRT', 'CMD', 'FX', 'IND'].includes(symbolCategory)) {
-            const requestBody = {
-                "Ticker": ticker,
-                "symbolCategory": symbolCategory,
-                "TimeFrame": reqResolution,
-                "from": from,
-                "to": to
-            };
-            resultData = await fetchCandleData(symbolCategory, requestBody, FINNHUB_DATA_ADDRESS);
-
-            /*try {
-                const response = await fetch(FINNHUB_DATA_ADDRESS + '/fetchCandleData', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody),
-                })
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const json = await response.json();
-                if (json.length > 0) {
-                    json.forEach((entry) => {
-                        resultData.push(mapObjectFinnhub(entry));
-                    });
-                }
-            } catch (error) {
-                console.error('There was an error fetching the candle data:', error);
-                throw error; // Re-throw the error for the calling code to handle
-            }*/
-        } else if (['STC', 'ETF'].includes(symbolCategory)) {
-            // console.log("FMP");
-            const requestBody = {
-                "Ticker": ticker,
-                "symbolCategory": symbolCategory,
-                "TimeFrame": reqResolution,
-                "from": from,
-                "to": to
-            };
-            resultData = await fetchCandleData(symbolCategory, requestBody, FMP_DATA_ADDRESS);
-
-            /* try {
-                 const response = await fetch(FMP_DATA_ADDRESS + '/fetchCandleData', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                     },
-                     body: JSON.stringify(requestBody),
-                 })
-                 if (!response.ok) {
-                     throw new Error(`HTTP error! status: ${response.status}`);
-                 }
-
-                 const json = await response.json();
-                 if (json.length > 0) {
-                     json.forEach((entry) => {
-                         resultData.push(mapObjectFMP(entry));
-                     });
-                 }
-             } catch (error) {
-                 console.error('There was an error fetching the candle data:', error);
-                 throw error; // Re-throw the error for the calling code to handle
-             }*/
-        } else {
-            console.error(`Unsupported symbol category: ${symbolCategory}`);
-        }
-
+        const requestBody = {
+            "ticker": ticker,
+            // "symbolCategory": symbolCategory,
+            "timeFrame": reqResolution,
+            "from": from,
+            "to": to
+        };
+        resultData = await fetchCandleData(requestBody, TWELVE_DATA_ADDRESS);
 
         if (firstDataRequest) {
-            /*lastBarsCache.set(symbolCategory + ':' + rawSymbol.replace('USDT', '_USD'), {
+            lastBarsCache.set(symbolCategory + ':' + ticker, {
                 ...resultData[resultData.length - 1],
-            });*/
+            });
 
-            if (symbolCategory == "STC" || symbolCategory == "ETF") {
+            /*if (symbolCategory == "STC" || symbolCategory == "ETF") {
                 lastBarsCache.set(symbolCategory + ':' + normalizedSymbol, {
                     ...resultData[resultData.length - 1],
                 });
@@ -367,7 +222,7 @@ export default {
                 lastBarsCache.set(symbolCategory + ':' + normalizedSymbol.replace('USDT', '_USD'), {
                     ...resultData[resultData.length - 1],
                 });
-            }
+            }*/
         }
 
         // console.log(`[getBars]: returned ${resultData.length} bar(s)`);
@@ -392,19 +247,17 @@ export default {
         if (rawData.length == 1) {
             rawSymbol = rawData[0]
         }
-       /* if (rawData.length == 2) {
-            rawSymbol = rawData[1].replace('_USD', 'USDT')
-        }
-        if (rawData.length == 3) {
-            rawSymbol = rawData[2].replace('_USD', 'USDT')
-        }*/
 
         function last() {
-            if (symbolCategory == "STC" || symbolCategory == "ETF") {
-                return lastBarsCache.get(symbolCategory + ':' + rawSymbol)
-            } else {
-                return lastBarsCache.get(symbolCategory + ':' + rawSymbol.replace('USDT', '_USD'))
-            }
+            return lastBarsCache.get(symbolCategory + ':' + rawSymbol)
+
+            /*
+                        if (symbolCategory == "STC" || symbolCategory == "ETF") {
+                            return lastBarsCache.get(symbolCategory + ':' + rawSymbol)
+                        } else {
+                            return lastBarsCache.get(symbolCategory + ':' + rawSymbol.replace('USDT', '_USD'))
+                        }
+            */
         }
 
         subscribeOnStream(
@@ -452,8 +305,8 @@ export default {
             // Convert to Date objects
             const startDateObj = new Date(startDate * 1000);
             const endDateObj = new Date(endDate * 1000);
-            const earningsData = await fetchEarningsFMP(symbolInfo.name, startDateObj, endDateObj);
-            const dividendsData = await fetchDividendsFMP(symbolInfo.name, startDateObj, endDateObj);
+            const earningsData = await fetchEarnings(symbolInfo.name, startDateObj, endDateObj);
+            const dividendsData = await fetchDividends(symbolInfo.name, startDateObj, endDateObj);
             // Process earnings data and add to earningsMarks
             earningsData.forEach(earnings => {
                 earningsMarks.push({

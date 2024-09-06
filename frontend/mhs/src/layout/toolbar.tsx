@@ -629,7 +629,10 @@ const Toolbar = (props: any) => {
                     <MenuItem value={TimeFrame.M5}><span className='toolbar-chart-item'>5M</span></MenuItem>
                     <MenuItem value={TimeFrame.M15}><span className='toolbar-chart-item'>15M</span></MenuItem>
                     <MenuItem value={TimeFrame.M30}><span className='toolbar-chart-item'>30M</span></MenuItem>
+                    <MenuItem value={TimeFrame.M45}><span className='toolbar-chart-item'>45M</span></MenuItem>
                     <MenuItem value={TimeFrame.H}><span className='toolbar-chart-item'>1H</span></MenuItem>
+                    <MenuItem value={TimeFrame.H2}><span className='toolbar-chart-item'>2H</span></MenuItem>
+                    <MenuItem value={TimeFrame.H4}><span className='toolbar-chart-item'>4H</span></MenuItem>
                     <MenuItem value={TimeFrame.W}><span className='toolbar-chart-item'>W</span></MenuItem>
                     <MenuItem value={TimeFrame.M}>-<span className='toolbar-chart-item'>M</span></MenuItem>
                 </Select>

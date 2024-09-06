@@ -67,9 +67,7 @@ import {
 } from "../indicator/indicators";
 import useStore from "../util/store";
 import {
-    changeIndicatorsColor,
-    fetchCandleDataFinnhub,
-    fetchCandleDataFMP,
+    changeIndicatorsColor, fetchCandleDataTwelveData,
     studyChartHeight,
     useEventListener
 } from "../util/utils";
@@ -396,7 +394,10 @@ export const StockChart = (props: StockChartProps) => {
                 "5M": 5 * 60,
                 "15M": 15 * 60,
                 "30M": 30 * 60,
+                "45M": 45 * 60,
                 "1H": 60 * 60,
+                "2H": 2 * 60 * 60,
+                "4H": 4 * 60 * 60,
                 "D": 24 * 3600,
                 "W": 7 * 24 * 3600,
                 "M": 30 * 24 * 3600
@@ -409,7 +410,7 @@ export const StockChart = (props: StockChartProps) => {
             // Fetch more data
             // const moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));
             let ticker = symbol.replace('_USD', 'USD').toLowerCase();
-            const moreData = await fetchCandleDataFMP(ticker, timeFrame, from,  Math.floor(endDate.getTime() / 1000));
+            const moreData = await fetchCandleDataTwelveData(ticker, timeFrame, from,  Math.floor(endDate.getTime() / 1000));
 
             console.log({moreData})
             // Combine new data with existing data

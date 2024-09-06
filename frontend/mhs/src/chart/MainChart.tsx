@@ -76,12 +76,10 @@ import {
 import useStore from "../util/store";
 import {
     changeIndicatorsColor,
-    fetchCandleDataFinnhub,
-    fetchCandleDataFMP,
-    fetchEarningsFMP,
-    fetchDividendsFMP,
+    fetchEarnings,
+    fetchDividends,
     useEventListener,
-    studyChartHeight
+    studyChartHeight, fetchCandleDataTwelveData
 } from "../util/utils";
 import {TrendLineType} from "../type/TrendLineType";
 import {
@@ -561,7 +559,7 @@ export const MainChart = (props: MainChartProps) => {
     }, [themeMode])
 
     const getEarnings = async () => {
-        const earningsData = await fetchEarningsFMP(symbol, data[0].date, new Date());
+        const earningsData = await fetchEarnings(symbol, data[0].date, new Date());
         if (symbolCategory === 'STC' && (earningsData.message === 'Failed to fetch' || earningsData.length === 0)){
             if (earningsData.length === 0){
                 setEarnings([]);
@@ -577,7 +575,7 @@ export const MainChart = (props: MainChartProps) => {
     };
 
     const getDividends = async () => {
-        const dividendsData = await fetchDividendsFMP(symbol, data[0].date, new Date());
+        const dividendsData = await fetchDividends(symbol, data[0].date, new Date());
         if (symbolCategory === 'STC' && (dividendsData.message === 'Failed to fetch' || dividendsData.length === 0)){
             if (dividendsData.length === 0){
                 setDividends([]);
@@ -846,11 +844,15 @@ export const MainChart = (props: MainChartProps) => {
             "5M": 5 * 60,
             "15M": 15 * 60,
             "30M": 30 * 60,
+            "45M": 45 * 60,
             "1H": 60 * 60,
+            "2H": 2 * 60 * 60,
+            "4H": 4 * 60 * 60,
             "D": 24 * 3600,
             "W": 7 * 24 * 3600,
             "M": 30 * 24 * 3600
         };
+
 
         const multiplier = multipliers[timeFrame];
         const from = Math.floor(endDate.getTime() / 1000) - (rowsToDownload * multiplier);
@@ -858,14 +860,10 @@ export const MainChart = (props: MainChartProps) => {
         let moreData = []
 
         try {
-            if (finnhubSymbols.hasOwnProperty(symbol)) {
-                console.log("fetchInitialDataFinnhub", symbol)
-                moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, to);
-            } else {
-                let ticker = symbol.replace('_USD', 'USD').toLowerCase();
-                console.log("fetchInitialDataFMP", ticker)
-                moreData = await fetchCandleDataFMP(ticker, timeFrame, from, to);
-            }
+            let ticker = symbol.replace('_USD', '/USD').toLowerCase();
+            console.log("fetchInitialDataFMP", ticker)
+            moreData = await fetchCandleDataTwelveData(ticker, timeFrame, from, to);
+
             getEarnings();
             getDividends();
             // moreData = await fetchCandleDataFinnhub(symbol, timeFrame, from, Math.floor(endDate.getTime() / 1000));

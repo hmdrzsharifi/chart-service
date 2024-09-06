@@ -1,85 +1,9 @@
-import {FINNHUB_DATA_ADDRESS, FMP_DATA_ADDRESS} from "./constants.js";
-
+import {TWELVE_DATA_ADDRESS} from "./constants.js";
 
 let symbolMap = new Map();
 export {symbolMap};
 
-export async function fetchCandleDataFinnhub(symbol, symbolCategory, tf, from, to) {
-
-    const requestBody = {
-        "Ticker": symbol,
-        "symbolCategory": symbolCategory,
-        "TimeFrame": tf,
-        "from": from,
-        "to": to
-    };
-    // console.log({requestBody})
-
-    const resultData = [];
-    try {
-        const response = await fetch(FINNHUB_DATA_ADDRESS +'/fetchCandleData', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-        })
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const json = await response.json();
-        if (json.length > 0) {
-            json.forEach((entry) => {
-                resultData.push(mapObjectFinnhub(entry));
-            });
-        }
-        console.log({resultData})
-        return resultData;
-    } catch (error) {
-        console.error('There was an error fetching the candle data:', error);
-        throw error; // Re-throw the error for the calling code to handle
-    }
-}
-
-export async function fetchInitialDataFMP(symbol, tf, from, to) {
-
-    const requestBody = {
-        "Ticker": symbol,
-        "TimeFrame": tf,
-        "from": from,
-        "to": to
-    };
-    console.log({requestBody})
-
-    const resultData = [];
-    try {
-        const response = await fetch(FMP_DATA_ADDRESS +'/fetchCandleData', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-        })
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const json = await response.json();
-        if (json.length > 0) {
-            json.forEach((entry) => {
-                resultData.push(mapObjectFMP(entry));
-            });
-        }
-        console.log({resultData})
-        return resultData;
-    } catch (error) {
-        console.error('There was an error fetching the candle data:', error);
-        throw error; // Re-throw the error for the calling code to handle
-    }
-}
-
-export async function fetchCandleData(symbolCategory, requestBody, url) {
+export async function fetchCandleData(requestBody, url) {
     try {
         const response = await fetch(url + '/fetchCandleData', {
             method: 'POST',
@@ -95,7 +19,8 @@ export async function fetchCandleData(symbolCategory, requestBody, url) {
         const resultData = [];
         if (json.length > 0) {
             json.forEach((entry) => {
-                resultData.push(symbolCategory === 'STC' || symbolCategory === 'ETF'? mapObjectFMP(entry) : mapObjectFinnhub(entry));
+                // resultData.push(symbolCategory === 'STC' || symbolCategory === 'ETF'? mapObjectFMP(entry) : mapObjectFinnhub(entry));
+                resultData.push(mapObjectTwelve(entry));
             });
         }
         return resultData;
@@ -104,10 +29,11 @@ export async function fetchCandleData(symbolCategory, requestBody, url) {
         throw error; // Re-throw the error for the calling code to handle
     }
 }
+
 export async function getAllSymbols() {
     let allSymbols = [];
     try {
-        const response = await fetch(FMP_DATA_ADDRESS + '/getAllSymbols', {
+        const response = await fetch(TWELVE_DATA_ADDRESS + '/getAllSymbols', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -143,16 +69,15 @@ function mapSymbolResult(originalObject) {
     };
 }
 
-
-export async function fetchEarningsFMP(symbol, from, to) {
+export async function fetchEarnings(symbol, from, to) {
     const requestBody = {
-        "Ticker": symbol,
+        "ticker": symbol,
         "from": from,
         "to": to
     };
     const resultData = [];
     try {
-        const response = await fetch(FMP_DATA_ADDRESS +'/fetchEarnings', {
+        const response = await fetch(TWELVE_DATA_ADDRESS +'/fetchEarnings', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -173,15 +98,15 @@ export async function fetchEarningsFMP(symbol, from, to) {
     }
 }
 
-export async function fetchDividendsFMP(symbol, from, to) {
+export async function fetchDividends(symbol, from, to) {
     const requestBody = {
-        "Ticker": symbol,
+        "ticker": symbol,
         "from": from,
         "to": to
     };
     const resultData = [];
     try {
-        const response = await fetch(FMP_DATA_ADDRESS +'/fetchDividends', {
+        const response = await fetch(TWELVE_DATA_ADDRESS +'/fetchDividends', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -222,24 +147,13 @@ const getType = (categoryName) => {
 };
 
 
-export function mapObjectFinnhub(originalObject) {
+export function mapObjectTwelve(originalObject) {
     return {
-        time: new Date(originalObject.t * 1000),
-        open: originalObject.o,
-        high: originalObject.h,
-        low: originalObject.l,
-        close: originalObject.c,
-        volume: originalObject.v,
-    };
-}
-
-export function mapObjectFMP(originalObject) {
-    return {
-        time: new Date(originalObject.date),
+        time: new Date(originalObject.datetime + 'Z'),
         open: originalObject.open,
         high: originalObject.high,
         low: originalObject.low,
         close: originalObject.close,
-        volume: originalObject.volume
+        // volume: originalObject.volume
     };
 }
