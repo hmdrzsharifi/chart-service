@@ -150,6 +150,7 @@ const getType = (categoryName) => {
 export function mapObjectTwelve(originalObject) {
     return {
         time: new Date(originalObject.datetime + 'Z'),
+        // time: new Date(originalObject.datetime),
         open: originalObject.open,
         high: originalObject.high,
         low: originalObject.low,

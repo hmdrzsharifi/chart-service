@@ -24,7 +24,7 @@ function initializeWebSocket() {
     });
 }
 
-function handleRealTimeCandleCex(message, symbol) {
+/*function handleRealTimeCandleCex(message, symbol) {
     const tradePrice = parseFloat(message.ask);
     const tradeVolume = message.volume;
     const tradeTime = message.timestamp / 1000;
@@ -108,6 +108,77 @@ function handleRealTimeCandleCex(message, symbol) {
         lastBarsCache.set(symbolCategory + ':' + symbol, bar); // Update cache
     } else {
         // update lastBar candle!
+        if (tradePrice < lastBar.low) {
+            lastBar.low = tradePrice;
+        } else if (tradePrice > lastBar.high) {
+            lastBar.high = tradePrice;
+        }
+        lastBar.volume += tradeVolume;
+        lastBar.close = tradePrice;
+        bar = lastBar;
+
+        lastBarsCache.set(symbolCategory + ':' + symbol, lastBar);
+    }
+
+    subscriptionItem.lastDailyBar = bar;
+
+    // Send data to every subscriber of that symbol
+    subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
+}*/
+
+function handleRealTimeCandleCex(message, symbol) {
+    const tradePrice = parseFloat(message.ask);
+    const tradeVolume = message.volume;
+    // const tradeTime = message.timestamp / 1000; // For Finnhub and FMP
+    const tradeTime = message.timestamp; // For TewlveData
+    const parsedSymbol = {
+        exchange: 'crypto',
+        fromSymbol: message.symbol,
+        toSymbol: 'USDT',
+    };
+    const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
+    const subscriptionItem = channelToSubscription.get(channelString);
+    const symbolCategory = message.categoryName; // For Test
+
+    let lastBar = lastBarsCache.get(symbolCategory + ':' + symbol);
+    let resolution = window.tvWidget.symbolInterval().interval;
+
+    let timeFrame;
+    switch (resolution) {
+        case "1": timeFrame = 1; break;
+        case "5": timeFrame = 5; break;
+        case "15": timeFrame = 15; break;
+        case "30": timeFrame = 30; break;
+        case "45": timeFrame = 45; break;
+        case "60": timeFrame = 60; break;
+        case "120": timeFrame = 120; break;
+        case "240": timeFrame = 240; break;
+        case "D": timeFrame = 1440; break;
+        case "1W": timeFrame = 10080; break;
+        case "1M": timeFrame = 44640; break;
+        default: timeFrame = 1440;
+    }
+
+    let coeff = timeFrame * 60;
+    let rounded = Math.floor(tradeTime / coeff) * coeff;
+    let lastBarSec =lastBar.time/1000;
+
+    let bar;
+        if (rounded > lastBarSec) {
+        console.log("candle new time", message.timestamp)
+        // create a new candle
+        bar = {
+            //time: message.timestamp, // For Finnhub and FMP
+            time: message.timestamp * 1000,
+            open: tradePrice,
+            high: tradePrice,
+            low: tradePrice,
+            close: tradePrice,
+            // volume: tradeVolume
+        };
+        lastBarsCache.set(symbolCategory + ':' + symbol, bar); // Update cache
+    } else {
+        // update lastBar candle
         if (tradePrice < lastBar.low) {
             lastBar.low = tradePrice;
         } else if (tradePrice > lastBar.high) {

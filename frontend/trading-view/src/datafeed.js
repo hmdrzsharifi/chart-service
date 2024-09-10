@@ -37,49 +37,22 @@ const configurationData = {
     ],
     // The `symbols_types` arguments are used for the `searchSymbols` method if a user selects this symbol type
     symbols_types: [
-        {
-            name: 'ALL',
-            value: 'ALL',
-        },
-        {
-            name: 'CRT',
-            value: 'CRT',
-        },
-        {
-            name: 'FX',
-            value: 'FX',
-        },
-        {
-            name: 'STC',
-            value: 'STC',
-        },
-        {
-            name: 'IND',
-            value: 'IND',
-        },
-        {
-            name: 'ETF',
-            value: 'ETF',
-        },
-        {
-            name: 'CMD',
-            value: 'CMD',
-        },
+        { name: 'ALL', value: 'ALL' },
+        { name: 'CRT', value: 'CRT' },
+        { name: 'FX', value: 'FX' },
+        { name: 'STC', value: 'STC' },
+        { name: 'IND', value: 'IND' },
+        { name: 'ETF', value: 'ETF' },
+        { name: 'CMD', value: 'CMD' },
     ],
 };
 
 export default {
-
     onReady: (callback) => {
         setTimeout(() => callback(configurationData));
     },
 
-    searchSymbols: async (
-        userInput,
-        exchange,
-        symbolType,
-        onResultReadyCallback,
-    ) => {
+    searchSymbols: async (userInput, exchange, symbolType, onResultReadyCallback) => {
         let allSymbols = await getAllSymbols();
         let matchingSymbols;
         if (symbolType === 'ALL') {
@@ -143,8 +116,7 @@ export default {
     },
 
     getBars: async (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
-        const {from, to, firstDataRequest, countBack} = periodParams;
-
+        const { from, to, firstDataRequest, countBack } = periodParams;
         const resolutionMapping = {
             '1': '1M',
             '5': '5M',
@@ -158,7 +130,6 @@ export default {
             '1W': 'W',
             '1M': 'M'
         };
-
         const reqResolution = resolutionMapping[resolution];
 
         const {symbol} = window.tvWidget.symbolInterval();
@@ -232,13 +203,7 @@ export default {
 
     },
 
-    subscribeBars: (
-        symbolInfo,
-        resolution,
-        onRealtimeCallback,
-        subscriberUID,
-        onResetCacheNeededCallback,
-    ) => {
+    subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback,) => {
         // console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
         // let symbolCategory =  window.tvWidget._options.symbolCategory; // For Server
         let symbolCategory = symbolInfo.type; // For Test

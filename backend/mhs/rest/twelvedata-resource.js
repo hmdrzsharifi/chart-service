@@ -51,7 +51,7 @@ app.post('/fetchCandleData', async (req, res) => {
     const toDate = moment.unix(to).format('YYYY-MM-DD HH:mm:ss'); // multiply by 1000 to convert to milliseconds
 
     // Construct API request URL
-    const url = `https://api.twelvedata.com/time_series?start_date=${fromDate}&end_date=${toDate}&timezone=UTC&outputsize=5000&symbol=${ticker}&interval=${interval}&apikey=${apiKey}`;
+    const url = `https://api.twelvedata.com/time_series?start_date=${fromDate}&end_date=${toDate}&symbol=${ticker}&interval=${interval}&apikey=${apiKey}&timezone=UTC&outputsize=5000&order=ASC`;
 
     try {
         // Make API request to Twelvedata
@@ -68,7 +68,7 @@ app.post('/fetchCandleData', async (req, res) => {
         }
 
         // Return response data
-        res.json(response.data.values.reverse());
+        res.json(response.data.values);
     } catch (error) {
         console.error(error);
         // res.status(500).send({ error: 'Failed to retrieve data from Twelvedata' });
