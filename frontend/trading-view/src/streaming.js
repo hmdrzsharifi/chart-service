@@ -138,6 +138,7 @@ function handleRealTimeCandleCex(message, symbol) {
     };
     const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
     const subscriptionItem = channelToSubscription.get(channelString);
+    //const symbolCategory =  window.tvWidget._options.symbolCategory; // For Server
     const symbolCategory = message.categoryName; // For Test
 
     let lastBar = lastBarsCache.get(symbolCategory + ':' + symbol);
